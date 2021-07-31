@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) 2020-2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
 
@@ -28,7 +28,8 @@ import Text from 'antd/lib/typography/Text';
 import getCore from 'cvat-core-wrapper';
 import consts from 'consts';
 
-import { CVATLogo, AccountIcon } from 'icons';
+import AGSLogo from '../../assets/ags-logo.png';
+import { AccountIcon } from 'icons';
 import ChangePasswordDialog from 'components/change-password-modal/change-password-modal';
 import { switchSettingsDialog as switchSettingsDialogAction } from 'actions/settings-actions';
 import { logoutAsync, authActions } from 'actions/auth-actions';
@@ -232,7 +233,11 @@ function HeaderContainer(props: Props): JSX.Element {
                 About
             </Menu.Item>
             {renderChangePasswordItem && (
-                <Menu.Item className='cvat-header-menu-change-password' onClick={(): void => switchChangePasswordDialog(true)} disabled={changePasswordFetching}>
+                <Menu.Item
+                    className='cvat-header-menu-change-password'
+                    onClick={(): void => switchChangePasswordDialog(true)}
+                    disabled={changePasswordFetching}
+                >
                     {changePasswordFetching ? <LoadingOutlined /> : <EditOutlined />}
                     Change password
                 </Menu.Item>
@@ -248,7 +253,7 @@ function HeaderContainer(props: Props): JSX.Element {
     return (
         <Layout.Header className='cvat-header'>
             <div className='cvat-left-header'>
-                <Icon className='cvat-logo-icon' component={CVATLogo} />
+                <img src={AGSLogo} className='cvat-logo-icon' />
                 <Button
                     className='cvat-header-button'
                     type='link'
@@ -320,12 +325,12 @@ function HeaderContainer(props: Props): JSX.Element {
                 <Button
                     className='cvat-header-button'
                     type='link'
-                    href={`${tool.server.host}/documentation/user_guide.html`}
+                    href='https://openvinotoolkit.github.io/cvat/docs'
                     onClick={(event: React.MouseEvent): void => {
                         event.preventDefault();
                         // false positive
                         // eslint-disable-next-line
-                        window.open(`${tool.server.host}/documentation/user_guide.html`, '_blank');
+                        window.open('https://openvinotoolkit.github.io/cvat/docs');
                     }}
                 >
                     <QuestionCircleOutlined />

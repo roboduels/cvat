@@ -27,6 +27,11 @@
     align-items: center;
 }
 
+.cvat-logo-icon {
+    height: 100%;
+    padding: 10px;
+}
+
 .anticon.cvat-logo-icon {
     > svg {
         transform: scale(0.7);
