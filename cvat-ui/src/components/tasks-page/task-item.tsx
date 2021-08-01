@@ -171,7 +171,9 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
     }
 
     public render(): JSX.Element {
-        const { deleted, hidden } = this.props;
+        const { deleted, hidden, taskInstance, history } = this.props;
+        const { id } = taskInstance;
+        
         const style = {};
         if (deleted) {
             (style as any).pointerEvents = 'none';
@@ -181,9 +183,19 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         if (hidden) {
             (style as any).display = 'none';
         }
+        (style as any).cursor = 'pointer';
 
         return (
-            <Row className='cvat-tasks-list-item' justify='center' align='top' style={{ ...style }}>
+            <Row 
+                className='cvat-tasks-list-item' 
+                justify='center' 
+                align='top' 
+                style={{ ...style }}
+                onClick={(e: React.MouseEvent): void => {
+                    e.preventDefault();
+                    history.push(`/tasks/${id}`);
+                }}
+            >
                 {this.renderPreview()}
                 {this.renderDescription()}
                 {this.renderProgress()}

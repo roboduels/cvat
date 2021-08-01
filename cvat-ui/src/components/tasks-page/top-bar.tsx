@@ -32,7 +32,7 @@ export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element 
             <Col md={22} lg={18} xl={16} xxl={14}>
                 <Row justify='space-between' align='bottom'>
                     <Col>
-                        <Text className='cvat-title'>Tasks</Text>
+                        <Text className='cvat-title'>My Assigned Tasks</Text>
                         <SearchTooltip instance='task'>
                             <Input.Search
                                 className='cvat-task-page-search-task'
