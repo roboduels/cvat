@@ -160,8 +160,22 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                 </Row>
                 <Row justify='end'>
                     <Col className='cvat-item-open-task-actions'>
-                        <Text className='cvat-text-color'>Actions</Text>
-                        <Dropdown overlay={<ActionsMenuContainer taskInstance={taskInstance} />}>
+                        <Text 
+                            className='cvat-text-color' 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                        >
+                            Actions
+                        </Text>
+                        <Dropdown 
+                            overlay={<ActionsMenuContainer taskInstance={taskInstance} />}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                        >
                             <Icon className='cvat-menu-icon' component={MenuIcon} />
                         </Dropdown>
                     </Col>
