@@ -8,7 +8,7 @@ import { TasksQuery, CombinedState, ActiveInference } from 'reducers/interfaces'
 
 import TaskItemComponent from 'components/tasks-page/task-item';
 
-import { getTasksAsync } from 'actions/tasks-actions';
+import { getTasksAsync, updateTaskAsync, updateJobAsync } from 'actions/tasks-actions';
 import { cancelInferenceAsync } from 'actions/models-actions';
 
 interface StateToProps {
@@ -22,6 +22,8 @@ interface StateToProps {
 interface DispatchToProps {
     getTasks(query: TasksQuery): void;
     cancelAutoAnnotation(): void;
+    onTaskUpdate: (taskInstance: any) => void;
+    onJobUpdate: (jobInstance: any) => void;
 }
 
 interface OwnProps {
@@ -50,6 +52,12 @@ function mapDispatchToProps(dispatch: any, own: OwnProps): DispatchToProps {
         },
         cancelAutoAnnotation(): void {
             dispatch(cancelInferenceAsync(own.taskID));
+        },
+        onTaskUpdate(taskInstance: any): void {
+            dispatch(updateTaskAsync(taskInstance));
+        },
+        onJobUpdate(jobInstance: any): void {
+            dispatch(updateJobAsync(jobInstance));
         },
     };
 }

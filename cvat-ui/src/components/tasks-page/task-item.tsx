@@ -17,6 +17,7 @@ import ActionsMenuContainer from 'containers/actions-menu/actions-menu';
 import { ActiveInference } from 'reducers/interfaces';
 import { MenuIcon } from 'icons';
 import AutomaticAnnotationProgress from './automatic-annotation-progress';
+import UserSelector, { User } from 'components/task-page/user-selector';
 
 export interface TaskItemProps {
     taskInstance: any;
@@ -25,6 +26,8 @@ export interface TaskItemProps {
     hidden: boolean;
     activeInference: ActiveInference | null;
     cancelAutoAnnotation(): void;
+    onTaskUpdate: (taskInstance: any) => void;
+    onJobUpdate: (jobInstance: any) => void;
 }
 
 class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteComponentProps> {
@@ -51,7 +54,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         const name = `${taskInstance.name.substring(0, 70)}${taskInstance.name.length > 70 ? '...' : ''}`;
 
         return (
-            <Col span={10} className='cvat-task-item-description'>
+            <Col span={8} className='cvat-task-item-description'>
                 <Text strong type='secondary' className='cvat-item-task-id'>{`#${id}: `}</Text>
                 <Text strong className='cvat-item-task-name'>
                     {name}
@@ -69,7 +72,10 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
     }
 
     private renderProgress(): JSX.Element {
-        const { taskInstance, activeInference, cancelAutoAnnotation } = this.props;
+        const { taskInstance, activeInference, cancelAutoAnnotation, onTaskUpdate, onJobUpdate } = this.props;
+        const assignee = taskInstance.assignee ? taskInstance.assignee : null;
+        const jobInstance = taskInstance?.jobs?.[0];
+        const reviewer = jobInstance?.reviewer;
         // Count number of jobs and performed jobs
         const numOfJobs = taskInstance.jobs.length;
         const numOfCompleted = taskInstance.jobs.filter((job: any): boolean => job.status === 'completed').length;
@@ -103,7 +109,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         const jobsProgress = numOfCompleted / numOfJobs;
 
         return (
-            <Col span={6}>
+            <Col span={8}>
                 <Row justify='space-between' align='top'>
                     <Col>
                         <svg height='8' width='8' className={progressColor}>
@@ -131,6 +137,34 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     activeInference={activeInference}
                     cancelAutoAnnotation={cancelAutoAnnotation}
                 />
+                <Row 
+                    gutter={8}
+                    onClick={(e: React.MouseEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <Col span={12}>
+                        <Text type='secondary' style={{fontSize: 12}}>Assigned to</Text>
+                        <UserSelector
+                            value={assignee}
+                            onSelect={(value: User | null): void => {
+                                taskInstance.assignee = value;
+                                onTaskUpdate(taskInstance);
+                            }}
+                        />
+                    </Col>
+                    <Col span={12}>
+                        <Text type='secondary' style={{fontSize: 12}}>Reviewer</Text>
+                        <UserSelector
+                            value={reviewer}
+                            onSelect={(value: User | null): void => {
+                                jobInstance.reviewer = value;
+                                onJobUpdate(jobInstance);
+                            }}
+                        />
+                    </Col>
+                </Row>
             </Col>
         );
     }
@@ -162,7 +196,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     <Col className='cvat-item-open-task-actions'>
                         <Text 
                             className='cvat-text-color' 
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                             }}
@@ -171,7 +205,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                         </Text>
                         <Dropdown 
                             overlay={<ActionsMenuContainer taskInstance={taskInstance} />}
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                             }}
