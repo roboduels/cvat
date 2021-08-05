@@ -172,7 +172,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
     private renderNavigation(): JSX.Element {
         const { taskInstance, history } = this.props;
         const { id } = taskInstance;
-
+        const jobId = taskInstance?.jobs?.[0]?.id;
         return (
             <Col span={4}>
                 <Row justify='end'>
@@ -182,10 +182,10 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                             type='primary'
                             size='large'
                             ghost
-                            href={`/tasks/${id}`}
+                            href={`/tasks/${id}/jobs/${jobId}`}
                             onClick={(e: React.MouseEvent): void => {
                                 e.preventDefault();
-                                history.push(`/tasks/${id}`);
+                                history.push(`/tasks/${id}/jobs/${jobId}`);
                             }}
                         >
                             Open
@@ -221,6 +221,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
     public render(): JSX.Element {
         const { deleted, hidden, taskInstance, history } = this.props;
         const { id } = taskInstance;
+        const jobId = taskInstance?.jobs?.[0]?.id;
         
         const style = {};
         if (deleted) {
@@ -241,7 +242,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                 style={{ ...style }}
                 onClick={(e: React.MouseEvent): void => {
                     e.preventDefault();
-                    history.push(`/tasks/${id}`);
+                    history.push(`/tasks/${id}/jobs/${jobId}`);
                 }}
             >
                 {this.renderPreview()}
