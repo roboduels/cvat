@@ -62,6 +62,9 @@ export default function ActionsMenuComponent(props: Props): JSX.Element {
         if (!copyParams) {
             return;
         }
+        copyParams.domEvent.preventDefault();
+        copyParams.domEvent.stopPropagation();
+        
         latestParams = copyParams;
 
         if (copyParams.keyPath.length === 2) {

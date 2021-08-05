@@ -178,6 +178,17 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
         this.updateURL(query);
     };
 
+    private filterByStatus = (status: string): void => {
+        const { gettingQuery } = this.props;
+
+        // modify query object
+        const query = { ...gettingQuery };
+        query.status = status;
+
+        // update url according to new query object
+        this.updateURL(query);
+    };
+
     private updateURL(gettingQuery: TasksQuery): void {
         const { history } = this.props;
         let queryString = '?';
@@ -214,6 +225,8 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
                     searchValue={getSearchField(gettingQuery)}
                     onFileUpload={onImportTask}
                     taskImporting={taskImporting}
+                    onFilterStatus={this.filterByStatus}
+                    filterStatus={gettingQuery['status']}
                 />
                 {numberOfVisibleTasks ? (
                     <TaskListContainer onSwitchPage={this.handlePagination} />
