@@ -253,7 +253,14 @@ function HeaderContainer(props: Props): JSX.Element {
     return (
         <Layout.Header className='cvat-header'>
             <div className='cvat-left-header'>
-                <img src={AGSLogo} className='cvat-logo-icon' />
+                <img 
+                    src={AGSLogo} 
+                    className='cvat-logo-icon' 
+                    onClick={(event: React.MouseEvent): void => {
+                        event.preventDefault();
+                        history.push('/tasks');
+                    }}
+                />
                 <Button
                     className='cvat-header-button'
                     type='link'
