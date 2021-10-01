@@ -401,6 +401,10 @@ export interface PredictorState {
     annotatedFrames: number[];
 }
 
+interface GradesFormState {
+    open: boolean;
+}
+
 export interface AnnotationState {
     activities: {
         loads: {
@@ -500,6 +504,7 @@ export interface AnnotationState {
     workspace: Workspace;
     predictor: PredictorState;
     aiToolsRef: MutableRefObject<any>;
+    gradesFrom: GradesFormState;
 }
 
 export enum Workspace {

@@ -14,23 +14,29 @@ import {
     changeFrameAsync,
     changeWorkspace as changeWorkspaceAction,
     collectStatisticsAsync,
+    getPredictionsAsync,
     redoActionAsync,
     saveAnnotationsAsync,
     searchAnnotationsAsync,
     searchEmptyFrameAsync,
     setForceExitAnnotationFlag as setForceExitAnnotationFlagAction,
-    switchPredictor as switchPredictorAction,
-    getPredictionsAsync,
     showFilters as showFiltersAction,
     showStatistics as showStatisticsAction,
     switchPlay,
+    switchPredictor as switchPredictorAction,
+    toggleGradesFormState,
     undoActionAsync,
 } from 'actions/annotation-actions';
 import AnnotationTopBarComponent from 'components/annotation-page/top-bar/top-bar';
 import { Canvas } from 'cvat-canvas-wrapper';
 import { Canvas3d } from 'cvat-canvas3d-wrapper';
 import {
-    CombinedState, FrameSpeed, Workspace, PredictorState, DimensionType, ActiveControl,
+    ActiveControl,
+    CombinedState,
+    DimensionType,
+    FrameSpeed,
+    PredictorState,
+    Workspace,
 } from 'reducers/interfaces';
 import GlobalHotKeys, { KeyMap } from 'utils/mousetrap-react';
 
@@ -57,6 +63,7 @@ interface StateToProps {
     predictor: PredictorState;
     activeControl: ActiveControl;
     isTrainingActive: boolean;
+    gradeFormsOpen: boolean;
 }
 
 interface DispatchToProps {
@@ -72,6 +79,7 @@ interface DispatchToProps {
     setForceExitAnnotationFlag(forceExit: boolean): void;
     changeWorkspace(workspace: Workspace): void;
     switchPredictor(predictorEnabled: boolean): void;
+    onToggleGradeForms(): void;
 }
 
 function mapStateToProps(state: CombinedState): StateToProps {
@@ -89,6 +97,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
             canvas: { ready: canvasIsReady, instance: canvasInstance, activeControl },
             workspace,
             predictor,
+            gradesFrom,
         },
         settings: {
             player: { frameSpeed, frameStep },
@@ -121,6 +130,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         predictor,
         activeControl,
         isTrainingActive: list.PREDICT,
+        gradeFormsOpen: gradesFrom.open,
     };
 }
 
@@ -166,6 +176,9 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
             if (predictorEnabled) {
                 dispatch(getPredictionsAsync());
             }
+        },
+        onToggleGradeForms(): void {
+            dispatch(toggleGradesFormState());
         },
     };
 }
@@ -546,6 +559,8 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             searchAnnotations,
             changeWorkspace,
             switchPredictor,
+            gradeFormsOpen,
+            onToggleGradeForms,
         } = this.props;
 
         const preventDefault = (event: KeyboardEvent | undefined): void => {
@@ -686,6 +701,8 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
                     jobInstance={jobInstance}
                     isTrainingActive={isTrainingActive}
                     activeControl={activeControl}
+                    gradeFormsOpen={gradeFormsOpen}
+                    onToggleGradeForms={onToggleGradeForms}
                 />
             </>
         );

@@ -1,11 +1,14 @@
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
 
 import thunk from 'redux-thunk';
-import { createStore, applyMiddleware, Store, Reducer } from 'redux';
+import {
+    applyMiddleware, createStore, Reducer, Store,
+} from 'redux';
 import { createLogger } from 'redux-logger';
 import { isDev } from 'utils/enviroment';
+import { CombinedState } from './reducers/interfaces';
 
 const logger = createLogger({
     predicate: isDev,
@@ -35,4 +38,8 @@ export function getCVATStore(): Store {
     }
 
     throw new Error('First create a store');
+}
+
+declare module 'react-redux' {
+    type DefaultRootState = CombinedState;
 }
