@@ -11,13 +11,6 @@ import { CloseCircleOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setGradesFormState } from '../../../actions/annotation-actions';
 
-/**
- *
- * @author: Dumitrana Alinus <alinus@wooter.co>
- * @component: GradesForm
- * @date: 01.10.2021
- * @time: 19:50
- */
 export function GradesForm(): JSX.Element | null {
     const dispatch = useDispatch();
     const open = useSelector((state) => state.annotation.gradesFrom.open);
@@ -128,12 +121,7 @@ export function GradesForm(): JSX.Element | null {
                 </Col>
             </Row>
 
-            <Button
-                className='grades-form-close'
-                shape='circle'
-                icon={<CloseCircleOutlined />}
-                onClick={handleClose}
-            />
+            <Button className='grades-form-close' shape='circle' icon={<CloseCircleOutlined />} onClick={handleClose} />
         </div>
     );
 }

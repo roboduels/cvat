@@ -11,13 +11,6 @@ interface Props {
     onClick(): void;
 }
 
-/**
- *
- * @author: Dumitrana Alinus <alinus@wooter.co>
- * @component: GradesFormToggle
- * @date: 01.10.2021
- * @time: 20:36
- */
 export function GradesFormToggle({ open, onClick }: Props): JSX.Element {
     return (
         <Tooltip placement='bottom' title={open ? 'Close grades form' : 'Open grades form'}>
