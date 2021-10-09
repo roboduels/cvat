@@ -506,9 +506,11 @@ button.cvat-predictor-button {
     left: 0;
     right: 0;
     background-color: #fff;
+
     &.loading {
         padding: 64px;
     }
+
     &-info {
         display: block;
         &-typography {
@@ -517,21 +519,25 @@ button.cvat-predictor-button {
             font-weight: 500;
         }
     }
+
     &-error {
         display: flex;
         width: 100%;
         justify-content: flex-end;
         padding-right: 54px;
         padding-top: 6px;
+
         &-typography {
             display: inline-flex;
             font-weight: 500;
             color: #f00;
         }
     }
+
     &-section {
         margin-top: 14px;
     }
+
     &-close {
         position: absolute;
         top: 14px;
