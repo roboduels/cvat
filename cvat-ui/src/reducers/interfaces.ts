@@ -607,6 +607,36 @@ export interface ReviewState {
     };
 }
 
+export interface CvatGrades {
+    center: number;
+    surface: number;
+    edge: number;
+    corner: number;
+}
+
+export interface GradesState {
+    loading: boolean;
+    error: Error | string | null;
+    values: {
+        front_centering_human_grade: number;
+        front_corners_human_grade: number;
+        front_edges_human_grade: number;
+        front_surface_human_grade: number;
+        back_centering_human_grade: number;
+        back_corners_human_grade: number;
+        back_edges_human_grade: number;
+        back_surface_human_grade: number;
+        front_centering_laser_grade: number;
+        front_corners_laser_grade: number;
+        front_edges_laser_grade: number;
+        front_surface_laser_grade: number;
+        back_centering_laser_grade: number;
+        back_corners_laser_grade: number;
+        back_edges_laser_grade: number;
+        back_surface_laser_grade: number;
+    };
+}
+
 export interface CombinedState {
     auth: AuthState;
     projects: ProjectsState;
@@ -622,6 +652,7 @@ export interface CombinedState {
     settings: SettingsState;
     shortcuts: ShortcutsState;
     review: ReviewState;
+    grades: GradesState;
 }
 
 export enum DimensionType {

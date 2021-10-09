@@ -8,7 +8,6 @@ import {
 } from 'redux';
 import { createLogger } from 'redux-logger';
 import { isDev } from 'utils/enviroment';
-import { CombinedState } from './reducers/interfaces';
 
 const logger = createLogger({
     predicate: isDev,
@@ -38,8 +37,4 @@ export function getCVATStore(): Store {
     }
 
     throw new Error('First create a store');
-}
-
-declare module 'react-redux' {
-    type DefaultRootState = CombinedState;
 }
