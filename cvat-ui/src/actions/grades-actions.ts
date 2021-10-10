@@ -33,11 +33,12 @@ export const gradesActions = {
 export type GradesActions = ActionUnion<typeof gradesActions>;
 
 function apiCall(endpoint: string, opts: RequestInit = {}): Promise<Response> {
+    const token = process.env.API_TOKEN;
     return fetch(`http://34.222.149.76/api${endpoint}`, {
         ...opts,
         headers: {
             ...(opts.headers || {}),
-            Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQ3MDE5ODQ4LCJqdGkiOiI3NDU2ZjE4NjVmNTI0MmY0ODgwNWQzNWVkZjAzYzQzZCIsInVzZXJfaWQiOjU3OH0.MiTXDgWsHdpXm7J1noaRu9fGbv8u6i3IrDJE2bpK3bg',
+            Authorization: `Bearer ${token}`,
         },
     });
 }
@@ -177,8 +178,6 @@ export const submitHumanGradesAsync = (certificateId?: string | number | null): 
                 back_corners_human_grade: mapGradeValue(values.back_corners_human_grade),
                 back_edges_human_grade: mapGradeValue(values.back_edges_human_grade),
                 back_surface_human_grade: mapGradeValue(values.back_surface_human_grade),
-
-                // TODO: calculate
                 overall_centering_grade: overallCenteringGrade,
                 overall_corners_grade: overallCornersGrade,
                 overall_edges_grade: overallEdgesGrade,
