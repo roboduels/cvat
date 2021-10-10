@@ -521,10 +521,12 @@ button.cvat-predictor-button {
         }
     }
 
-    &-error {
+    &-error,
+    &-warning {
         display: flex;
+        flex-direction: column;
+        align-items: flex-end;
         width: 100%;
-        justify-content: flex-end;
         padding-right: 54px;
         padding-top: 6px;
 
@@ -533,6 +535,10 @@ button.cvat-predictor-button {
             font-weight: 500;
             color: #f00;
         }
+    }
+
+    &-warning-typography {
+        color: #ff8c00;
     }
 
     &-section {

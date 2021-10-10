@@ -9,6 +9,7 @@ import { mapGradeValue } from '../utils/grades';
 const defaultState: GradesState = {
     loading: false,
     error: null,
+    warning: null,
     values: {
         front_centering_human_grade: 0,
         front_corners_human_grade: 0,
@@ -33,6 +34,8 @@ export default function (state: GradesState = defaultState, action: any): Grades
     switch (action.type as GradesActionsTypes) {
         case GradesActionsTypes.SET_ERROR:
             return { ...state, error: action.payload.error };
+        case GradesActionsTypes.SET_WARNING:
+            return { ...state, warning: action.payload.warning };
         case GradesActionsTypes.SET_LOADING:
             return { ...state, loading: action.payload.loading };
         case GradesActionsTypes.LOAD_VALUES:

@@ -26,19 +26,22 @@ export function GradesForm(): JSX.Element | null {
     const open = useSelector((state: CombinedState) => state.annotation.gradesFrom.open);
     const isLoading = useSelector((state: CombinedState) => state.grades.loading);
     const error = useSelector((state: CombinedState) => state.grades.error);
+    const warning = useSelector((state: CombinedState) => state.grades.warning);
     const values = useSelector((state: CombinedState) => state.grades.values);
     const frameFilename = useSelector((state: CombinedState) => state.annotation.player.frame.filename);
     const frameOptions = useMemo(() => parseFilename(frameFilename), [frameFilename]);
+
+    const hasErrorOrWarning = !!(warning || error);
 
     const handleClose = useCallback(() => {
         dispatch(setGradesFormState(false));
     }, [dispatch]);
 
     const handleSubmit = useCallback(async () => {
-        dispatch(submitAnnotationFrameToGradeAsync(frameOptions.orientation!));
+        dispatch(submitAnnotationFrameToGradeAsync(frameOptions.orientation));
     }, []);
     const handleUpdate = useCallback(async () => {
-        dispatch(submitHumanGradesAsync(frameOptions.certificateId!));
+        dispatch(submitHumanGradesAsync(frameOptions.certificateId));
     }, []);
 
     const handleChangeGrade = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
@@ -46,8 +49,10 @@ export function GradesForm(): JSX.Element | null {
     }, []);
 
     useEffect(() => {
-        dispatch(loadingGradesAsync(frameOptions.certificateId!));
-    }, []);
+        if (open) {
+            dispatch(loadingGradesAsync(frameOptions.certificateId));
+        }
+    }, [open]);
 
     if (!open) {
         return null;
@@ -64,7 +69,7 @@ export function GradesForm(): JSX.Element | null {
     return (
         <div className='grades-form'>
             <Row>
-                <Col span={error ? 12 : 24}>
+                <Col span={hasErrorOrWarning ? 12 : 24}>
                     <div className='grades-form-info'>
                         <Typography.Text className='grades-form-info-typography'>
                             <b>Certificate ID</b>
@@ -85,12 +90,19 @@ export function GradesForm(): JSX.Element | null {
                         </Typography.Text>
                     </div>
                 </Col>
-                {error ? (
+                {hasErrorOrWarning ? (
                     <Col span={12}>
                         <div className='grades-form-error'>
-                            <Typography.Text className='grades-form-error-typography'>
-                                {typeof error === 'string' ? error : error.message}
-                            </Typography.Text>
+                            {error ? (
+                                <Typography.Text className='grades-form-error-typography'>
+                                    {typeof error === 'string' ? error : error.message}
+                                </Typography.Text>
+                            ) : null}
+                            {warning ? (
+                                <Typography.Text className='grades-form-warning-typography'>
+                                    {typeof warning === 'string' ? warning : warning.message}
+                                </Typography.Text>
+                            ) : null}
                         </div>
                     </Col>
                 ) : null}

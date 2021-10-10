@@ -617,6 +617,7 @@ export interface CvatGrades {
 export interface GradesState {
     loading: boolean;
     error: Error | string | null;
+    warning: Error | string | null;
     values: {
         front_centering_human_grade: number;
         front_corners_human_grade: number;
