@@ -492,3 +492,62 @@ button.cvat-predictor-button {
         }
     }
 }
+
+.cvat-top-bar-grades-button {
+    margin-left: 14px;
+}
+
+.grades-form {
+    padding: 14px;
+    border-bottom: 1px solid #c3c3c3;
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+
+    &.loading {
+        padding: 64px;
+    }
+
+    &-info {
+        display: block;
+
+        &-typography {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+    }
+
+    &-error,
+    &-warning {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        width: 100%;
+        padding-right: 54px;
+        padding-top: 6px;
+
+        &-typography {
+            display: inline-flex;
+            font-weight: 500;
+            color: #f00;
+        }
+    }
+
+    &-warning-typography {
+        color: #ff8c00;
+    }
+
+    &-section {
+        margin-top: 14px;
+    }
+
+    &-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+    }
+}

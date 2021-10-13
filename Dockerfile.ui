@@ -40,7 +40,9 @@ RUN npm ci
 
 # Install cvat-ui dependencies
 WORKDIR /tmp/cvat-ui/
-RUN npm ci
+RUN ls
+RUN ls /tmp/cvat-data/node_modules
+RUN npm install
 
 # Build source code
 COPY cvat-data/ /tmp/cvat-data/
