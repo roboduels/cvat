@@ -52,6 +52,14 @@ services:
       - cvat
 
   cvat_ui:
+    build:
+      context: .
+      args:
+        http_proxy:
+        https_proxy:
+        no_proxy:
+        socks_proxy:
+      dockerfile: Dockerfile.ui
     container_name: cvat_ui
     image: openvino/cvat_ui
     restart: always
