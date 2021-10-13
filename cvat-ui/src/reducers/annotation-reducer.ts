@@ -128,6 +128,10 @@ const defaultState: AnnotationState = {
         mediaAmount: 0,
     },
     workspace: Workspace.STANDARD,
+
+    gradesFrom: {
+        open: false,
+    },
 };
 
 export default (state = defaultState, action: AnyAction): AnnotationState => {
@@ -1222,6 +1226,15 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
         case AnnotationActionTypes.CLOSE_JOB:
         case AuthActionTypes.LOGOUT_SUCCESS: {
             return { ...defaultState };
+        }
+        case AnnotationActionTypes.SET_GRADES_FORM_STATE: {
+            return {
+                ...state,
+                gradesFrom: {
+                    ...state.gradesFrom,
+                    open: action.payload,
+                },
+            };
         }
         default: {
             return state;

@@ -20,6 +20,7 @@ import consts from 'consts';
 import CVATTooltip from 'components/common/cvat-tooltip';
 import ImageSetupsContent from './image-setups-content';
 import ContextImage from '../standard-workspace/context-image/context-image';
+import { GradesForm } from '../grades-form/grades-form';
 
 const cvat = getCore();
 
@@ -807,6 +808,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
         return (
             <Layout.Content style={{ position: 'relative' }}>
                 <GlobalHotKeys keyMap={subKeyMap} handlers={handlers} />
+                <GradesForm />
                 {/*
                     This element doesn't have any props
                     So, React isn't going to rerender it

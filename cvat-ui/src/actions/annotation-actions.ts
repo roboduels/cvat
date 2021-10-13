@@ -197,6 +197,7 @@ export enum AnnotationActionTypes {
     GET_CONTEXT_IMAGE = 'GET_CONTEXT_IMAGE',
     GET_CONTEXT_IMAGE_SUCCESS = 'GET_CONTEXT_IMAGE_SUCCESS',
     GET_CONTEXT_IMAGE_FAILED = 'GET_CONTEXT_IMAGE_FAILED',
+    SET_GRADES_FORM_STATE = 'SET_GRADES_FORM_STATE',
 }
 
 export function saveLogsAsync(): ThunkAction {
@@ -689,8 +690,12 @@ export function getPredictionsAsync(): ThunkAction {
     };
 }
 
-export function changeFrameAsync(toFrame: number, fillBuffer?: boolean, frameStep?: number,
-    forceUpdate?: boolean): ThunkAction {
+export function changeFrameAsync(
+    toFrame: number,
+    fillBuffer?: boolean,
+    frameStep?: number,
+    forceUpdate?: boolean,
+): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         const state: CombinedState = getStore().getState();
         const { instance: job } = state.annotation.job;
@@ -1664,5 +1669,18 @@ export function getContextImageAsync(): ThunkAction {
                 payload: { error },
             });
         }
+    };
+}
+export function setGradesFormState(state: boolean): AnyAction {
+    return {
+        type: AnnotationActionTypes.SET_GRADES_FORM_STATE,
+        payload: state,
+    };
+}
+
+export function toggleGradesFormState(): ThunkAction {
+    return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
+        const state: CombinedState = getStore().getState();
+        dispatch(setGradesFormState(!state.annotation.gradesFrom.open));
     };
 }

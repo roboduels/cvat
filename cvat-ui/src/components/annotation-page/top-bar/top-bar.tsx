@@ -11,6 +11,7 @@ import LeftGroup from './left-group';
 import PlayerButtons from './player-buttons';
 import PlayerNavigation from './player-navigation';
 import RightGroup from './right-group';
+import { GradesFormToggle } from '../grades-form/grades-form-toggle';
 
 interface Props {
     playing: boolean;
@@ -39,6 +40,7 @@ interface Props {
     predictor: PredictorState;
     isTrainingActive: boolean;
     activeControl: ActiveControl;
+    gradeFormsOpen: boolean;
     changeWorkspace(workspace: Workspace): void;
     switchPredictor(predictorEnabled: boolean): void;
     showStatistics(): void;
@@ -59,6 +61,7 @@ interface Props {
     onUndoClick(): void;
     onRedoClick(): void;
     onFinishDraw(): void;
+    onToggleGradeForms(): void;
     jobInstance: any;
 }
 
@@ -111,6 +114,8 @@ export default function AnnotationTopBarComponent(props: Props): JSX.Element {
         onFinishDraw,
         jobInstance,
         isTrainingActive,
+        onToggleGradeForms,
+        gradeFormsOpen,
     } = props;
 
     return (
@@ -162,6 +167,7 @@ export default function AnnotationTopBarComponent(props: Props): JSX.Element {
                         onInputChange={onInputChange}
                         onURLIconClick={onURLIconClick}
                     />
+                    <GradesFormToggle onClick={onToggleGradeForms} open={gradeFormsOpen} />
                 </Row>
             </Col>
             <RightGroup
