@@ -3,9 +3,7 @@
 // SPDX-License-Identifier: MIT
 import { ActionUnion, createAction, ThunkAction } from '../utils/redux';
 import { CombinedState, CvatGrades, GradesState } from '../reducers/interfaces';
-import {
-    calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue,
-} from '../utils/grades';
+import { calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue } from '../utils/grades';
 
 const certificateNotFound = (message: string): Error => new Error(`${message}, certificate number not found!`);
 const orientationNotFound = new Error('Cannot reload robo grades, orientation not found!');
@@ -39,6 +37,7 @@ function apiCall(endpoint: string, opts: RequestInit = {}): Promise<Response> {
         headers: {
             ...(opts.headers || {}),
             Authorization: `Bearer ${token}`,
+            ContentType: 'application/json',
         },
     });
 }
@@ -66,7 +65,7 @@ export const loadingGradesAsync = (certificateId?: string | number): ThunkAction
     try {
         dispatch(gradesActions.setLoading(true));
 
-        const res = await apiCall(`/v2/robograding/scan-results?certificate_ids=${certificateId}`);
+        const res = await apiCall(`/v2/robograding/scan-results/?certificate_ids=${certificateId}`);
         const data = await res.json();
         const result = (data.results || [])[0];
 
@@ -108,7 +107,7 @@ export const submitAnnotationFrameToGradeAsync = (
     const { states } = state.annotation.annotations;
     const { frame } = state.annotation.player;
 
-    const res = await apiCall('/cvat-to-grade', {
+    const res = await apiCall('/cvat-to-grade/', {
         method: 'POST',
         body: JSON.stringify({
             filename: frame.filename,
