@@ -32,7 +32,7 @@ export type GradesActions = ActionUnion<typeof gradesActions>;
 
 function apiCall(endpoint: string, opts: RequestInit = {}): Promise<Response> {
     const token = process.env.API_TOKEN;
-    return fetch(`http://34.222.149.76/api${endpoint}`, {
+    return fetch(`https://api.agscard.com/api${endpoint}`, {
         ...opts,
         headers: {
             ...(opts.headers || {}),
