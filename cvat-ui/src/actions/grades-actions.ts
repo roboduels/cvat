@@ -37,6 +37,7 @@ function apiCall(endpoint: string, opts: RequestInit = {}): Promise<Response> {
         headers: {
             ...(opts.headers || {}),
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
         },
     });
 }
