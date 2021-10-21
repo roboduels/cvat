@@ -9,8 +9,8 @@ import { Store } from 'antd/lib/form/interface';
 import { Col, Row } from 'antd/lib/grid';
 
 export interface AgsConfiguration {
-    orderId: string;
-    certificateId: string;
+    orderId: number;
+    certificateId: number;
 }
 
 interface Props {
@@ -35,8 +35,8 @@ export default class AgsConfigurationForm extends React.PureComponent<Props> {
             return this.formRef.current.validateFields().then(
                 (values: Store): Promise<void> => {
                     onSubmit({
-                        certificateId: AgsConfiguration.toInt(values.certificateId),
-                        orderId: AgsConfiguration.toInt(values.orderId),
+                        certificateId: AgsConfigurationForm.toInt(values.certificateId),
+                        orderId: AgsConfigurationForm.toInt(values.orderId),
                     });
 
                     return Promise.resolve();
