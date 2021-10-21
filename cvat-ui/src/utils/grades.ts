@@ -1,6 +1,15 @@
 // Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
+interface ParsedFilename {
+    orderId: number;
+    certificateId: number;
+    cardName: string;
+    orientation: 'front' | 'back';
+    imageType: 'laser' | 'cam';
+    extension: string;
+}
+
 const NicknameDefinitions: [number, string][] = [
     [10, 'GEM-MT'],
     [9.5, 'MINT+'],
@@ -46,23 +55,27 @@ export const mapGradeValue = (value?: number | string | null): number => {
         return value;
     }
 
-    return Number(`${value}`.replace(/,/g, '.').trim());
+    return Number(`${value}`.replace(/,/g, '.').trim()) || 0;
 };
 
-export const parseFilename = (filename: string) => {
-    const matches = filename.match(/^((RG)?\d+)-\+(\d+)-\+(\d+)_(.*)[-_](front|back)[_-](laser|cam)\.(.*)$/i);
-
-    if (!matches) {
-        return {};
-    }
+export const parseFilename = (filename: string): ParsedFilename => {
+    const segments = filename.split('-+');
+    const orderId = parseInt((segments[0] || '').replace(/\D/g, ''), 10);
+    const certificateId = parseInt((segments[1] || '').replace(/\D/g, ''), 10);
+    const imageFilename = segments[2] || '';
+    const matches = imageFilename.match(/^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$/i) || [];
+    const cardName = (matches[1] || '').replace(segments[1], '').replace(/^[_-]/, '').replace(/[_-]$/, '');
+    const orientation = matches[3] as any;
+    const imageType = matches[4] as any;
+    const extension = matches[5];
 
     return {
-        orderNumber: matches[1],
-        certificateId: matches[3],
-        cardName: matches[5],
-        orientation: matches[6],
-        imageType: matches[7],
-        extension: matches[8],
+        orderId,
+        certificateId,
+        cardName,
+        orientation,
+        imageType,
+        extension,
     };
 };
 

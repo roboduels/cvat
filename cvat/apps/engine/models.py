@@ -234,6 +234,10 @@ class Task(models.Model):
     dimension = models.CharField(max_length=2, choices=DimensionType.choices(), default=DimensionType.DIM_2D)
     subset = models.CharField(max_length=64, blank=True, default="")
 
+    # Add support for order and certificate ids
+    order_id = models.PositiveIntegerField(blank=True, null=True)
+    certificate_id = models.PositiveIntegerField(blank=True, null=True)
+
     # Extend default permission model
     class Meta:
         default_permissions = ()

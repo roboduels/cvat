@@ -1,27 +1,41 @@
 // Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
-import React, {
-    ChangeEvent, useCallback, useEffect, useMemo,
-} from 'react';
-import Typography from 'antd/lib/typography';
-import Input from 'antd/lib/input';
-import Button from 'antd/lib/button';
-import Row from 'antd/lib/row';
-import Col from 'antd/lib/col';
 import { CloseCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import Button from 'antd/lib/button';
+import Col from 'antd/lib/col';
+import Form, { FormInstance } from 'antd/lib/form';
+import Input from 'antd/lib/input';
+import Row from 'antd/lib/row';
+import Typography from 'antd/lib/typography';
+import { sum } from 'lodash';
+import React, {
+    useCallback, useEffect, useMemo, useRef, useState,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setGradesFormState } from '../../../actions/annotation-actions';
-import { CombinedState } from '../../../reducers/interfaces';
 import {
     gradesActions,
     loadingGradesAsync,
     submitAnnotationFrameToGradeAsync,
     submitHumanGradesAsync,
+    updateTaskMeta,
 } from '../../../actions/grades-actions';
+import { CombinedState } from '../../../reducers/interfaces';
 import { parseFilename } from '../../../utils/grades';
 
-export function GradesForm(): JSX.Element | null {
+interface Props {
+    task: {
+        orderId: number;
+        certificateId: number;
+    };
+}
+
+export function GradesForm({ task }: Props): JSX.Element | null {
+    const formRef = useRef<FormInstance>(null);
+    const [formTimestamp, setFormTimestamp] = useState(0);
+    const [orderId, setOrderId] = useState(task?.orderId);
+    const [certificateId, setCertificateId] = useState(task?.certificateId);
     const dispatch = useDispatch();
     const open = useSelector((state: CombinedState) => state.annotation.gradesFrom.open);
     const isLoading = useSelector((state: CombinedState) => state.grades.loading);
@@ -29,7 +43,19 @@ export function GradesForm(): JSX.Element | null {
     const warning = useSelector((state: CombinedState) => state.grades.warning);
     const values = useSelector((state: CombinedState) => state.grades.values);
     const frameFilename = useSelector((state: CombinedState) => state.annotation.player.frame.filename);
-    const frameOptions = useMemo(() => parseFilename(frameFilename), [frameFilename]);
+    const frameOptions = useMemo(() => {
+        const options = parseFilename(frameFilename);
+
+        if (orderId) {
+            options.orderId = orderId;
+        }
+
+        if (certificateId) {
+            options.certificateId = certificateId;
+        }
+
+        return options;
+    }, [frameFilename, task, orderId, certificateId]);
 
     const hasErrorOrWarning = !!(warning || error);
 
@@ -40,19 +66,80 @@ export function GradesForm(): JSX.Element | null {
     const handleSubmit = useCallback(async () => {
         dispatch(submitAnnotationFrameToGradeAsync(frameOptions.orientation));
     }, []);
+
     const handleUpdate = useCallback(async () => {
+        const formValues = await formRef.current?.validateFields();
+        dispatch(gradesActions.setGrades(formValues));
         dispatch(submitHumanGradesAsync(frameOptions.certificateId));
     }, []);
 
-    const handleChangeGrade = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
-        dispatch(gradesActions.updateValue(event.target.name, event.target.value));
+    const handleFieldsChange = useCallback(async () => {
+        setFormTimestamp(new Date().getTime());
     }, []);
+
+    const handleOrderId = useCallback(async (value: string) => {
+        setOrderId(parseInt(value, 10));
+    }, []);
+
+    const handleCertificateId = useCallback(async (value: string) => {
+        setCertificateId(parseInt(value, 10));
+    }, []);
+
+    const handleCommitTask = useCallback(async () => {
+        setOrderId((orderValue: number) => {
+            setCertificateId((certificateValue: number) => {
+                if (orderValue !== task.orderId || certificateValue !== task.certificateId) {
+                    dispatch(updateTaskMeta(task, { orderId: orderValue, certificateId: certificateValue }));
+                }
+                return certificateValue;
+            });
+            return orderValue;
+        });
+    }, [task, setOrderId, setCertificateId]);
+
+    const computeTotal = (list: string[]): number =>
+        sum(list.map((value) => parseFloat(`${value || 0}`))) / list.length;
+
+    const computedHumanFrontTotal = useMemo(
+        (): number =>
+            computeTotal([
+                formRef.current?.getFieldValue('front_centering_human_grade'),
+                formRef.current?.getFieldValue('front_edges_human_grade'),
+                formRef.current?.getFieldValue('front_corners_human_grade'),
+                formRef.current?.getFieldValue('front_surface_human_grade'),
+            ]),
+        [formTimestamp],
+    );
+
+    const computedHumanBackTotal = useMemo(
+        (): number =>
+            computeTotal([
+                formRef.current?.getFieldValue('back_centering_human_grade'),
+                formRef.current?.getFieldValue('back_edges_human_grade'),
+                formRef.current?.getFieldValue('back_corners_human_grade'),
+                formRef.current?.getFieldValue('back_surface_human_grade'),
+            ]),
+        [formTimestamp],
+    );
+
+    const computedTotal = useMemo(() => computedHumanBackTotal * 0.4 + computedHumanFrontTotal * 0.6, [
+        computedHumanBackTotal,
+        computedHumanFrontTotal,
+    ]);
 
     useEffect(() => {
         if (open) {
             dispatch(loadingGradesAsync(frameOptions.certificateId));
         }
-    }, [open]);
+    }, [open, frameOptions.certificateId]);
+
+    useEffect(() => {
+        setOrderId((prev) => prev || task.orderId);
+    }, [task?.orderId]);
+
+    useEffect(() => {
+        setCertificateId((prev) => prev || task.certificateId);
+    }, [task?.certificateId]);
 
     if (!open) {
         return null;
@@ -69,29 +156,69 @@ export function GradesForm(): JSX.Element | null {
     return (
         <div className='grades-form'>
             <Row>
-                <Col span={hasErrorOrWarning ? 12 : 24}>
+                <Col span={8}>
                     <div className='grades-form-info'>
-                        <Typography.Text className='grades-form-info-typography'>
-                            <b>Certificate ID</b>
-                            :
-                            {' '}
-                            <span>{frameOptions?.certificateId ? `#${frameOptions.certificateId}` : 'Unknown'}</span>
-                            {' '}
-                            <span>
-                                [
-                                {frameOptions?.cardName ? `#${frameOptions.cardName}` : 'N/A'}
-                                ]
-                            </span>
-                        </Typography.Text>
-                        <Typography.Text className='grades-form-info-typography'>
-                            <b>Order ID</b>
-                            :
-                            {frameOptions?.orderNumber ? `#${frameOptions.orderNumber}` : 'N/A'}
-                        </Typography.Text>
+                        <div className='grades-form-info-typography'>
+                            <Typography.Text strong>Certificate ID:&nbsp;</Typography.Text>
+                            <Typography.Text
+                                editable={{
+                                    onChange: handleCertificateId,
+                                    onEnd: handleCommitTask,
+                                }}
+                            >
+                                {String(frameOptions.certificateId || '')}
+                            </Typography.Text>
+                            {frameOptions?.cardName ? (
+                                <Typography.Text>
+                                    #
+                                    {frameOptions.cardName}
+                                </Typography.Text>
+                            ) : null}
+                        </div>
+
+                        <div className='grades-form-info-typography'>
+                            <Typography.Text strong>Order ID:&nbsp;</Typography.Text>
+                            <Typography.Text
+                                editable={{
+                                    onChange: handleOrderId,
+                                    onEnd: handleCommitTask,
+                                }}
+                            >
+                                {String(frameOptions.orderId || '')}
+                            </Typography.Text>
+                        </div>
+                        {frameOptions.orientation ? (
+                            <div className='grades-form-info-typography'>
+                                <Typography.Text strong>Orientation:&nbsp;</Typography.Text>
+                                <Typography.Text>{frameOptions.orientation}</Typography.Text>
+                            </div>
+                        ) : null}
+                        {frameOptions.imageType ? (
+                            <div className='grades-form-info-typography'>
+                                <Typography.Text strong>Image Type:&nbsp;</Typography.Text>
+                                <Typography.Text>{frameOptions.imageType}</Typography.Text>
+                            </div>
+                        ) : null}
                     </div>
                 </Col>
+                <Col span={8}>
+                    <Row>
+                        <Col span={8}>
+                            <Typography.Text strong>Total Front:&nbsp;</Typography.Text>
+                            <Typography.Text>{computedHumanFrontTotal.toFixed(2)}</Typography.Text>
+                        </Col>
+                        <Col span={8}>
+                            <Typography.Text strong>Total Back:&nbsp;</Typography.Text>
+                            <Typography.Text>{computedHumanBackTotal.toFixed(2)}</Typography.Text>
+                        </Col>
+                        <Col span={8}>
+                            <Typography.Text strong>Total Overall:&nbsp;</Typography.Text>
+                            <Typography.Text>{computedTotal.toFixed(2)}</Typography.Text>
+                        </Col>
+                    </Row>
+                </Col>
                 {hasErrorOrWarning ? (
-                    <Col span={12}>
+                    <Col span={8}>
                         <div className='grades-form-error'>
                             {error ? (
                                 <Typography.Text className='grades-form-error-typography'>
@@ -110,169 +237,121 @@ export function GradesForm(): JSX.Element | null {
 
             <Row>
                 <Col span={18}>
-                    <section className='grades-form-section'>
-                        <Typography.Text strong>Human Grades</Typography.Text>
-                        <Row>
-                            <Col span={10}>
-                                <Row gutter={[16, 16]}>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front centering'
-                                            value={values.front_centering_human_grade}
-                                            name='front_centering_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front edges'
-                                            value={values.front_edges_human_grade}
-                                            name='front_edges_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front corners'
-                                            value={values.front_corners_human_grade}
-                                            name='front_corners_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front surface'
-                                            value={values.front_surface_human_grade}
-                                            name='front_surface_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                </Row>
-                            </Col>
-                            <Col span={10} offset={1}>
-                                <Row gutter={[16, 16]}>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back centering'
-                                            value={values.back_centering_human_grade}
-                                            name='back_centering_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back edges'
-                                            value={values.back_edges_human_grade}
-                                            name='back_edges_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back corners'
-                                            value={values.back_corners_human_grade}
-                                            name='back_corners_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back surface'
-                                            value={values.back_surface_human_grade}
-                                            name='back_surface_human_grade'
-                                            onChange={handleChangeGrade}
-                                        />
-                                    </Col>
-                                </Row>
-                            </Col>
-                        </Row>
-                    </section>
+                    <Form
+                        ref={formRef}
+                        name='grades_form'
+                        layout='vertical'
+                        initialValues={values}
+                        onFieldsChange={handleFieldsChange}
+                    >
+                        <section className='grades-form-section'>
+                            <Typography.Text strong>Human Grades</Typography.Text>
+                            <Row>
+                                <Col span={10}>
+                                    <Row gutter={[16, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Front centering' name='front_centering_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Front edges' name='front_edges_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Front corners' name='front_corners_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Front surface' name='front_surface_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                                <Col span={10} offset={1}>
+                                    <Row gutter={[16, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Back centering' name='back_centering_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Back edges' name='back_edges_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Back corners' name='back_corners_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Back surface' name='back_surface_human_grade'>
+                                                <Input type='number' max={10} min={0} step={1} />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                            </Row>
+                        </section>
 
-                    <section className='grades-form-section'>
-                        <Typography.Text strong>Robo Grades</Typography.Text>
-                        <Row>
-                            <Col span={10}>
-                                <Row gutter={[16, 16]}>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front centering'
-                                            value={values.front_centering_laser_grade}
-                                            name='front_centering_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front edges'
-                                            value={values.front_edges_laser_grade}
-                                            name='front_edges_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front corners'
-                                            value={values.front_corners_laser_grade}
-                                            name='front_corners_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Front surface'
-                                            value={values.front_surface_laser_grade}
-                                            name='front_surface_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                </Row>
-                            </Col>
-                            <Col span={10} offset={1}>
-                                <Row gutter={[16, 16]}>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back centering'
-                                            value={values.back_centering_laser_grade}
-                                            name='back_centering_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back edges'
-                                            value={values.back_edges_laser_grade}
-                                            name='back_edges_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back corners'
-                                            value={values.back_corners_laser_grade}
-                                            name='back_corners_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                    <Col span={6}>
-                                        <Input
-                                            placeholder='Back surface'
-                                            value={values.back_surface_laser_grade}
-                                            name='back_surface_laser_grade'
-                                            onChange={handleChangeGrade}
-                                            readOnly
-                                        />
-                                    </Col>
-                                </Row>
-                            </Col>
-                        </Row>
-                    </section>
+                        <section className='grades-form-section'>
+                            <Typography.Text strong>Robo Grades</Typography.Text>
+                            <Row>
+                                <Col span={10}>
+                                    <Row gutter={[16, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Front centering' name='front_centering_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Front edges' name='front_edges_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Front corners' name='front_corners_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Front surface' name='front_surface_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                                <Col span={10} offset={1}>
+                                    <Row gutter={[16, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Back centering' name='back_centering_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Back edges' name='back_edges_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Back corners' name='back_corners_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Back surface' name='back_surface_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                            </Row>
+                        </section>
+                    </Form>
                 </Col>
                 <Col span={6} style={{ display: 'flex' }}>
                     <div

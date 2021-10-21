@@ -465,6 +465,8 @@ export function createTaskAsync(data: any): ThunkAction<Promise<void>, {}, {}, A
             image_quality: 70,
             use_zip_chunks: data.advanced.useZipChunks,
             use_cache: data.advanced.useCache,
+            order_id: parseInt(data.ags.orderId, 10),
+            certificate_id: parseInt(data.ags.certificateId, 10),
         };
 
         if (data.projectId) {

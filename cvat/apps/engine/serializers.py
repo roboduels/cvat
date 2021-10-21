@@ -349,13 +349,16 @@ class TaskSerializer(WriteOnceMixin, serializers.ModelSerializer):
     project_id = serializers.IntegerField(required=False)
     dimension = serializers.CharField(allow_blank=True, required=False)
 
+    order_id = serializers.IntegerField(required=False, allow_null=True)
+    certificate_id = serializers.IntegerField(required=False, allow_null=True)
+
     class Meta:
         model = models.Task
         fields = ('url', 'id', 'name', 'project_id', 'mode', 'owner', 'assignee', 'owner_id', 'assignee_id',
             'bug_tracker', 'created_date', 'updated_date', 'overlap',
             'segment_size', 'status', 'labels', 'segments',
             'data_chunk_size', 'data_compressed_chunk_type', 'data_original_chunk_type', 'size', 'image_quality',
-            'data', 'dimension', 'subset')
+            'data', 'dimension', 'subset', 'order_id', 'certificate_id')
         read_only_fields = ('mode', 'created_date', 'updated_date', 'status', 'data_chunk_size', 'owner', 'assignee',
             'data_compressed_chunk_type', 'data_original_chunk_type', 'size', 'image_quality', 'data')
         write_once_fields = ('overlap', 'segment_size', 'project_id')
@@ -401,9 +404,11 @@ class TaskSerializer(WriteOnceMixin, serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.owner_id = validated_data.get('owner_id', instance.owner_id)
         instance.assignee_id = validated_data.get('assignee_id', instance.assignee_id)
-        instance.bug_tracker = validated_data.get('bug_tracker',
-            instance.bug_tracker)
+        instance.bug_tracker = validated_data.get('bug_tracker', instance.bug_tracker)
         instance.subset = validated_data.get('subset', instance.subset)
+        instance.order_id = validated_data.get('order_id', instance.order_id)
+        instance.certificate_id = validated_data.get('certificate_id', instance.certificate_id)
+
         labels = validated_data.get('label_set', [])
         if instance.project_id is None:
             for label in labels:

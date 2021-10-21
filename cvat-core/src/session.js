@@ -1036,6 +1036,8 @@
                 use_cache: undefined,
                 copy_data: undefined,
                 dimension: undefined,
+                order_id: undefined,
+                certificate_id: undefined,
             };
 
             const updatedFields = new FieldUpdateTrigger({
@@ -1045,6 +1047,8 @@
                 subset: false,
                 labels: false,
                 project_id: false,
+                order_id: false,
+                certificate_id: false,
             });
 
             for (const property in data) {
@@ -1138,6 +1142,43 @@
                             data.project_id = projectId;
                         },
                     },
+
+                    /**
+                     * @name orderId
+                     * @type {integer|null}
+                     * @memberof module:API.cvat.classes.Task
+                     * @instance
+                     */
+                    orderId: {
+                        get: () => data.order_id,
+                        set: (orderId) => {
+                            if (!Number.isInteger(orderId) || orderId <= 0) {
+                                throw new ArgumentError('Value must be a positive integer');
+                            }
+
+                            updatedFields.order_id = true;
+                            data.order_id = orderId;
+                        },
+                    },
+
+                    /**
+                     * @name certificateId
+                     * @type {integer|null}
+                     * @memberof module:API.cvat.classes.Task
+                     * @instance
+                     */
+                    certificateId: {
+                        get: () => data.certificate_id,
+                        set: (certificateId) => {
+                            if (!Number.isInteger(certificateId) || certificateId <= 0) {
+                                throw new ArgumentError('Value must be a positive integer');
+                            }
+
+                            updatedFields.certificate_id = true;
+                            data.certificate_id = certificateId;
+                        },
+                    },
+
                     /**
                      * @name status
                      * @type {module:API.cvat.enums.TaskStatus}
@@ -2032,6 +2073,12 @@
                     case 'project_id':
                         taskData.project_id = this.projectId;
                         break;
+                    case 'order_id':
+                        taskData.order_id = this.orderId;
+                        break;
+                    case 'certificate_id':
+                        taskData.certificate_id = this.certificateId;
+                        break;
                     case 'labels':
                         taskData.labels = [...this._internalData.labels.map((el) => el.toJSON())];
                         break;
@@ -2064,6 +2111,12 @@
         }
         if (typeof this.projectId !== 'undefined') {
             taskSpec.project_id = this.projectId;
+        }
+        if (typeof this.orderId !== 'undefined') {
+            taskSpec.order_id = this.orderId;
+        }
+        if (typeof this.certificateId !== 'undefined') {
+            taskSpec.certificate_id = this.certificateId;
         }
         if (typeof this.subset !== 'undefined') {
             taskSpec.subset = this.subset;
