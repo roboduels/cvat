@@ -6,16 +6,17 @@
 version: '3.3'
 
 services:
-#  cvat:
-#    build:
-#      context: .
-#      args:
-#        http_proxy:
-#        https_proxy:
-#        socks_proxy:
-#        CLAM_AV:
-#        INSTALL_SOURCES:
-
+  cvat:
+    build:
+      context: .
+      args:
+        http_proxy:
+        https_proxy:
+        socks_proxy:
+        CLAM_AV:
+        INSTALL_SOURCES:
+    volumes:
+      - './cvat:/home/django/cvat'
   cvat_ui:
     build:
       context: .

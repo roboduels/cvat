@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: MIT
 import { ActionUnion, createAction, ThunkAction } from '../utils/redux';
 import { CombinedState, CvatGrades, GradesState } from '../reducers/interfaces';
-import { calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue } from '../utils/grades';
+import {
+    calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue,
+} from '../utils/grades';
 
 const certificateNotFound = (message: string): Error => new Error(`${message}, certificate number not found!`);
 const orientationNotFound = new Error('Cannot reload robo grades, orientation not found!');
@@ -54,6 +56,24 @@ export const setWarningAsync = (warning: string | Error): ThunkAction => async (
     setTimeout(() => {
         dispatch(gradesActions.setWarning(null));
     }, 3000);
+};
+
+export const updateTaskMeta = (
+    task: any,
+    data: Record<'certificateId' | 'orderId', number>,
+): ThunkAction => async () => {
+    const { certificateId, orderId } = data;
+    const task$ = task;
+
+    if (orderId) {
+        task$.orderId = orderId;
+    }
+
+    if (certificateId) {
+        task$.certificateId = certificateId;
+    }
+
+    await task.save();
 };
 
 export const loadingGradesAsync = (certificateId?: string | number): ThunkAction => async (dispatch) => {

@@ -21,10 +21,12 @@ import BasicConfigurationForm, { BaseConfiguration } from './basic-configuration
 import ProjectSearchField from './project-search-field';
 import ProjectSubsetField from './project-subset-field';
 import AdvancedConfigurationForm, { AdvancedConfiguration } from './advanced-configuration-form';
+import AgsConfigurationForm, { AgsConfiguration } from './ags-configuration-form';
 
 export interface CreateTaskData {
     projectId: number | null;
     basic: BaseConfiguration;
+    ags: AgsConfiguration;
     subset: string;
     advanced: AdvancedConfiguration;
     labels: any[];
@@ -47,6 +49,10 @@ const defaultState = {
     basic: {
         name: '',
     },
+    ags: {
+        certificateId: '',
+        orderId: '',
+    },
     subset: '',
     advanced: {
         lfs: false,
@@ -64,6 +70,7 @@ const defaultState = {
 
 class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps, State> {
     private basicConfigurationComponent: RefObject<BasicConfigurationForm>;
+    private agsConfigurationComponent: RefObject<AgsConfigurationForm>;
     private advancedConfigurationComponent: RefObject<AdvancedConfigurationForm>;
     private fileManagerContainer: any;
 
@@ -71,6 +78,7 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
         super(props);
         this.state = { ...defaultState };
         this.basicConfigurationComponent = React.createRef<BasicConfigurationForm>();
+        this.agsConfigurationComponent = React.createRef<AgsConfigurationForm>();
         this.advancedConfigurationComponent = React.createRef<AdvancedConfigurationForm>();
     }
 
@@ -141,6 +149,12 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
         });
     };
 
+    private handleSubmitAgsConfiguration = (values: AgsConfiguration): void => {
+        this.setState({
+            ags: { ...values },
+        });
+    };
+
     private handleSubmitAdvancedConfiguration = (values: AdvancedConfiguration): void => {
         this.setState({
             advanced: { ...values },
@@ -189,6 +203,12 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                     }
                     return Promise.resolve();
                 })
+                .then(() => {
+                    if (this.agsConfigurationComponent.current) {
+                        return this.agsConfigurationComponent.current.submit();
+                    }
+                    return Promise.resolve();
+                })
                 .then((): void => {
                     const { onCreate } = this.props;
                     onCreate(this.state);
@@ -213,6 +233,17 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                 <BasicConfigurationForm
                     ref={this.basicConfigurationComponent}
                     onSubmit={this.handleSubmitBasicConfiguration}
+                />
+            </Col>
+        );
+    }
+
+    private renderAgsBlock(): JSX.Element {
+        return (
+            <Col span={24}>
+                <AgsConfigurationForm
+                    ref={this.agsConfigurationComponent}
+                    onSubmit={this.handleSubmitAgsConfiguration}
                 />
             </Col>
         );
@@ -334,6 +365,7 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                 </Col>
 
                 {this.renderBasicBlock()}
+                {this.renderAgsBlock()}
                 {this.renderProjectBlock()}
                 {this.renderSubsetBlock()}
                 {this.renderLabelsBlock()}

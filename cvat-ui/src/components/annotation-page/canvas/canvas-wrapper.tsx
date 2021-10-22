@@ -781,6 +781,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             keyMap,
             switchableAutomaticBordering,
             automaticBordering,
+            jobInstance,
             onSwitchAutomaticBordering,
             onSwitchZLayer,
             onAddZLayer,
@@ -808,7 +809,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
         return (
             <Layout.Content style={{ position: 'relative' }}>
                 <GlobalHotKeys keyMap={subKeyMap} handlers={handlers} />
-                <GradesForm />
+                <GradesForm task={jobInstance.task} />
                 {/*
                     This element doesn't have any props
                     So, React isn't going to rerender it
