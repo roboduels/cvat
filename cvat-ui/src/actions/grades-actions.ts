@@ -144,9 +144,9 @@ export const submitAnnotationFrameToGradeAsync = (input: SubmitAnnotationFrameIn
     const image = await job.frames.frameData(frame.number);
 
     const formData = new FormData();
-    formData.set('image', image, frame.filename);
+    formData.append('image', image, frame.filename);
 
-    formData.set(
+    formData.append(
         'payload',
         JSON.stringify({
             filename: frame.filename,
@@ -163,13 +163,13 @@ export const submitAnnotationFrameToGradeAsync = (input: SubmitAnnotationFrameIn
     );
 
     if (input.orientation) {
-        formData.set('orientation', input.orientation);
+        formData.append('orientation', input.orientation);
     }
     if (input.imageType) {
-        formData.set('image_type', input.imageType);
+        formData.append('image_type', input.imageType);
     }
     if (input.certificateId) {
-        formData.set('certificate_id', input.certificateId);
+        formData.append('certificate_id', input.certificateId);
     }
     const { data } = await apiCall('/cvat-to-grade/', {
         method: 'POST',
