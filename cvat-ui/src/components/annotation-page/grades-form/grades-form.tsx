@@ -64,7 +64,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     }, [dispatch]);
 
     const handleSubmit = useCallback(async () => {
-        dispatch(submitAnnotationFrameToGradeAsync(frameOptions.orientation));
+        dispatch(submitAnnotationFrameToGradeAsync(
+            frameOptions.orientation, 
+            frameOptions.imageType,
+            frameOptions.certificateId
+        ));
     }, []);
 
     const handleUpdate = useCallback(async () => {

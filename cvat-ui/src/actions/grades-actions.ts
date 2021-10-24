@@ -118,6 +118,8 @@ export const loadingGradesAsync = (certificateId?: string | number): ThunkAction
 
 export const submitAnnotationFrameToGradeAsync = (
     orientation?: 'front' | 'back' | string | null,
+    imageType?: 'laser' | 'cam' | string | null,
+    certificateId?: string | number | null
 ): ThunkAction => async (dispatch, getState) => {
     if (!orientation) {
         dispatch(setWarningAsync(orientationNotFound));
@@ -130,16 +132,21 @@ export const submitAnnotationFrameToGradeAsync = (
     const res = await apiCall('/cvat-to-grade/', {
         method: 'POST',
         body: JSON.stringify({
-            filename: frame.filename,
-            objects: states.map((item) => ({
-                points: item.points,
-                label: item.label.name,
-                shape: item.shapeType,
-            })),
-            image: {
-                width: frame.data.width,
-                height: frame.data.height,
+            payload: {
+                filename: frame.filename,
+                objects: states.map((item) => ({
+                    points: item.points,
+                    label: item.label.name,
+                    shape: item.shapeType,
+                })),
+                image: {
+                    width: frame.data.width,
+                    height: frame.data.height,
+                },
             },
+            orientation: orientation,
+            image_type: imageType,
+            certificate_id: certificateId,
         }),
     });
 
