@@ -8,7 +8,6 @@ services:
   cvat_db:
     container_name: cvat_db
     image: postgres:10-alpine
-    restart: always
     environment:
       POSTGRES_USER: root
       POSTGRES_DB: cvat
@@ -21,14 +20,12 @@ services:
   cvat_redis:
     container_name: cvat_redis
     image: redis:4.0-alpine
-    restart: always
     networks:
       - cvat
 
   cvat:
     container_name: cvat
     image: openvino/cvat_server
-    restart: always
     depends_on:
       - cvat_redis
       - cvat_db
@@ -42,7 +39,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.cvat.loadbalancer.server.port=8080
       - traefik.http.routers.cvat.rule=Host(`${CVAT_HOST:-localhost}`) &&
-          PathPrefix(`/api/`, `/git/`, `/opencv/`, `/analytics/`, `/static/`, `/admin`, `/documentation/`, `/django-rq`)
+        PathPrefix(`/api/`, `/git/`, `/opencv/`, `/analytics/`, `/static/`, `/admin`, `/documentation/`, `/django-rq`)
       - traefik.http.routers.cvat.entrypoints=web
     volumes:
       - cvat_data:/home/django/data
@@ -62,7 +59,6 @@ services:
       dockerfile: Dockerfile.ui
     container_name: cvat_ui
     image: openvino/cvat_ui
-    restart: always
     depends_on:
       - cvat
     labels:
@@ -77,9 +73,9 @@ services:
     image: traefik:v2.4
     container_name: traefik
     command:
-      - "--providers.docker.exposedByDefault=false"
-      - "--providers.docker.network=cvat"
-      - "--entryPoints.web.address=:8080"
+      - '--providers.docker.exposedByDefault=false'
+      - '--providers.docker.network=cvat'
+      - '--entryPoints.web.address=:8080'
     # Uncomment to get Traefik dashboard
     #   - "--entryPoints.dashboard.address=:8090"
     #   - "--api.dashboard=true"
