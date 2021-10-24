@@ -63,6 +63,7 @@
     "@types/redux-logger": "^3.0.9",
     "@types/resize-observer-browser": "^0.1.5",
     "antd": "^4.13.0",
+    "axios": "^0.21.1",
     "copy-to-clipboard": "^3.3.1",
     "cvat-canvas": "file:../cvat-canvas",
     "cvat-canvas3d": "file:../cvat-canvas3d",

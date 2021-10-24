@@ -26,8 +26,8 @@ import { parseFilename } from '../../../utils/grades';
 
 interface Props {
     task: {
-        orderId: number;
-        certificateId: number;
+        orderId: string;
+        certificateId: string;
     };
 }
 
@@ -64,30 +64,30 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     }, [dispatch]);
 
     const handleSubmit = useCallback(async () => {
-        dispatch(submitAnnotationFrameToGradeAsync(frameOptions.orientation));
-    }, []);
+        dispatch(submitAnnotationFrameToGradeAsync(frameOptions));
+    }, [frameOptions]);
 
     const handleUpdate = useCallback(async () => {
         const formValues = await formRef.current?.validateFields();
         dispatch(gradesActions.setGrades(formValues));
         dispatch(submitHumanGradesAsync(frameOptions.certificateId));
-    }, []);
+    }, [frameOptions]);
 
     const handleFieldsChange = useCallback(async () => {
         setFormTimestamp(new Date().getTime());
     }, []);
 
     const handleOrderId = useCallback(async (value: string) => {
-        setOrderId(parseInt(value, 10));
+        setOrderId(value);
     }, []);
 
     const handleCertificateId = useCallback(async (value: string) => {
-        setCertificateId(parseInt(value, 10));
+        setCertificateId(value);
     }, []);
 
     const handleCommitTask = useCallback(async () => {
-        setOrderId((orderValue: number) => {
-            setCertificateId((certificateValue: number) => {
+        setOrderId((orderValue: string) => {
+            setCertificateId((certificateValue: string) => {
                 if (orderValue !== task.orderId || certificateValue !== task.certificateId) {
                     dispatch(updateTaskMeta(task, { orderId: orderValue, certificateId: certificateValue }));
                 }
