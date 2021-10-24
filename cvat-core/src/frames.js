@@ -607,6 +607,25 @@
         return frameDataCache[taskID].frameBuffer.getContextImage(frame);
     }
 
+    async function getFrameData(taskID, frame, quality = 'original') {
+        return new Promise((resolve, reject) => {
+            // Just go to server and get preview (no any cache)
+            serverProxy.frames
+                .getFrameData(taskID, frame, quality)
+                .then((result) => {
+                    if (isNode) {
+                        // eslint-disable-next-line no-undef
+                        resolve(global.Buffer.from(result, 'binary').toString('base64'));
+                    } else if (isBrowser) {
+                        resolve(result);
+                    }
+                })
+                .catch((error) => {
+                    reject(error);
+                });
+        });
+    }
+
     async function getPreview(taskID) {
         return new Promise((resolve, reject) => {
             // Just go to server and get preview (no any cache)
@@ -711,6 +730,7 @@
     module.exports = {
         FrameData,
         getFrame,
+        getFrameData,
         getRanges,
         getPreview,
         clear,

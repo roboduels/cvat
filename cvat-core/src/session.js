@@ -8,7 +8,7 @@
     const loggerStorage = require('./logger-storage');
     const serverProxy = require('./server-proxy');
     const {
-        getFrame, getRanges, getPreview, clear: clearFrames, getContextImage,
+        getFrame, getFrameData, getRanges, getPreview, clear: clearFrames, getContextImage,
     } = require('./frames');
     const { ArgumentError, DataError } = require('./exceptions');
     const { TaskStatus } = require('./enums');
@@ -182,6 +182,15 @@
                     },
                     async preview() {
                         const result = await PluginRegistry.apiWrapper.call(this, prototype.frames.preview);
+                        return result;
+                    },
+                    async frameData(frame, quality = 'original') {
+                        const result = await PluginRegistry.apiWrapper.call(
+                            this,
+                            prototype.frames.frameData,
+                            frame,
+                            quality,
+                        );
                         return result;
                     },
                     async contextImage(taskId, frameId) {
@@ -904,6 +913,7 @@
                 get: Object.getPrototypeOf(this).frames.get.bind(this),
                 ranges: Object.getPrototypeOf(this).frames.ranges.bind(this),
                 preview: Object.getPrototypeOf(this).frames.preview.bind(this),
+                frameData: Object.getPrototypeOf(this).frames.frameData.bind(this),
                 contextImage: Object.getPrototypeOf(this).frames.contextImage.bind(this),
             };
 
@@ -1152,10 +1162,6 @@
                     orderId: {
                         get: () => data.order_id,
                         set: (orderId) => {
-                            if (!Number.isInteger(orderId) || orderId <= 0) {
-                                throw new ArgumentError('Value must be a positive integer');
-                            }
-
                             updatedFields.order_id = true;
                             data.order_id = orderId;
                         },
@@ -1170,10 +1176,6 @@
                     certificateId: {
                         get: () => data.certificate_id,
                         set: (certificateId) => {
-                            if (!Number.isInteger(certificateId) || certificateId <= 0) {
-                                throw new ArgumentError('Value must be a positive integer');
-                            }
-
                             updatedFields.certificate_id = true;
                             data.certificate_id = certificateId;
                         },
@@ -1644,6 +1646,7 @@
                 get: Object.getPrototypeOf(this).frames.get.bind(this),
                 ranges: Object.getPrototypeOf(this).frames.ranges.bind(this),
                 preview: Object.getPrototypeOf(this).frames.preview.bind(this),
+                frameData: Object.getPrototypeOf(this).frames.frameData.bind(this),
                 contextImage: Object.getPrototypeOf(this).frames.contextImage.bind(this),
             };
 
@@ -1870,6 +1873,10 @@
 
     Job.prototype.frames.preview.implementation = async function () {
         const frameData = await getPreview(this.task.id);
+        return frameData;
+    };
+    Job.prototype.frames.frameData.implementation = async function (frame, quality = 'original') {
+        const frameData = await getFrameData(this.task.id, frame, quality);
         return frameData;
     };
 
@@ -2196,6 +2203,11 @@
 
     Task.prototype.frames.preview.implementation = async function () {
         const frameData = await getPreview(this.id);
+        return frameData;
+    };
+
+    Task.prototype.frames.frameData.implementation = async function (frame, quality = 'original') {
+        const frameData = await getFrameData(this.id, frame, quality);
         return frameData;
     };
 

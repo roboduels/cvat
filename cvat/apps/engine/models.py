@@ -235,8 +235,8 @@ class Task(models.Model):
     subset = models.CharField(max_length=64, blank=True, default="")
 
     # Add support for order and certificate ids
-    order_id = models.PositiveIntegerField(blank=True, null=True)
-    certificate_id = models.PositiveIntegerField(blank=True, null=True)
+    order_id = models.CharField(max_length=64, blank=True, null=True)
+    certificate_id = models.CharField(max_length=64, blank=True, null=True)
 
     # Extend default permission model
     class Meta:

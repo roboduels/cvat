@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 interface ParsedFilename {
-    orderId: number;
-    certificateId: number;
+    orderId: string;
+    certificateId: string;
     cardName: string;
     orientation: 'front' | 'back';
     imageType: 'laser' | 'cam';
@@ -60,11 +60,11 @@ export const mapGradeValue = (value?: number | string | null): number => {
 
 export const parseFilename = (filename: string): ParsedFilename => {
     const segments = filename.split('-+');
-    const orderId = parseInt((segments[0] || '').replace(/\D/g, ''), 10);
-    const certificateId = parseInt((segments[1] || '').replace(/\D/g, ''), 10);
+    const orderId = segments[0] || '';
+    const certificateId = segments[1] || '';
     const imageFilename = segments[2] || '';
     const matches = imageFilename.match(/^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$/i) || [];
-    const cardName = (matches[1] || '').replace(segments[1], '').replace(/^[_-]/, '').replace(/[_-]$/, '');
+    const cardName = (matches[1] || '').replace(certificateId, '').replace(/^[_-]/, '').replace(/[_-]$/, '');
     const orientation = matches[3] as any;
     const imageType = matches[4] as any;
     const extension = matches[5];

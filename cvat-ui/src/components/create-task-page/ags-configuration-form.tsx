@@ -9,8 +9,8 @@ import { Store } from 'antd/lib/form/interface';
 import { Col, Row } from 'antd/lib/grid';
 
 export interface AgsConfiguration {
-    orderId: number;
-    certificateId: number;
+    orderId: string;
+    certificateId: string;
 }
 
 interface Props {
@@ -18,10 +18,6 @@ interface Props {
 }
 
 export default class AgsConfigurationForm extends React.PureComponent<Props> {
-    private static toInt(value: any): number {
-        return parseInt(String(value).replace(/\D/g, ''), 10);
-    }
-
     private formRef: RefObject<FormInstance>;
 
     public constructor(props: Props) {
@@ -35,8 +31,8 @@ export default class AgsConfigurationForm extends React.PureComponent<Props> {
             return this.formRef.current.validateFields().then(
                 (values: Store): Promise<void> => {
                     onSubmit({
-                        certificateId: AgsConfigurationForm.toInt(values.certificateId),
-                        orderId: AgsConfigurationForm.toInt(values.orderId),
+                        certificateId: values.certificateId,
+                        orderId: values.orderId,
                     });
 
                     return Promise.resolve();

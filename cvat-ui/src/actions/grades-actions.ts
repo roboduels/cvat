@@ -1,8 +1,9 @@
 // Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
+import Axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ActionUnion, createAction, ThunkAction } from '../utils/redux';
-import { CombinedState, CvatGrades, GradesState } from '../reducers/interfaces';
+import { CombinedState, GradesState } from '../reducers/interfaces';
 import {
     calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue,
 } from '../utils/grades';
@@ -32,14 +33,15 @@ export const gradesActions = {
 
 export type GradesActions = ActionUnion<typeof gradesActions>;
 
-function apiCall(endpoint: string, opts: RequestInit = {}): Promise<Response> {
+function apiCall(endpoint: string, opts: AxiosRequestConfig = {}): Promise<AxiosResponse> {
     const token = process.env.API_TOKEN;
-    return fetch(`https://api.agscard.com/api${endpoint}`, {
+    return Axios.request({
         ...opts,
+        baseURL: 'https://api.agscard.com/api',
+        url: endpoint,
         headers: {
             ...(opts.headers || {}),
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
         },
     });
 }
@@ -60,7 +62,7 @@ export const setWarningAsync = (warning: string | Error): ThunkAction => async (
 
 export const updateTaskMeta = (
     task: any,
-    data: Record<'certificateId' | 'orderId', number>,
+    data: Record<'certificateId' | 'orderId', string>,
 ): ThunkAction => async () => {
     const { certificateId, orderId } = data;
     const task$ = task;
@@ -85,8 +87,7 @@ export const loadingGradesAsync = (certificateId?: string | number): ThunkAction
     try {
         dispatch(gradesActions.setLoading(true));
 
-        const res = await apiCall(`/v2/robograding/scan-results/?certificate_ids=${certificateId}`);
-        const data = await res.json();
+        const { data } = await apiCall(`/v2/robograding/scan-results/?certificate_ids=${certificateId}`);
         const result = (data.results || [])[0];
 
         dispatch(
@@ -110,54 +111,78 @@ export const loadingGradesAsync = (certificateId?: string | number): ThunkAction
             }),
         );
     } catch (error) {
-        dispatch(setErrorAsync(error));
+        if (error.isAxiosError) {
+            const { data } = error.response;
+            dispatch(setErrorAsync(data.detail));
+        } else {
+            dispatch(setErrorAsync(error));
+        }
     }
 
     dispatch(gradesActions.setLoading(false));
 };
 
-export const submitAnnotationFrameToGradeAsync = (
-    orientation?: 'front' | 'back' | string | null,
-    imageType?: 'laser' | 'cam' | string | null,
-    certificateId?: string | number | null
-): ThunkAction => async (dispatch, getState) => {
-    if (!orientation) {
+interface SubmitAnnotationFrameInput {
+    image?: File | Blob;
+    orientation?: 'front' | 'back' | string | null;
+    imageType?: 'laser' | 'cam' | string | null;
+    certificateId?: string | null;
+}
+
+export const submitAnnotationFrameToGradeAsync = (input: SubmitAnnotationFrameInput): ThunkAction => async (
+    dispatch,
+    getState,
+) => {
+    if (!input.orientation) {
         dispatch(setWarningAsync(orientationNotFound));
     }
 
     const state = getState() as CombinedState;
     const { states } = state.annotation.annotations;
     const { frame } = state.annotation.player;
+    const job = state.annotation.job.instance;
+    const image = await job.frames.frameData(frame.number);
 
-    const res = await apiCall('/cvat-to-grade/', {
-        method: 'POST',
-        body: JSON.stringify({
-            payload: {
-                filename: frame.filename,
-                objects: states.map((item) => ({
-                    points: item.points,
-                    label: item.label.name,
-                    shape: item.shapeType,
-                })),
-                image: {
-                    width: frame.data.width,
-                    height: frame.data.height,
-                },
+    const formData = new FormData();
+    formData.set('image', image, frame.filename);
+
+    formData.set(
+        'payload',
+        JSON.stringify({
+            filename: frame.filename,
+            objects: states.map((item) => ({
+                points: item.points,
+                label: item.label.name,
+                shape: item.shapeType,
+            })),
+            image: {
+                width: frame.data.width,
+                height: frame.data.height,
             },
-            orientation: orientation,
-            image_type: imageType,
-            certificate_id: certificateId,
         }),
+    );
+
+    if (input.orientation) {
+        formData.set('orientation', input.orientation);
+    }
+    if (input.imageType) {
+        formData.set('image_type', input.imageType);
+    }
+    if (input.certificateId) {
+        formData.set('certificate_id', input.certificateId);
+    }
+    const { data } = await apiCall('/cvat-to-grade/', {
+        method: 'POST',
+        data: formData,
     });
 
-    const data: CvatGrades = await res.json();
-    if (orientation) {
+    if (input.orientation) {
         dispatch(
             gradesActions.assignGrades({
-                [`${orientation}_centering_laser_grade`]: mapGradeValue(data?.center),
-                [`${orientation}_corners_laser_grade`]: mapGradeValue(data?.corner),
-                [`${orientation}_edges_laser_grade`]: mapGradeValue(data?.edge),
-                [`${orientation}_surface_laser_grade`]: mapGradeValue(data?.surface),
+                [`${input.orientation}_centering_laser_grade`]: mapGradeValue(data?.center),
+                [`${input.orientation}_corners_laser_grade`]: mapGradeValue(data?.corner),
+                [`${input.orientation}_edges_laser_grade`]: mapGradeValue(data?.edge),
+                [`${input.orientation}_surface_laser_grade`]: mapGradeValue(data?.surface),
             }),
         );
     }
@@ -193,9 +218,9 @@ export const submitHumanGradesAsync = (certificateId?: string | number | null): 
     const overallGradeNickname = getGradeNickname(overallGrade);
 
     try {
-        const res = await apiCall(`/v2/robograding/certificates/?certificate_id=${certificateId}`, {
+        const { data } = await apiCall(`/v2/robograding/certificates/?certificate_id=${certificateId}`, {
             method: 'PATCH',
-            body: JSON.stringify({
+            data: {
                 front_centering_human_grade: mapGradeValue(values.front_centering_human_grade),
                 front_corners_human_grade: mapGradeValue(values.front_corners_human_grade),
                 front_edges_human_grade: mapGradeValue(values.front_edges_human_grade),
@@ -212,10 +237,9 @@ export const submitHumanGradesAsync = (certificateId?: string | number | null): 
                     grade: overallGrade,
                     nickname: overallGradeNickname,
                 },
-            }),
+            },
         });
 
-        const data = await res.json();
         dispatch(
             gradesActions.assignGrades({
                 back_centering_human_grade: mapGradeValue(data.back_centering_human_grade),

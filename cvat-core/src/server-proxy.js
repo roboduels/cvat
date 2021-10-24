@@ -796,6 +796,29 @@
                 return response.data;
             }
 
+            async function getFrameData(tid, frame, quality = 'original') {
+                const { backendAPI } = config;
+
+                let response = null;
+                try {
+                    response = await Axios.get(
+                        `${backendAPI}/tasks/${tid}/data?type=frame&quality=${quality}&number=${frame}`,
+                        {
+                            proxy: config.proxy,
+                            responseType: 'blob',
+                        },
+                    );
+                    const mimeType = response.data.type.replace(/^\('/, '').replace(/'$/, '');
+                    const { data } = response;
+                    response.data = new Blob([data.slice(0)], { type: mimeType });
+                } catch (errorData) {
+                    const code = errorData.response ? errorData.response.status : errorData.code;
+                    throw new ServerError(`Could not get preview frame for the task ${tid} from the server`, code);
+                }
+
+                return response.data;
+            }
+
             async function getImageContext(tid, frame) {
                 const { backendAPI } = config;
 
@@ -1242,6 +1265,7 @@
                             getData,
                             getMeta,
                             getPreview,
+                            getFrameData,
                             getImageContext,
                         }),
                         writable: false,

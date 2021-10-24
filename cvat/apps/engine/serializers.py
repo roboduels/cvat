@@ -349,8 +349,8 @@ class TaskSerializer(WriteOnceMixin, serializers.ModelSerializer):
     project_id = serializers.IntegerField(required=False)
     dimension = serializers.CharField(allow_blank=True, required=False)
 
-    order_id = serializers.IntegerField(required=False, allow_null=True)
-    certificate_id = serializers.IntegerField(required=False, allow_null=True)
+    order_id = serializers.CharField(allow_blank=True, required=False, allow_null=True)
+    certificate_id = serializers.CharField(allow_blank=True, required=False, allow_null=True)
 
     class Meta:
         model = models.Task

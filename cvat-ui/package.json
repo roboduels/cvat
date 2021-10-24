@@ -5,7 +5,7 @@
   "main": "src/index.tsx",
   "scripts": {
     "build": "webpack --config ./webpack.config.js",
-    "start": "webpack-dev-server --env.API_URL=http://localhost:7000 --config ./webpack.config.js --mode=development",
+    "start": "webpack-dev-server --env.API_URL=http://localhost:8080 --config ./webpack.config.js --mode=development",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "lint": "eslint './src/**/*.{ts,tsx}'",
@@ -63,6 +63,7 @@
     "@types/redux-logger": "^3.0.9",
     "@types/resize-observer-browser": "^0.1.5",
     "antd": "^4.13.0",
+    "axios": "^0.21.1",
     "copy-to-clipboard": "^3.3.1",
     "cvat-canvas": "file:../cvat-canvas",
     "cvat-canvas3d": "file:../cvat-canvas3d",
