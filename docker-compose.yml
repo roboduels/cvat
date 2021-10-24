@@ -8,6 +8,7 @@ services:
   cvat_db:
     container_name: cvat_db
     image: postgres:10-alpine
+    restart: always
     environment:
       POSTGRES_USER: root
       POSTGRES_DB: cvat
@@ -20,12 +21,14 @@ services:
   cvat_redis:
     container_name: cvat_redis
     image: redis:4.0-alpine
+    restart: always
     networks:
       - cvat
 
   cvat:
     container_name: cvat
     image: openvino/cvat_server
+    restart: always
     depends_on:
       - cvat_redis
       - cvat_db
@@ -59,6 +62,7 @@ services:
       dockerfile: Dockerfile.ui
     container_name: cvat_ui
     image: openvino/cvat_ui
+    restart: always
     depends_on:
       - cvat
     labels:
