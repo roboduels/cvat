@@ -462,7 +462,7 @@ export function createTaskAsync(data: any): ThunkAction<Promise<void>, {}, {}, A
         const description: any = {
             name: data.basic.name,
             labels: data.labels,
-            image_quality: 70,
+            image_quality: 100,
             use_zip_chunks: data.advanced.useZipChunks,
             use_cache: data.advanced.useCache,
             order_id: data.ags.orderId,
