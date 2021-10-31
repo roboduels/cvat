@@ -507,6 +507,18 @@ button.cvat-predictor-button {
     right: 0;
     background-color: #fff;
 
+    &-loader {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 14px;
+        .loading-text {
+            display: inline-flex;
+            margin-left: 8px;
+        }
+    }
+
     &.loading {
         padding: 64px;
     }

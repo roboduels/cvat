@@ -32,7 +32,7 @@ interface Props {
 }
 
 export function GradesForm({ task }: Props): JSX.Element | null {
-    const formRef = useRef<FormInstance>(null);
+    const formRef = useRef<FormInstance<CombinedState['grades']['values']>>(null);
     const [formTimestamp, setFormTimestamp] = useState(0);
     const [orderId, setOrderId] = useState(task?.orderId);
     const [certificateId, setCertificateId] = useState(task?.certificateId);
@@ -65,12 +65,15 @@ export function GradesForm({ task }: Props): JSX.Element | null {
 
     const handleSubmit = useCallback(async () => {
         dispatch(submitAnnotationFrameToGradeAsync(frameOptions));
+        formRef.current?.setFieldsValue({});
     }, [frameOptions]);
 
     const handleUpdate = useCallback(async () => {
         const formValues = await formRef.current?.validateFields();
-        dispatch(gradesActions.setGrades(formValues));
-        dispatch(submitHumanGradesAsync(frameOptions.certificateId));
+        if (formValues) {
+            dispatch(gradesActions.setGrades(formValues));
+            dispatch(submitHumanGradesAsync(frameOptions.certificateId));
+        }
     }, [frameOptions]);
 
     const handleFieldsChange = useCallback(async () => {
@@ -141,16 +144,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         setCertificateId((prev) => prev || task.certificateId);
     }, [task?.certificateId]);
 
+    useEffect(() => {
+        formRef.current?.setFieldsValue(values);
+    }, [values]);
+
     if (!open) {
         return null;
-    }
-
-    if (isLoading) {
-        return (
-            <div className='grades-form loading'>
-                <LoadingOutlined />
-            </div>
-        );
     }
 
     return (
@@ -363,6 +362,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             justifyContent: 'flex-end',
                         }}
                     >
+                        {isLoading ? (
+                            <div className='grades-form-loader'>
+                                <LoadingOutlined />
+                                <span className='loading-text'>Loading...</span>
+                            </div>
+                        ) : null}
                         <Button type='primary' onClick={handleUpdate} style={{ marginBottom: 8, width: '100%' }}>
                             Update grades
                         </Button>

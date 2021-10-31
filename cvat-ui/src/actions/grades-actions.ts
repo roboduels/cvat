@@ -1,7 +1,8 @@
 // Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
-import Axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import notification from 'antd/lib/notification';
 import { ActionUnion, createAction, ThunkAction } from '../utils/redux';
 import { CombinedState, GradesState } from '../reducers/interfaces';
 import {
@@ -47,7 +48,13 @@ function apiCall(endpoint: string, opts: AxiosRequestConfig = {}): Promise<Axios
 }
 
 export const setErrorAsync = (error: string | Error): ThunkAction => async (dispatch) => {
-    dispatch(gradesActions.setError(error));
+    const axiosErr = error as AxiosError;
+    if (axiosErr?.isAxiosError) {
+        const { data } = axiosErr.response || {};
+        dispatch(gradesActions.setError(data.detail));
+    } else {
+        dispatch(gradesActions.setError(error));
+    }
     setTimeout(() => {
         dispatch(gradesActions.setError(null));
     }, 3000);
@@ -171,21 +178,38 @@ export const submitAnnotationFrameToGradeAsync = (input: SubmitAnnotationFrameIn
     if (input.certificateId) {
         formData.set('certificate_id', input.certificateId);
     }
-    const { data } = await apiCall('/cvat-to-grade/', {
-        method: 'POST',
-        data: formData,
-    });
 
-    if (input.orientation) {
-        dispatch(
-            gradesActions.assignGrades({
-                [`${input.orientation}_centering_laser_grade`]: mapGradeValue(data?.center),
-                [`${input.orientation}_corners_laser_grade`]: mapGradeValue(data?.corner),
-                [`${input.orientation}_edges_laser_grade`]: mapGradeValue(data?.edge),
-                [`${input.orientation}_surface_laser_grade`]: mapGradeValue(data?.surface),
-            }),
-        );
+    try {
+        dispatch(gradesActions.setLoading(true));
+        notification.info({
+            message: 'Updating Robo grades...',
+        });
+        const { data } = await apiCall('/cvat-to-grade/', {
+            method: 'POST',
+            data: formData,
+        });
+
+        if (input.orientation) {
+            dispatch(
+                gradesActions.assignGrades({
+                    [`${input.orientation}_centering_laser_grade`]: mapGradeValue(data?.center),
+                    [`${input.orientation}_corners_laser_grade`]: mapGradeValue(data?.corner),
+                    [`${input.orientation}_edges_laser_grade`]: mapGradeValue(data?.edge),
+                    [`${input.orientation}_surface_laser_grade`]: mapGradeValue(data?.surface),
+                }),
+            );
+        }
+
+        notification.success({
+            message: 'Robo grades has been updated successfully.',
+        });
+    } catch (e) {
+        notification.error({
+            message: 'Robo grades couldn\'t be updated.',
+        });
+        dispatch(setErrorAsync(e));
     }
+    dispatch(gradesActions.setLoading(false));
 };
 
 export const submitHumanGradesAsync = (certificateId?: string | number | null): ThunkAction => async (
@@ -218,6 +242,10 @@ export const submitHumanGradesAsync = (certificateId?: string | number | null): 
     const overallGradeNickname = getGradeNickname(overallGrade);
 
     try {
+        dispatch(gradesActions.setLoading(true));
+        notification.info({
+            message: 'Updating human grades...',
+        });
         const { data } = await apiCall(`/v2/robograding/certificates/?certificate_id=${certificateId}`, {
             method: 'PATCH',
             data: {
@@ -252,7 +280,16 @@ export const submitHumanGradesAsync = (certificateId?: string | number | null): 
                 front_surface_human_grade: mapGradeValue(data.front_surface_human_grade),
             }),
         );
+
+        notification.success({
+            message: 'Human grades has been updated successfully.',
+        });
     } catch (e) {
+        notification.error({
+            message: 'Human grades couldn\'t be updated.',
+        });
         dispatch(setErrorAsync(e));
     }
+
+    dispatch(gradesActions.setLoading(false));
 };
