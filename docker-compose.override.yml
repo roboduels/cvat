@@ -1,0 +1,15 @@
+version: '3.3'
+
+services:
+  cvat:
+    environment:
+      CVAT_SHARE_URL: '/s3-bucket'
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+volumes:
+  cvat_share:
+    driver_opts:
+      type: none
+      device: /s3-bucket
+      o: bind

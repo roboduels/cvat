@@ -15,7 +15,7 @@ node_modules
 /letsencrypt-webroot/
 
 # Ignore temporary files
-docker-compose.override.yml
+# docker-compose.override.yml
 __pycache__
 *.pyc
 ._*
