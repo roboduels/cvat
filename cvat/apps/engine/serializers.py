@@ -871,3 +871,26 @@ class RelatedFileSerializer(serializers.ModelSerializer):
         model = models.RelatedFile
         fields = '__all__'
         read_only_fields = ('path',)
+
+
+class ActivitySerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(required=True)
+    activity_type = serializers.CharField(required=True)
+    hash = serializers.CharField(read_only=True)
+    options = serializers.JSONField()
+
+    class Meta:
+        model = models.ActivityLog
+        fields = (
+            'user_id',
+            'activity_type',
+            'options',
+            'hash',
+        )
+        read_only_fields = (
+            'user_id',
+            'activity_type',
+            'options',
+            'hash'
+        )
+        ordering = ['-id']
