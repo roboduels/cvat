@@ -136,10 +136,9 @@ interface SubmitAnnotationFrameInput {
     certificateId?: string | null;
 }
 
-export const submitAnnotationFrameToGradeAsync = (input: SubmitAnnotationFrameInput): ThunkAction => async (
-    dispatch,
-    getState,
-) => {
+export const submitAnnotationFrameToGradeAsync = (
+    input: SubmitAnnotationFrameInput & { withMasks?: boolean },
+): ThunkAction => async (dispatch, getState) => {
     if (!input.orientation) {
         dispatch(setWarningAsync(orientationNotFound));
     }
@@ -147,11 +146,13 @@ export const submitAnnotationFrameToGradeAsync = (input: SubmitAnnotationFrameIn
     const state = getState() as CombinedState;
     const { states } = state.annotation.annotations;
     const { frame } = state.annotation.player;
-    const job = state.annotation.job.instance;
-    const image = await job.frames.frameData(frame.number);
-
     const formData = new FormData();
-    formData.append('image', image, frame.filename);
+
+    if (input.withMasks) {
+        const job = state.annotation.job.instance;
+        const image = await job.frames.frameData(frame.number);
+        formData.append('image', image, frame.filename);
+    }
 
     formData.append(
         'payload',
