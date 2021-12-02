@@ -1481,24 +1481,8 @@ class ActivityFilter(filters.FilterSet):
         fields = ("activity_type", "user_id")
 
 
-class ActivityViewSet(viewsets.ModelViewSet):
+class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = models.ActivityLog.objects.all().order_by('-id')
     search_fields = ("activity_type", "user_id")
     filterset_class = ActivityFilter
     serializer_class = ActivitySerializer
-
-    # def list(self, request, *args, **kwargs):
-    #     activity_type = self.request.query_params.get('activity_type')
-    #     user_id = self.request.query_params.get('user_id')
-    #
-    #     if user_id is None:
-    #         user_id = self.request.user.id
-    #
-    #     filters_map = {
-    #         'activity_type__exact': activity_type,
-    #         'user_id__exact': user_id,
-    #     }
-    #
-    #     data = models.ActivityLog.objects.all().filter(**filters_map)
-    #
-    #     return Response(data)
