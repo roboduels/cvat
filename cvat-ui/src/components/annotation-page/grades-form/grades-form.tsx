@@ -13,6 +13,7 @@ import React, {
     useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import Space from 'antd/lib/space';
 import { setGradesFormState } from '../../../actions/annotation-actions';
 import {
     gradesActions,
@@ -23,6 +24,7 @@ import {
 } from '../../../actions/grades-actions';
 import { CombinedState } from '../../../reducers/interfaces';
 import { parseFilename } from '../../../utils/grades';
+import GradesFormAdvancedControls from './grades-form-advanced-controls';
 
 interface Props {
     task: {
@@ -63,8 +65,13 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         dispatch(setGradesFormState(false));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async () => {
+    const handleRobogrades = useCallback(async () => {
         dispatch(submitAnnotationFrameToGradeAsync(frameOptions));
+        formRef.current?.setFieldsValue({});
+    }, [frameOptions]);
+
+    const handleRobogradesAndMasks = useCallback(async () => {
+        dispatch(submitAnnotationFrameToGradeAsync({ ...frameOptions, withMasks: true }));
         formRef.current?.setFieldsValue({});
     }, [frameOptions]);
 
@@ -368,12 +375,15 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <span className='loading-text'>Loading...</span>
                             </div>
                         ) : null}
-                        <Button type='primary' onClick={handleUpdate} style={{ marginBottom: 8, width: '100%' }}>
-                            Update grades
-                        </Button>
-                        <Button type='primary' onClick={handleSubmit} style={{ width: '100%' }}>
-                            Generate Robo grades
-                        </Button>
+                        <Space direction='vertical' style={{ width: '100%' }}>
+                            <Button type='primary' onClick={handleUpdate} block>
+                                Update grades
+                            </Button>
+                            <Button type='primary' onClick={handleRobogrades} block>
+                                Generate Robogrades
+                            </Button>
+                            <GradesFormAdvancedControls onRobogradesAndMasks={handleRobogradesAndMasks} />
+                        </Space>
                     </div>
                 </Col>
             </Row>
