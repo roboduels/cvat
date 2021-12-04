@@ -50,6 +50,9 @@ import SVGAITools from './assets/ai-tools-icon.svg';
 import SVGBrain from './assets/brain.svg';
 import SVGOpenCV from './assets/opencv.svg';
 import SVGFilterIcon from './assets/object-filter-icon.svg';
+import SVGCVATAzureProvider from './assets/vscode-icons_file-type-azure.svg';
+import SVGCVATS3Provider from './assets/S3.svg';
+import SVGCVATGoogleCloudProvider from './assets/google-cloud.svg';
 
 export const CVATLogo = React.memo((): JSX.Element => <SVGCVATLogo />);
 export const AccountIcon = React.memo((): JSX.Element => <SVGAccountIcon />);
@@ -97,3 +100,6 @@ export const ColorizeIcon = React.memo((): JSX.Element => <SVGColorizeIcon />);
 export const BrainIcon = React.memo((): JSX.Element => <SVGBrain />);
 export const OpenCVIcon = React.memo((): JSX.Element => <SVGOpenCV />);
 export const FilterIcon = React.memo((): JSX.Element => <SVGFilterIcon />);
+export const AzureProvider = React.memo((): JSX.Element => <SVGCVATAzureProvider />);
+export const S3Provider = React.memo((): JSX.Element => <SVGCVATS3Provider />);
+export const GoogleCloudProvider = React.memo((): JSX.Element => <SVGCVATGoogleCloudProvider />);

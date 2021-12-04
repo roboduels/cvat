@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { MutableRefObject } from 'react';
 import { Canvas3d } from 'cvat-canvas3d/src/typescript/canvas3d';
 import { Canvas, RectDrawingMethod, CuboidDrawingMethod } from 'cvat-canvas-wrapper';
 import { IntelligentScissors } from 'utils/opencv-wrapper/intelligent-scissors';
@@ -30,6 +29,7 @@ export interface ProjectsQuery {
     owner: string | null;
     name: string | null;
     status: string | null;
+    assignee: string | null;
     [key: string]: string | boolean | number | null | undefined;
 }
 
@@ -44,6 +44,7 @@ export interface ProjectsState {
     count: number;
     current: Project[];
     gettingQuery: ProjectsQuery;
+    tasksGettingQuery: TasksQuery;
     activities: {
         creates: {
             id: null | number;
@@ -64,6 +65,7 @@ export interface TasksQuery {
     name: string | null;
     status: string | null;
     mode: string | null;
+    projectId: number | null;
     [key: string]: string | number | null;
 }
 
@@ -86,14 +88,6 @@ export interface TasksState {
     count: number;
     current: Task[];
     activities: {
-        dumps: {
-            // dumps in different formats at the same time
-            [tid: number]: string[]; // dumper names
-        };
-        exports: {
-            // exports in different formats at the same time
-            [tid: number]: string[]; // dumper names
-        };
         loads: {
             // only one loading simultaneously
             [tid: number]: string; // loader name
@@ -112,10 +106,80 @@ export interface TasksState {
     };
 }
 
+export interface ExportState {
+    tasks: {
+        [tid: number]: string[];
+    };
+    projects: {
+        [pid: number]: string[];
+    };
+    instance: any;
+    modalVisible: boolean;
+}
+
 export interface FormatsState {
     annotationFormats: any;
     fetching: boolean;
     initialized: boolean;
+}
+
+export interface CloudStoragesQuery {
+    page: number;
+    id: number | null;
+    search: string | null;
+    owner: string | null;
+    displayName: string | null;
+    description: string | null;
+    resourceName: string | null;
+    providerType: string | null;
+    credentialsType: string | null;
+    [key: string]: string | number | null | undefined;
+}
+
+interface CloudStorageAdditional {
+    fetching: boolean;
+    initialized: boolean;
+    status: string | null;
+    preview: string;
+}
+type CloudStorageStatus = Pick<CloudStorageAdditional, 'fetching' | 'initialized' | 'status'>;
+type CloudStoragePreview = Pick<CloudStorageAdditional, 'fetching' | 'initialized' | 'preview'>;
+
+export type CloudStorage = any;
+
+export interface CloudStoragesState {
+    initialized: boolean;
+    fetching: boolean;
+    count: number;
+    current: CloudStorage[];
+    statuses: {
+        [index: number]: CloudStorageStatus;
+    };
+    previews: {
+        [index: number]: CloudStoragePreview;
+    };
+    gettingQuery: CloudStoragesQuery;
+    activities: {
+        creates: {
+            attaching: boolean;
+            id: null | number;
+            error: string;
+        };
+        updates: {
+            updating: boolean;
+            cloudStorageID: null | number;
+            error: string;
+        };
+        deletes: {
+            [cloudStorageID: number]: boolean;
+        };
+        contentLoads: {
+            cloudStorageID: number | null;
+            content: any | null;
+            fetching: boolean;
+            error: string;
+        };
+    };
 }
 
 export enum SupportedPlugins {
@@ -182,12 +246,23 @@ export interface Model {
     framework: string;
     description: string;
     type: string;
+    onChangeToolsBlockerState: (event: string) => void;
+    tip: {
+        message: string;
+        gif: string;
+    };
     params: {
-        canvas: Record<string, unknown>;
+        canvas: Record<string, number | boolean>;
     };
 }
 
 export type OpenCVTool = IntelligentScissors;
+
+export interface ToolsBlockerState {
+    algorithmsLocked?: boolean;
+    buttonVisible?: boolean;
+}
+
 export enum TaskStatus {
     ANNOTATION = 'annotation',
     REVIEW = 'validation',
@@ -316,9 +391,16 @@ export interface NotificationsState {
             reopeningIssue: null | ErrorState;
             commentingIssue: null | ErrorState;
             submittingReview: null | ErrorState;
+            deletingIssue: null | ErrorState;
         };
         predictor: {
             prediction: null | ErrorState;
+        };
+        cloudStorages: {
+            creating: null | ErrorState;
+            fetching: null | ErrorState;
+            updating: null | ErrorState;
+            deleting: null | ErrorState;
         };
     };
     messages: {
@@ -421,7 +503,7 @@ export interface AnnotationState {
             pointID: number | null;
             clientID: number | null;
         };
-        instance: Canvas | Canvas3d;
+        instance: Canvas | Canvas3d | null;
         ready: boolean;
         activeControl: ActiveControl;
     };
@@ -444,6 +526,7 @@ export interface AnnotationState {
             delay: number;
             changeTime: number | null;
         };
+        navigationBlocked: boolean;
         playing: boolean;
         frameAngles: number[];
         contextImage: {
@@ -463,7 +546,6 @@ export interface AnnotationState {
         activeInitialState?: any;
     };
     annotations: {
-        selectedStatesID: number[];
         activatedStateID: number | null;
         activatedAttributeID: number | null;
         collapsed: Record<number, boolean>;
@@ -544,6 +626,7 @@ export interface PlayerSettingsState {
     frameSpeed: FrameSpeed;
     resetZoom: boolean;
     rotateAll: boolean;
+    smoothImage: boolean;
     grid: boolean;
     gridSize: number;
     gridColor: GridColor;
@@ -562,6 +645,7 @@ export interface WorkspaceSettingsState {
     showAllInterpolationTracks: boolean;
     intelligentPolygonCrop: boolean;
     defaultApproxPolyAccuracy: number;
+    toolsBlockerState: ToolsBlockerState;
 }
 
 export interface ShapesSettingsState {
@@ -601,6 +685,7 @@ export interface ReviewState {
     activeReview: any | null;
     newIssuePosition: number[] | null;
     issuesHidden: boolean;
+    issuesResolvedHidden: boolean;
     fetching: {
         reviewId: number | null;
         issueId: number | null;
@@ -654,6 +739,8 @@ export interface CombinedState {
     shortcuts: ShortcutsState;
     review: ReviewState;
     grades: GradesState;
+    export: ExportState;
+    cloudStorages: CloudStoragesState;
 }
 
 export enum DimensionType {

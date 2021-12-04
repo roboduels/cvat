@@ -42,6 +42,9 @@ class AnnotationIR:
     def __getitem__(self, key):
         return getattr(self, key)
 
+    def __setitem__(self, key, value):
+        return setattr(self, key, value)
+
     @data.setter
     def data(self, data):
         self.version = data['version']
@@ -107,9 +110,6 @@ class AnnotationIR:
                         interpolated_shapes[stop + 1]['outside']:
                     segment_shapes.append(interpolated_shapes[stop + 1])
 
-            # Should delete 'interpolation_shapes' and 'keyframe' keys because
-            # Track and TrackedShape models don't expect these fields
-            del track['interpolated_shapes']
             for shape in segment_shapes:
                 shape.pop('keyframe', None)
 
@@ -426,25 +426,28 @@ class TrackManager(ObjectManager):
             shape["frame"] = end_frame
             shape["outside"] = True
             obj["shapes"].append(shape)
-            # Need to update cached interpolated shapes
-            # because key shapes were changed
-            if obj.get("interpolated_shapes"):
-                last_interpolated_shape = obj["interpolated_shapes"][-1]
-                for frame in range(last_interpolated_shape["frame"] + 1, end_frame):
-                    last_interpolated_shape = deepcopy(last_interpolated_shape)
-                    last_interpolated_shape["frame"] = frame
-                    obj["interpolated_shapes"].append(last_interpolated_shape)
-                obj["interpolated_shapes"].append(shape)
 
     @staticmethod
     def get_interpolated_shapes(track, start_frame, end_frame):
-        def copy_shape(source, frame, points=None):
+        def copy_shape(source, frame, points=None, rotation=None):
             copied = deepcopy(source)
             copied["keyframe"] = False
             copied["frame"] = frame
+            if rotation is not None:
+                copied["rotation"] = rotation
             if points is not None:
                 copied["points"] = points
             return copied
+
+        def find_angle_diff(right_angle, left_angle):
+            angle_diff = right_angle - left_angle
+            angle_diff = ((angle_diff + 180) % 360) - 180
+            if abs(angle_diff) >= 180:
+                # if the main arc is bigger than 180, go another arc
+                # to find it, just substract absolute value from 360 and inverse sign
+                angle_diff = 360 - abs(angle_diff) * -1 if angle_diff > 0 else 1
+
+            return angle_diff
 
         def simple_interpolation(shape0, shape1):
             shapes = []
@@ -453,9 +456,12 @@ class TrackManager(ObjectManager):
 
             for frame in range(shape0["frame"] + 1, shape1["frame"]):
                 offset = (frame - shape0["frame"]) / distance
+                rotation = (shape0["rotation"] + find_angle_diff(
+                    shape1["rotation"], shape0["rotation"],
+                ) * offset + 360) % 360
                 points = shape0["points"] + diff * offset
 
-                shapes.append(copy_shape(shape0, frame, points.tolist()))
+                shapes.append(copy_shape(shape0, frame, points.tolist(), rotation))
 
             return shapes
 
@@ -710,9 +716,6 @@ class TrackManager(ObjectManager):
 
             return shapes
 
-        if track.get("interpolated_shapes"):
-            return track["interpolated_shapes"]
-
         shapes = []
         curr_frame = track["shapes"][0]["frame"]
         prev_shape = {}
@@ -739,8 +742,6 @@ class TrackManager(ObjectManager):
             shape["frame"] = end_frame
             shapes.extend(interpolate(prev_shape, shape))
 
-        track["interpolated_shapes"] = shapes
-
         return shapes
 
     @staticmethod
@@ -757,6 +758,5 @@ class TrackManager(ObjectManager):
 
         track["frame"] = min(obj0["frame"], obj1["frame"])
         track["shapes"] = list(sorted(shapes.values(), key=lambda shape: shape["frame"]))
-        track["interpolated_shapes"] = []
 
         return track

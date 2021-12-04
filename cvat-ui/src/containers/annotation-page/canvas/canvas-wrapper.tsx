@@ -22,7 +22,6 @@ import {
     groupAnnotationsAsync,
     splitAnnotationsAsync,
     activateObject,
-    selectObjects,
     updateCanvasContextMenu,
     addZLayer,
     switchZLayer,
@@ -54,11 +53,10 @@ import { Canvas3d } from 'cvat-canvas3d-wrapper';
 
 interface StateToProps {
     sidebarCollapsed: boolean;
-    canvasInstance: Canvas | Canvas3d;
+    canvasInstance: Canvas | Canvas3d | null;
     jobInstance: any;
     activatedStateID: number | null;
     activatedAttributeID: number | null;
-    selectedStatesID: number[];
     annotations: any[];
     frameIssues: any[] | null;
     frameData: any;
@@ -82,6 +80,7 @@ interface StateToProps {
     contrastLevel: number;
     saturationLevel: number;
     resetZoom: boolean;
+    smoothImage: boolean;
     aamZoomMargin: number;
     showObjectsTextAlways: boolean;
     showAllInterpolationTracks: boolean;
@@ -90,6 +89,7 @@ interface StateToProps {
     maxZLayer: number;
     curZLayer: number;
     automaticBordering: boolean;
+    intelligentPolygonCrop: boolean;
     switchableAutomaticBordering: boolean;
     keyMap: KeyMap;
     canvasBackgroundColor: string;
@@ -111,7 +111,6 @@ interface DispatchToProps {
     onGroupAnnotations(sessionInstance: any, frame: number, states: any[]): void;
     onSplitAnnotations(sessionInstance: any, frame: number, state: any): void;
     onActivateObject: (activatedStateID: number | null) => void;
-    onSelectObjects: (selectedStatesID: number[]) => void;
     onUpdateContextMenu(visible: boolean, left: number, top: number, type: ContextMenuType, pointID?: number): void;
     onAddZLayer(): void;
     onSwitchZLayer(cur: number): void;
@@ -141,7 +140,6 @@ function mapStateToProps(state: CombinedState): StateToProps {
                 states: annotations,
                 activatedStateID,
                 activatedAttributeID,
-                selectedStatesID,
                 zLayer: { cur: curZLayer, min: minZLayer, max: maxZLayer },
             },
             sidebarCollapsed,
@@ -158,6 +156,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
                 contrastLevel,
                 saturationLevel,
                 resetZoom,
+                smoothImage,
             },
             workspace: {
                 aamZoomMargin,
@@ -170,27 +169,30 @@ function mapStateToProps(state: CombinedState): StateToProps {
                 opacity, colorBy, selectedOpacity, outlined, outlineColor, showBitmap, showProjections,
             },
         },
-        review: { frameIssues, issuesHidden },
+        review: { frameIssues, issuesHidden, issuesResolvedHidden },
         shortcuts: { keyMap },
     } = state;
+
+    const issues = frameIssues.filter((issue) => (
+        !issuesHidden && [Workspace.REVIEW_WORKSPACE, Workspace.STANDARD].includes(workspace) &&
+        !(!!issue.resolvedDate && issuesResolvedHidden)
+    ));
 
     return {
         sidebarCollapsed,
         canvasInstance,
         jobInstance,
-        frameIssues:
-            issuesHidden || ![Workspace.REVIEW_WORKSPACE, Workspace.STANDARD].includes(workspace) ? null : frameIssues,
+        frameIssues: issues,
         frameData,
         frameAngle: frameAngles[frame - jobInstance.startFrame],
         frameFetching,
         frame,
         activatedStateID,
         activatedAttributeID,
-        selectedStatesID,
         annotations,
-        opacity,
+        opacity: opacity / 100,
         colorBy,
-        selectedOpacity,
+        selectedOpacity: selectedOpacity / 100,
         outlined,
         outlineColor,
         showBitmap,
@@ -198,13 +200,14 @@ function mapStateToProps(state: CombinedState): StateToProps {
         grid,
         gridSize,
         gridColor,
-        gridOpacity,
+        gridOpacity: gridOpacity / 100,
         activeLabelID,
         activeObjectType,
-        brightnessLevel,
-        contrastLevel,
-        saturationLevel,
+        brightnessLevel: brightnessLevel / 100,
+        contrastLevel: contrastLevel / 100,
+        saturationLevel: saturationLevel / 100,
         resetZoom,
+        smoothImage,
         aamZoomMargin,
         showObjectsTextAlways,
         showAllInterpolationTracks,
@@ -273,9 +276,6 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
             }
 
             dispatch(activateObject(activatedStateID, null));
-        },
-        onSelectObjects(selectedStatesID: number[]): void {
-            dispatch(selectObjects(selectedStatesID));
         },
         onUpdateContextMenu(
             visible: boolean,

@@ -5,7 +5,109 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## \[1.5.0] - Unreleased
+## \[2.0.0] - Unreleased
+### Added
+
+- Add additional environment variables for Nuclio configuration (<https://github.com/openvinotoolkit/cvat/pull/3894>)
+- Add KITTI segmentation and detection format (<https://github.com/openvinotoolkit/cvat/pull/3757>)
+- Add LFW format (<https://github.com/openvinotoolkit/cvat/pull/3770>)
+- Add Cityscapes format (<https://github.com/openvinotoolkit/cvat/pull/3758>)
+- Add Open Images V6 format (<https://github.com/openvinotoolkit/cvat/pull/3679>)
+- Rotated bounding boxes (<https://github.com/openvinotoolkit/cvat/pull/3832>)
+- Player option: Smooth image when zoom-in, enabled by default (<https://github.com/openvinotoolkit/cvat/pull/3933>)
+- Google Cloud Storage support in UI (<https://github.com/openvinotoolkit/cvat/pull/3919>)
+- Add project tasks paginations (<https://github.com/openvinotoolkit/cvat/pull/3910>)
+- Add remove issue button (<https://github.com/openvinotoolkit/cvat/pull/3952>)
+
+### Changed
+- TDB
+
+### Deprecated
+- TDB
+
+### Removed
+- TDB
+
+### Fixed
+- Fixed Interaction handler keyboard handlers (<https://github.com/openvinotoolkit/cvat/pull/3881>)
+- Points of invisible shapes are visible in autobordering (<https://github.com/openvinotoolkit/cvat/pull/3931>)
+- Order of the label attributes in the object item details(<https://github.com/openvinotoolkit/cvat/pull/3945>)
+
+### Security
+- TDB
+
+## \[1.7.0] - 2021-11-15
+
+### Added
+
+- cvat-ui: support cloud storages (<https://github.com/openvinotoolkit/cvat/pull/3372>)
+- interactor: add HRNet interactive segmentation serverless function (<https://github.com/openvinotoolkit/cvat/pull/3740>)
+- Added GPU implementation for SiamMask, reworked tracking approach (<https://github.com/openvinotoolkit/cvat/pull/3571>)
+- Progress bar for manifest creating (<https://github.com/openvinotoolkit/cvat/pull/3712>)
+- Add a tutorial on attaching cloud storage AWS-S3 (<https://github.com/openvinotoolkit/cvat/pull/3745>)
+  and Azure Blob Container (<https://github.com/openvinotoolkit/cvat/pull/3778>)
+- The feature to remove annotations in a specified range of frames (<https://github.com/openvinotoolkit/cvat/pull/3617>)
+
+### Changed
+
+- UI tracking has been reworked (<https://github.com/openvinotoolkit/cvat/pull/3571>)
+- Manifest generation: Reduce creating time (<https://github.com/openvinotoolkit/cvat/pull/3712>)
+- Migration from NPM 6 to NPM 7 (<https://github.com/openvinotoolkit/cvat/pull/3773>)
+- Update Datumaro dependency to 0.2.0 (<https://github.com/openvinotoolkit/cvat/pull/3813>)
+
+### Fixed
+
+- Fixed JSON transform issues in network requests (<https://github.com/openvinotoolkit/cvat/pull/3706>)
+- Display a more user-friendly exception message (<https://github.com/openvinotoolkit/cvat/pull/3721>)
+- Exception `DataCloneError: The object could not be cloned` (<https://github.com/openvinotoolkit/cvat/pull/3733>)
+- Fixed extension comparison in task frames CLI (<https://github.com/openvinotoolkit/cvat/pull/3674>)
+- Incorrect work when copy job list with "Copy" button (<https://github.com/openvinotoolkit/cvat/pull/3749>)
+- Iterating over manifest (<https://github.com/openvinotoolkit/cvat/pull/3792>)
+- Manifest removing (<https://github.com/openvinotoolkit/cvat/pull/3791>)
+- Fixed project updated date (<https://github.com/openvinotoolkit/cvat/pull/3814>)
+- Fixed dextr deployment (<https://github.com/openvinotoolkit/cvat/pull/3820>)
+- Migration of `dataset_repo` application (<https://github.com/openvinotoolkit/cvat/pull/3827>)
+- Helm settings for external psql database were unused by backend (<https://github.com/openvinotoolkit/cvat/pull/3779>)
+- Updated WSL setup for development (<https://github.com/openvinotoolkit/cvat/pull/3828>)
+- Helm chart config (<https://github.com/openvinotoolkit/cvat/pull/3784>)
+
+### Security
+
+- Fix security issues on the documentation website unsafe use of target blank
+  and potential clickjacking on legacy browsers (<https://github.com/openvinotoolkit/cvat/pull/3789>)
+
+## \[1.6.0] - 2021-09-17
+
+### Added
+
+- Added ability to import data from share with cli without copying the data (<https://github.com/openvinotoolkit/cvat/issues/2862>)
+- Notification if the browser does not support nesassary API
+- Added ability to export project as a dataset (<https://github.com/openvinotoolkit/cvat/pull/3365>)
+  and project with 3D tasks (<https://github.com/openvinotoolkit/cvat/pull/3502>)
+- Additional inline tips in interactors with demo gifs (<https://github.com/openvinotoolkit/cvat/pull/3473>)
+- Added intelligent scissors blocking feature (<https://github.com/openvinotoolkit/cvat/pull/3510>)
+- Support cloud storage status (<https://github.com/openvinotoolkit/cvat/pull/3386>)
+- Support cloud storage preview (<https://github.com/openvinotoolkit/cvat/pull/3386>)
+- cvat-core: support cloud storages (<https://github.com/openvinotoolkit/cvat/pull/3313>)
+
+### Changed
+
+- Non-blocking UI when using interactors (<https://github.com/openvinotoolkit/cvat/pull/3473>)
+- "Selected opacity" slider now defines opacity level for shapes being drawnSelected opacity (<https://github.com/openvinotoolkit/cvat/pull/3473>)
+- Cloud storage creating and updating (<https://github.com/openvinotoolkit/cvat/pull/3386>)
+- Way of working with cloud storage content (<https://github.com/openvinotoolkit/cvat/pull/3386>)
+
+### Removed
+
+- Support TEMP_KEY_SECRET_KEY_TOKEN_SET for AWS S3 cloud storage (<https://github.com/openvinotoolkit/cvat/pull/3386>)
+
+### Fixed
+
+- Fixed multiple tasks moving (<https://github.com/openvinotoolkit/cvat/pull/3517>)
+- Fixed task creating CLI parameter (<https://github.com/openvinotoolkit/cvat/pull/3519>)
+- Fixed import for MOTS format (<https://github.com/openvinotoolkit/cvat/pull/3612>)
+
+## \[1.5.0] - 2021-08-02
 
 ### Added
 
@@ -17,25 +119,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit "Done" button when drawing any polyshapes (<https://github.com/openvinotoolkit/cvat/pull/3417>)
 - Histogram equalization with OpenCV javascript (<https://github.com/openvinotoolkit/cvat/pull/3447>)
 - Client-side polyshapes approximation when using semi-automatic interactors & scissors (<https://github.com/openvinotoolkit/cvat/pull/3450>)
+- Support of Google Cloud Storage for cloud storage (<https://github.com/openvinotoolkit/cvat/pull/3561>)
 
 ### Changed
 
 - Updated manifest format, added meta with related images (<https://github.com/openvinotoolkit/cvat/pull/3122>)
 - Update of COCO format documentation (<https://github.com/openvinotoolkit/cvat/pull/3197>)
-- Updated Webpack Dev Server config to add proxxy (<https://github.com/openvinotoolkit/cvat/pull/3368>)
+- Updated Webpack Dev Server config to add proxy (<https://github.com/openvinotoolkit/cvat/pull/3368>)
 - Update to Django 3.1.12 (<https://github.com/openvinotoolkit/cvat/pull/3378>)
 - Updated visibility for removable points in AI tools (<https://github.com/openvinotoolkit/cvat/pull/3417>)
 - Updated UI handling for IOG serverless function (<https://github.com/openvinotoolkit/cvat/pull/3417>)
 - Changed Nginx proxy to Traefik in `docker-compose.yml` (<https://github.com/openvinotoolkit/cvat/pull/3409>)
 - Simplify the process of deploying CVAT with HTTPS (<https://github.com/openvinotoolkit/cvat/pull/3409>)
-
-### Deprecated
-
-- TBD
-
-### Removed
-
-- TBD
 
 ### Fixed
 
@@ -49,7 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeError: Cannot read property 'clientX' of undefined when draw cuboids with hotkeys (<https://github.com/openvinotoolkit/cvat/pull/3308>)
 - Duplication of the cuboids when redraw them (<https://github.com/openvinotoolkit/cvat/pull/3308>)
 - Some code issues in Deep Extreme Cut handler code (<https://github.com/openvinotoolkit/cvat/pull/3325>)
-- UI fails when inactive user is assigneed to a task/job (<https://github.com/openvinotoolkit/cvat/pull/3343>)
+- UI fails when inactive user is assigned to a task/job (<https://github.com/openvinotoolkit/cvat/pull/3343>)
 - Calculate precise progress of decoding a video file (<https://github.com/openvinotoolkit/cvat/pull/3381>)
 - Falsely successful `cvat_ui` image build in case of OOM error that leads to the default nginx welcome page
   (<https://github.com/openvinotoolkit/cvat/pull/3379>)
@@ -58,10 +153,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using combined data sources (directory and image) when create a task (<https://github.com/openvinotoolkit/cvat/pull/3424>)
 - Creating task with labels in project (<https://github.com/openvinotoolkit/cvat/pull/3454>)
 - Move task and autoannotation modals were invisible from project page (<https://github.com/openvinotoolkit/cvat/pull/3475>)
-
-### Security
-
-- TBD
 
 ## \[1.4.0] - 2021-05-18
 
@@ -857,22 +948,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Template
 
 ```
-## [Unreleased]
+## \[Unreleased]
 ### Added
--
+- TDB
 
 ### Changed
--
+- TDB
 
 ### Deprecated
--
+- TDB
 
 ### Removed
--
+- TDB
 
 ### Fixed
--
+- TDB
 
 ### Security
--
+- TDB
 ```

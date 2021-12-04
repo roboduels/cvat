@@ -5,8 +5,7 @@
 import os.path as osp
 from hashlib import blake2s
 
-from datumaro.cli.util import make_file_name
-
+from datumaro.util.os_util import make_file_name
 
 def get_color_from_index(index):
     def get_bit(number, index):
@@ -48,8 +47,9 @@ def rgb2hex(color):
 def hex2rgb(color):
     return tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
 
-def make_colormap(task_data):
-    labels = [label for _, label in task_data.meta['task']['labels']]
+def make_colormap(instance_data):
+    instance_name = 'project' if 'project' in instance_data.meta.keys() else 'task'
+    labels = [label for _, label in instance_data.meta[instance_name]['labels']]
     label_names = [label['name'] for label in labels]
 
     if 'background' not in label_names:

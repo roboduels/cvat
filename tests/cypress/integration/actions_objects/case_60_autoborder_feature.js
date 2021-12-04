@@ -11,7 +11,7 @@ context('Autoborder feature.', () => {
     const createRectangleShape2Points = {
         points: 'By 2 Points',
         type: 'Shape',
-        labelName: labelName,
+        labelName,
         firstX: 400,
         firstY: 350,
         secondX: 500,
@@ -21,7 +21,7 @@ context('Autoborder feature.', () => {
     const createRectangleShape2PointsSec = {
         points: 'By 2 Points',
         type: 'Shape',
-        labelName: labelName,
+        labelName,
         firstX: 600,
         firstY: 350,
         secondX: 700,
@@ -29,10 +29,10 @@ context('Autoborder feature.', () => {
     };
 
     const keyCodeN = 78;
-    let rectangleSvgJsCircleId = [];
-    let rectangleSvgJsCircleIdSecond = [];
-    let polygonSvgJsCircleId = [];
-    let polylineSvgJsCircleId = [];
+    const rectangleSvgJsCircleId = [];
+    const rectangleSvgJsCircleIdSecond = [];
+    const polygonSvgJsCircleId = [];
+    const polylineSvgJsCircleId = [];
 
     function testCollectCxCircleCoord(arrToPush) {
         cy.get('circle').then((circle) => {
@@ -76,12 +76,13 @@ context('Autoborder feature.', () => {
             testActivatingShape(650, 400, '#cvat_canvas_shape_2');
             testCollectCxCircleCoord(rectangleSvgJsCircleIdSecond);
 
-            cy.get('.cvat-draw-polygon-control').click();
-            cy.get('.cvat-draw-polygon-popover-visible').find('[type="button"]').contains('Shape').click();
+            cy.interactControlButton('draw-polygon');
+            cy.get('.cvat-draw-polygon-popover').find('[type="button"]').contains('Shape').click();
             cy.get('body').type('{Ctrl}'); // Autoborder activation
             testAutoborderPointsCount(8); // 8 points at the rectangles
             cy.get('.cvat-canvas-container').click(400, 350).click(450, 250).click(500, 350).click(500, 450);
-            cy.get('.cvat-canvas-container').trigger('keydown', { keyCode: keyCodeN }).trigger('keyup');
+            cy.get('.cvat-canvas-container').trigger('keydown', { keyCode: keyCodeN, code: 'KeyN' })
+                .trigger('keyup', { keyCode: keyCodeN, code: 'KeyN' });
             cy.get('.cvat_canvas_autoborder_point').should('not.exist');
 
             // Collect the polygon points coordinates
@@ -90,8 +91,8 @@ context('Autoborder feature.', () => {
         });
 
         it('Start drawing a polyline with autobordering between the two shapes.', () => {
-            cy.get('.cvat-draw-polyline-control').click();
-            cy.get('.cvat-draw-polyline-popover-visible').find('[type="button"]').contains('Shape').click();
+            cy.interactControlButton('draw-polyline');
+            cy.get('.cvat-draw-polyline-popover').find('[type="button"]').contains('Shape').click();
             testAutoborderPointsCount(12); // 8 points at the rectangles + 4 at the polygon
             cy.get('.cvat-canvas-container') // Drawning
                 .click(600, 350)
@@ -99,7 +100,8 @@ context('Autoborder feature.', () => {
                 .click(550, 500)
                 .click(600, 450)
                 .click(600, 350);
-            cy.get('.cvat-canvas-container').trigger('keydown', { keyCode: keyCodeN }).trigger('keyup');
+            cy.get('.cvat-canvas-container').trigger('keydown', { keyCode: keyCodeN, code: 'KeyN' })
+                .trigger('keyup', { keyCode: keyCodeN, code: 'KeyN' });
             cy.get('.cvat_canvas_autoborder_point').should('not.exist');
 
             // Collect the polygon points coordinates
@@ -108,9 +110,12 @@ context('Autoborder feature.', () => {
         });
 
         it('Checking whether the coordinates of the contact points of the shapes match.', () => {
-            expect(polygonSvgJsCircleId[0]).to.be.equal(rectangleSvgJsCircleId[0]); // The 1st point of the rect and the 1st polygon point
-            expect(polygonSvgJsCircleId[2]).to.be.equal(rectangleSvgJsCircleId[1]); // The 2nd point of the rect and the 3rd polygon point
-            expect(polylineSvgJsCircleId[1]).to.be.equal(rectangleSvgJsCircleId[3]); // The 2nd point of the polyline and the 4th point rect
+            expect(polygonSvgJsCircleId[0]).to
+                .be.equal(rectangleSvgJsCircleId[0]); // The 1st point of the rect and the 1st polygon point
+            expect(polygonSvgJsCircleId[2]).to
+                .be.equal(rectangleSvgJsCircleId[1]); // The 2nd point of the rect and the 3rd polygon point
+            expect(polylineSvgJsCircleId[1]).to
+                .be.equal(rectangleSvgJsCircleId[3]); // The 2nd point of the polyline and the 4th point rect
         });
     });
 });

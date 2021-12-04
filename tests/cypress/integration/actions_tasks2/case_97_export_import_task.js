@@ -23,12 +23,11 @@ context('Export, import an annotation task.', { browser: '!firefox' }, () => {
     const directoryToArchive = imagesFolder;
     const newLabelName = 'person';
     let taskId;
-    let taskBackupArchiveShortName = `task_${taskName.toLowerCase()}_backup`;
     let taskBackupArchiveFullName;
 
     const createPointsShape = {
         type: 'Shape',
-        labelName: labelName,
+        labelName,
         pointsMap: [
             { x: 200, y: 200 },
             { x: 250, y: 200 },
@@ -66,26 +65,21 @@ context('Export, import an annotation task.', { browser: '!firefox' }, () => {
                 .parents('.cvat-tasks-list-item')
                 .find('.cvat-item-open-task-actions > .cvat-menu-icon')
                 .trigger('mouseover');
-            cy.intercept('GET', '/api/v1/tasks/**?action=export').as('exportTask');
-            cy.get('.ant-dropdown').not('.ant-dropdown-hidden').within(() => {
-                cy.contains('[role="menuitem"]', 'Export Task').click().trigger('mouseout');
+            cy.get('.ant-dropdown')
+                .not('.ant-dropdown-hidden')
+                .within(() => {
+                    cy.contains('[role="menuitem"]', new RegExp('^Export task$')).click().trigger('mouseout');
+                });
+            cy.getDownloadFileName().then((file) => {
+                taskBackupArchiveFullName = file;
+                cy.verifyDownload(taskBackupArchiveFullName);
             });
-            cy.wait('@exportTask', { timeout: 5000 }).its('response.statusCode').should('equal', 202);
-            cy.wait('@exportTask').its('response.statusCode').should('equal', 201);
             cy.deleteTask(taskName);
-            cy.task('listFiles', 'cypress/fixtures').each((fileName) => {
-                if (fileName.includes(taskBackupArchiveShortName)) {
-                    taskBackupArchiveFullName = fileName;
-                }
-            });
         });
 
         it('Import the task. Check id, labels, shape.', () => {
             cy.intercept('POST', '/api/v1/tasks?action=import').as('importTask');
-            cy.get('.cvat-import-task')
-                .click()
-                .find('input[type=file]')
-                .attachFile(taskBackupArchiveFullName);
+            cy.get('.cvat-import-task').click().find('input[type=file]').attachFile(taskBackupArchiveFullName);
             cy.wait('@importTask', { timeout: 5000 }).its('response.statusCode').should('equal', 202);
             cy.wait('@importTask').its('response.statusCode').should('equal', 201);
             cy.contains('Task has been imported succesfully').should('exist').and('be.visible');
