@@ -28,11 +28,9 @@ Cypress.Commands.add(
         cy.get('.cvat-create-project-content').within(() => {
             cy.contains('Submit').click();
         });
-        if (expectedResult == 'success') {
-            cy.get('.cvat-notification-create-project-success')
-                .should('exist')
-                .find('[data-icon="close"]').click();
-        } else if (expectedResult == 'fail') {
+        if (expectedResult === 'success') {
+            cy.get('.cvat-notification-create-project-success').should('exist').find('[data-icon="close"]').click();
+        } else if (expectedResult === 'fail') {
             cy.get('.cvat-notification-create-project-success').should('not.exist');
         }
         cy.goToProjectsList();
@@ -44,7 +42,7 @@ Cypress.Commands.add('openProject', (projectName) => {
     cy.get('.cvat-project-details').should('exist');
 });
 
-Cypress.Commands.add('deleteProject', (projectName, projectID, expectedResult = 'success') => {
+Cypress.Commands.add('projectActions', (projectName) => {
     cy.contains('.cvat-projects-project-item-title', projectName)
         .parents('.cvat-projects-project-item-card')
         .within(() => {
@@ -52,6 +50,10 @@ Cypress.Commands.add('deleteProject', (projectName, projectID, expectedResult = 
                 cy.get('[type="button"]').trigger('mouseover');
             });
         });
+});
+
+Cypress.Commands.add('deleteProject', (projectName, projectID, expectedResult = 'success') => {
+    cy.projectActions(projectName);
     cy.get('.cvat-project-actions-menu').contains('Delete').click();
     cy.get('.cvat-modal-confirm-remove-project')
         .should('contain', `The project ${projectID} will be deleted`)
@@ -61,8 +63,40 @@ Cypress.Commands.add('deleteProject', (projectName, projectID, expectedResult = 
     if (expectedResult === 'success') {
         cy.get('.cvat-projects-project-item-card').should('have.css', 'opacity', '0.5');
     } else if (expectedResult === 'fail') {
-        cy.get('.cvat-projects-project-item-card').should('not.have.attr', 'style');
+        cy.get('.cvat-projects-project-item-card').should('not.have.css', 'opacity', '0.5');
     }
+});
+
+Cypress.Commands.add('exportProject', ({
+    projectName, type, dumpType, archiveCustomeName,
+}) => {
+    cy.projectActions(projectName);
+    cy.get('.cvat-project-actions-menu').contains('Export project dataset').click();
+    cy.get('.cvat-modal-export-project').should('be.visible').find('.cvat-modal-export-select').click();
+    cy.contains('.cvat-modal-export-option-item', dumpType).should('be.visible').click();
+    cy.get('.cvat-modal-export-select').should('contain.text', dumpType);
+    if (type === 'dataset') {
+        cy.get('.cvat-modal-export-project').find('[type="checkbox"]').should('not.be.checked').check();
+    }
+    if (archiveCustomeName) {
+        cy.get('.cvat-modal-export-project').find('.cvat-modal-export-filename-input').type(archiveCustomeName);
+    }
+    cy.get('.cvat-modal-export-project').contains('button', 'OK').click();
+    cy.get('.cvat-notification-notice-export-project-start').should('be.visible');
+});
+
+Cypress.Commands.add('getDownloadFileName', () => {
+    cy.intercept('GET', '**=download').as('download');
+    cy.wait('@download').then((download) => {
+        const filename = download.response.headers['content-disposition'].split('filename="b\'')[1].split('\'')[0];
+        return filename;
+    });
+});
+
+Cypress.Commands.add('waitForDownload', () => {
+    cy.getDownloadFileName().then((filename) => {
+        cy.verifyDownload(filename);
+    });
 });
 
 Cypress.Commands.add('deleteProjectViaActions', (projectName) => {
@@ -96,25 +130,31 @@ Cypress.Commands.add('closeNotification', (className) => {
 Cypress.Commands.add('movingTask', (taskName, projectName, labelMappingFrom, labelMappingTo, fromTask) => {
     if (fromTask) {
         cy.contains('.cvat-text-color', 'Actions').click();
-        cy.get('.ant-dropdown').not('.ant-dropdown-hidden').within(() => {
-            cy.contains('Move to project').click();
-        });
     } else {
         cy.contains('strong', taskName).parents('.cvat-tasks-list-item').find('.cvat-menu-icon').click();
-        cy.get('.ant-dropdown').not('.ant-dropdown-hidden').within(() => {
-            cy.contains('Move to project').click();
-        });
     }
+    cy.get('.cvat-actions-menu')
+        .should('be.visible')
+        .find('[role="menuitem"]')
+        .filter(':contains("Move to project")')
+        .last()
+        .click();
     cy.get('.cvat-task-move-modal').find('.cvat-project-search-field').click();
-    cy.get('.ant-select-dropdown').not('.ant-select-dropdown-hidden').within(() => {
-        cy.get(`[title="${projectName}"]`).click();
-    });
+    cy.get('.ant-select-dropdown')
+        .last()
+        .should('be.visible')
+        .within(() => {
+            cy.get(`[title="${projectName}"]`).click();
+        });
     if (labelMappingFrom !== labelMappingTo) {
         cy.get('.cvat-move-task-label-mapper-item').within(() => {
             cy.contains(labelMappingFrom).should('exist');
-            cy.get('.cvat-move-task-label-mapper-item-select').click();
+            cy.get('.cvat-move-task-label-mapper-item-select').should('be.visible').click();
         });
-        cy.get('.ant-select-dropdown').not('.ant-select-dropdown-hidden').find(`[title="${labelMappingTo}"]`).click();
+        cy.get('.ant-select-dropdown')
+            .last()
+            .should('be.visible')
+            .find(`[title="${labelMappingTo}"]`).click();
     } else {
         cy.get('.cvat-move-task-label-mapper-item').within(() => {
             cy.get('.cvat-move-task-label-mapper-item-select').should('have.text', labelMappingFrom);
@@ -122,5 +162,5 @@ Cypress.Commands.add('movingTask', (taskName, projectName, labelMappingFrom, lab
     }
     cy.get('.cvat-task-move-modal').within(() => {
         cy.contains('button', 'OK').click();
-    })
+    });
 });

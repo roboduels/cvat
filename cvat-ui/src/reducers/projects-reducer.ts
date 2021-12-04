@@ -19,8 +19,21 @@ const defaultState: ProjectsState = {
         id: null,
         search: null,
         owner: null,
+        assignee: null,
         name: null,
         status: null,
+    },
+    tasksGettingQuery: {
+        page: 1,
+        id: null,
+        search: null,
+        owner: null,
+        assignee: null,
+        name: null,
+        status: null,
+        mode: null,
+        projectId: null,
+        ordering: 'subset',
     },
     activities: {
         deletes: {},
@@ -39,6 +52,10 @@ export default (state: ProjectsState = defaultState, action: AnyAction): Project
                 gettingQuery: {
                     ...defaultState.gettingQuery,
                     ...action.payload.query,
+                },
+                tasksGettingQuery: {
+                    ...defaultState.tasksGettingQuery,
+                    ...action.payload.tasksQuery,
                 },
             };
         case ProjectsActionTypes.GET_PROJECTS:
@@ -119,8 +136,10 @@ export default (state: ProjectsState = defaultState, action: AnyAction): Project
                 current: state.current.map(
                     (project): Project => ({
                         ...project,
-                        instance: project.instance.id === action.payload.project.id ?
-                            action.payload.project : project.instance,
+                        instance:
+                            project.instance.id === action.payload.project.id ?
+                                action.payload.project :
+                                project.instance,
                     }),
                 ),
             };
@@ -131,8 +150,10 @@ export default (state: ProjectsState = defaultState, action: AnyAction): Project
                 current: state.current.map(
                     (project): Project => ({
                         ...project,
-                        instance: project.instance.id === action.payload.project.id ?
-                            action.payload.project : project.instance,
+                        instance:
+                            project.instance.id === action.payload.project.id ?
+                                action.payload.project :
+                                project.instance,
                     }),
                 ),
             };

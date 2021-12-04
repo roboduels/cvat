@@ -37,8 +37,11 @@ import {
     FrameSpeed,
     PredictorState,
     Workspace,
+    ToolsBlockerState,
 } from 'reducers/interfaces';
+import isAbleToChangeFrame from 'utils/is-able-to-change-frame';
 import GlobalHotKeys, { KeyMap } from 'utils/mousetrap-react';
+import { switchToolsBlockerState } from 'actions/settings-actions';
 
 interface StateToProps {
     jobInstance: any;
@@ -55,6 +58,7 @@ interface StateToProps {
     redoAction?: string;
     autoSave: boolean;
     autoSaveInterval: number;
+    toolsBlockerState: ToolsBlockerState;
     workspace: Workspace;
     keyMap: KeyMap;
     normalizedKeyMap: Record<string, string>;
@@ -80,6 +84,7 @@ interface DispatchToProps {
     changeWorkspace(workspace: Workspace): void;
     switchPredictor(predictorEnabled: boolean): void;
     onToggleGradeForms(): void;
+    onSwitchToolsBlockerState(toolsBlockerState: ToolsBlockerState): void;
 }
 
 function mapStateToProps(state: CombinedState): StateToProps {
@@ -101,7 +106,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         },
         settings: {
             player: { frameSpeed, frameStep },
-            workspace: { autoSave, autoSaveInterval },
+            workspace: { autoSave, autoSaveInterval, toolsBlockerState },
         },
         shortcuts: { keyMap, normalizedKeyMap },
         plugins: { list },
@@ -122,6 +127,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         redoAction: history.redo.length ? history.redo[history.redo.length - 1][0] : undefined,
         autoSave,
         autoSaveInterval,
+        toolsBlockerState,
         workspace,
         keyMap,
         normalizedKeyMap,
@@ -179,6 +185,9 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         },
         onToggleGradeForms(): void {
             dispatch(toggleGradesFormState());
+        },
+        onSwitchToolsBlockerState(toolsBlockerState: ToolsBlockerState): void {
+            dispatch(switchToolsBlockerState(toolsBlockerState));
         },
     };
 }
@@ -251,21 +260,17 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
     }
 
     private undo = (): void => {
-        const {
-            undo, jobInstance, frameNumber, canvasInstance,
-        } = this.props;
+        const { undo, jobInstance, frameNumber } = this.props;
 
-        if (canvasInstance.isAbleToChangeFrame()) {
+        if (isAbleToChangeFrame()) {
             undo(jobInstance, frameNumber);
         }
     };
 
     private redo = (): void => {
-        const {
-            redo, jobInstance, frameNumber, canvasInstance,
-        } = this.props;
+        const { redo, jobInstance, frameNumber } = this.props;
 
-        if (canvasInstance.isAbleToChangeFrame()) {
+        if (isAbleToChangeFrame()) {
             redo(jobInstance, frameNumber);
         }
     };
@@ -444,6 +449,22 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
         canvasInstance.draw({ enabled: false });
     };
 
+    private onSwitchToolsBlockerState = (): void => {
+        const {
+            toolsBlockerState, onSwitchToolsBlockerState, canvasInstance, activeControl,
+        } = this.props;
+        if (canvasInstance instanceof Canvas) {
+            if (activeControl.includes(ActiveControl.OPENCV_TOOLS)) {
+                canvasInstance.interact({
+                    enabled: true,
+                    crosshair: toolsBlockerState.algorithmsLocked,
+                    enableThreshold: toolsBlockerState.algorithmsLocked,
+                });
+            }
+        }
+        onSwitchToolsBlockerState({ algorithmsLocked: !toolsBlockerState.algorithmsLocked });
+    };
+
     private onURLIconClick = (): void => {
         const { frameNumber } = this.props;
         const { origin, pathname } = window.location;
@@ -474,7 +495,6 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             frameDelay,
             playing,
             canvasIsReady,
-            canvasInstance,
             onSwitchPlay,
             onChangeFrame,
         } = this.props;
@@ -492,7 +512,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
                 setTimeout(() => {
                     const { playing: stillPlaying } = this.props;
                     if (stillPlaying) {
-                        if (canvasInstance.isAbleToChangeFrame()) {
+                        if (isAbleToChangeFrame()) {
                             onChangeFrame(frameNumber + 1 + framesSkipped, stillPlaying, framesSkipped + 1);
                         } else if (jobInstance.task.dimension === DimensionType.DIM_2D) {
                             onSwitchPlay(false);
@@ -516,22 +536,22 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
     }
 
     private changeFrame(frame: number): void {
-        const { onChangeFrame, canvasInstance } = this.props;
-        if (canvasInstance.isAbleToChangeFrame()) {
+        const { onChangeFrame } = this.props;
+        if (isAbleToChangeFrame()) {
             onChangeFrame(frame);
         }
     }
 
     private searchAnnotations(start: number, stop: number): void {
-        const { canvasInstance, jobInstance, searchAnnotations } = this.props;
-        if (canvasInstance.isAbleToChangeFrame()) {
+        const { jobInstance, searchAnnotations } = this.props;
+        if (isAbleToChangeFrame()) {
             searchAnnotations(jobInstance, start, stop);
         }
     }
 
     private searchEmptyFrame(start: number, stop: number): void {
-        const { canvasInstance, jobInstance, searchEmptyFrame } = this.props;
-        if (canvasInstance.isAbleToChangeFrame()) {
+        const { jobInstance, searchEmptyFrame } = this.props;
+        if (isAbleToChangeFrame()) {
             searchEmptyFrame(jobInstance, start, stop);
         }
     }
@@ -552,7 +572,6 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             canvasIsReady,
             keyMap,
             normalizedKeyMap,
-            canvasInstance,
             predictor,
             isTrainingActive,
             activeControl,
@@ -561,6 +580,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             switchPredictor,
             gradeFormsOpen,
             onToggleGradeForms,
+            toolsBlockerState,
         } = this.props;
 
         const preventDefault = (event: KeyboardEvent | undefined): void => {
@@ -628,13 +648,13 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             },
             SEARCH_FORWARD: (event: KeyboardEvent | undefined) => {
                 preventDefault(event);
-                if (frameNumber + 1 <= stopFrame && canvasIsReady && canvasInstance.isAbleToChangeFrame()) {
+                if (frameNumber + 1 <= stopFrame && canvasIsReady && isAbleToChangeFrame()) {
                     searchAnnotations(jobInstance, frameNumber + 1, stopFrame);
                 }
             },
             SEARCH_BACKWARD: (event: KeyboardEvent | undefined) => {
                 preventDefault(event);
-                if (frameNumber - 1 >= startFrame && canvasIsReady && canvasInstance.isAbleToChangeFrame()) {
+                if (frameNumber - 1 >= startFrame && canvasIsReady && isAbleToChangeFrame()) {
                     searchAnnotations(jobInstance, frameNumber - 1, startFrame);
                 }
             },
@@ -687,6 +707,8 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
                     undoShortcut={normalizedKeyMap.UNDO}
                     redoShortcut={normalizedKeyMap.REDO}
                     drawShortcut={normalizedKeyMap.SWITCH_DRAW_MODE}
+                    // this shortcut is handled in interactionHandler.ts separatelly
+                    switchToolsBlockerShortcut={normalizedKeyMap.SWITCH_TOOLS_BLOCKER_STATE}
                     playPauseShortcut={normalizedKeyMap.PLAY_PAUSE}
                     nextFrameShortcut={normalizedKeyMap.NEXT_FRAME}
                     previousFrameShortcut={normalizedKeyMap.PREV_FRAME}
@@ -698,6 +720,8 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
                     onUndoClick={this.undo}
                     onRedoClick={this.redo}
                     onFinishDraw={this.onFinishDraw}
+                    onSwitchToolsBlockerState={this.onSwitchToolsBlockerState}
+                    toolsBlockerState={toolsBlockerState}
                     jobInstance={jobInstance}
                     isTrainingActive={isTrainingActive}
                     activeControl={activeControl}

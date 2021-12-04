@@ -3,14 +3,17 @@
 // SPDX-License-Identifier: MIT
 
 import React from 'react';
+
 import Menu from 'antd/lib/menu';
 import Modal from 'antd/lib/modal';
+import Text from 'antd/lib/typography/Text';
+import {
+    InputNumber, Tooltip, Checkbox, Collapse,
+} from 'antd';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { MenuInfo } from 'rc-menu/lib/interface';
 
-import DumpSubmenu from 'components/actions-menu/dump-submenu';
 import LoadSubmenu from 'components/actions-menu/load-submenu';
-import ExportSubmenu from 'components/actions-menu/export-submenu';
 import { DimensionType } from '../../../reducers/interfaces';
 
 interface Props {
@@ -18,17 +21,17 @@ interface Props {
     loaders: any[];
     dumpers: any[];
     loadActivity: string | null;
-    dumpActivities: string[] | null;
-    exportActivities: string[] | null;
     isReviewer: boolean;
     jobInstance: any;
-    onClickMenu(params: MenuInfo, file?: File): void;
+    onClickMenu(params: MenuInfo): void;
+    onUploadAnnotations(format: string, file: File): void;
+    stopFrame: number;
+    removeAnnotations(startnumber: number, endnumber: number, delTrackKeyframesOnly:boolean): void;
     setForceExitAnnotationFlag(forceExit: boolean): void;
     saveAnnotations(jobInstance: any, afterSave?: () => void): void;
 }
 
 export enum Actions {
-    DUMP_TASK_ANNO = 'dump_task_anno',
     LOAD_JOB_ANNO = 'load_job_anno',
     EXPORT_TASK_DATASET = 'export_task_dataset',
     REMOVE_ANNO = 'remove_anno',
@@ -41,15 +44,14 @@ export enum Actions {
 
 export default function AnnotationMenuComponent(props: Props): JSX.Element {
     const {
-        taskMode,
         loaders,
-        dumpers,
         loadActivity,
-        dumpActivities,
-        exportActivities,
         isReviewer,
         jobInstance,
+        stopFrame,
         onClickMenu,
+        onUploadAnnotations,
+        removeAnnotations,
         setForceExitAnnotationFlag,
         saveAnnotations,
     } = props;
@@ -57,15 +59,8 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
     const jobStatus = jobInstance.status;
     const taskID = jobInstance.task.id;
 
-    let latestParams: MenuInfo | null = null;
-    function onClickMenuWrapper(params: MenuInfo | null, file?: File): void {
-        const copyParams = params || latestParams;
-        if (!copyParams) {
-            return;
-        }
-        latestParams = params;
-
-        function checkUnsavedChanges(_copyParams: MenuInfo): void {
+    function onClickMenuWrapper(params: MenuInfo): void {
+        function checkUnsavedChanges(_params: MenuInfo): void {
             if (jobInstance.annotations.hasUnsavedChanges()) {
                 Modal.confirm({
                     title: 'The job has unsaved annotations',
@@ -78,51 +73,68 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                         children: 'No',
                     },
                     onOk: () => {
-                        saveAnnotations(jobInstance, () => onClickMenu(_copyParams));
+                        saveAnnotations(jobInstance, () => onClickMenu(_params));
                     },
                     onCancel: () => {
                         // do not ask leave confirmation
                         setForceExitAnnotationFlag(true);
                         setTimeout(() => {
-                            onClickMenu(_copyParams);
+                            onClickMenu(_params);
                         });
                     },
                 });
             } else {
-                onClickMenu(_copyParams);
+                onClickMenu(_params);
             }
         }
 
-        if (copyParams.keyPath.length === 2) {
-            const [, action] = copyParams.keyPath;
-            if (action === Actions.LOAD_JOB_ANNO) {
-                if (file) {
-                    Modal.confirm({
-                        title: 'Current annotation will be lost',
-                        content: 'You are going to upload new annotations to this job. Continue?',
-                        className: 'cvat-modal-content-load-job-annotation',
-                        onOk: () => {
-                            onClickMenu(copyParams, file);
-                        },
-                        okButtonProps: {
-                            type: 'primary',
-                            danger: true,
-                        },
-                        okText: 'Update',
-                    });
-                }
-            } else {
-                onClickMenu(copyParams);
-            }
-        } else if (copyParams.key === Actions.REMOVE_ANNO) {
+        if (params.key === Actions.REMOVE_ANNO) {
+            let removeFrom: number;
+            let removeUpTo: number;
+            let removeOnlyKeyframes = false;
+            const { Panel } = Collapse;
             Modal.confirm({
-                title: 'All the annotations will be removed',
-                content:
-                    'You are going to remove all the annotations from the client. ' +
-                    'It will stay on the server till you save the job. Continue?',
+                title: 'Remove Annotations',
+                content: (
+                    <div>
+                        <Text>You are going to remove the annotations from the client. </Text>
+                        <Text>It will stay on the server till you save the job. Continue?</Text>
+                        <br />
+                        <br />
+                        <Collapse bordered={false}>
+                            <Panel header={<Text>Select Range</Text>} key={1}>
+                                <Text>From: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeFrom = value;
+                                    }}
+                                />
+                                <Text>  To: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => { removeUpTo = value; }}
+                                />
+                                <Tooltip title='Applicable only for annotations in range'>
+                                    <br />
+                                    <br />
+                                    <Checkbox
+                                        onChange={(check) => {
+                                            removeOnlyKeyframes = check.target.checked;
+                                        }}
+                                    >
+                                        Delete only keyframes for tracks
+                                    </Checkbox>
+                                </Tooltip>
+                            </Panel>
+                        </Collapse>
+                    </div>
+                ),
                 className: 'cvat-modal-confirm-remove-annotation',
                 onOk: () => {
-                    onClickMenu(copyParams);
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes);
                 },
                 okButtonProps: {
                     type: 'primary',
@@ -130,9 +142,9 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 },
                 okText: 'Delete',
             });
-        } else if ([Actions.REQUEST_REVIEW].includes(copyParams.key as Actions)) {
-            checkUnsavedChanges(copyParams);
-        } else if (copyParams.key === Actions.FINISH_JOB) {
+        } else if (params.key === Actions.REQUEST_REVIEW) {
+            checkUnsavedChanges(params);
+        } else if (params.key === Actions.FINISH_JOB) {
             Modal.confirm({
                 title: 'The job status is going to be switched',
                 content: 'Status will be changed to "completed". Would you like to continue?',
@@ -140,10 +152,10 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 cancelText: 'Cancel',
                 className: 'cvat-modal-content-finish-job',
                 onOk: () => {
-                    checkUnsavedChanges(copyParams);
+                    checkUnsavedChanges(params);
                 },
             });
-        } else if (copyParams.key === Actions.RENEW_JOB) {
+        } else if (params.key === Actions.RENEW_JOB) {
             Modal.confirm({
                 title: 'The job status is going to be switched',
                 content: 'Status will be changed to "annotations". Would you like to continue?',
@@ -151,41 +163,42 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 cancelText: 'Cancel',
                 className: 'cvat-modal-content-renew-job',
                 onOk: () => {
-                    onClickMenu(copyParams);
+                    onClickMenu(params);
                 },
             });
         } else {
-            onClickMenu(copyParams);
+            onClickMenu(params);
         }
     }
 
     const is2d = jobInstance.task.dimension === DimensionType.DIM_2D;
 
     return (
-        <Menu onClick={onClickMenuWrapper} className='cvat-annotation-menu' selectable={false}>
-            {DumpSubmenu({
-                taskMode,
-                dumpers,
-                dumpActivities,
-                menuKey: Actions.DUMP_TASK_ANNO,
-                taskDimension: jobInstance.task.dimension,
-            })}
+        <Menu onClick={(params: MenuInfo) => onClickMenuWrapper(params)} className='cvat-annotation-menu' selectable={false}>
             {LoadSubmenu({
                 loaders,
                 loadActivity,
-                onFileUpload: (file: File): void => {
-                    onClickMenuWrapper(null, file);
+                onFileUpload: (format: string, file: File): void => {
+                    if (file) {
+                        Modal.confirm({
+                            title: 'Current annotation will be lost',
+                            content: 'You are going to upload new annotations to this job. Continue?',
+                            className: 'cvat-modal-content-load-job-annotation',
+                            onOk: () => {
+                                onUploadAnnotations(format, file);
+                            },
+                            okButtonProps: {
+                                type: 'primary',
+                                danger: true,
+                            },
+                            okText: 'Update',
+                        });
+                    }
                 },
                 menuKey: Actions.LOAD_JOB_ANNO,
                 taskDimension: jobInstance.task.dimension,
             })}
-            {ExportSubmenu({
-                exporters: dumpers,
-                exportActivities,
-                menuKey: Actions.EXPORT_TASK_DATASET,
-                taskDimension: jobInstance.task.dimension,
-            })}
-
+            <Menu.Item key={Actions.EXPORT_TASK_DATASET}>Export task dataset</Menu.Item>
             <Menu.Item key={Actions.REMOVE_ANNO}>Remove annotations</Menu.Item>
             <Menu.Item key={Actions.OPEN_TASK}>
                 <a href={`/tasks/${taskID}`} onClick={(e: React.MouseEvent) => e.preventDefault()}>

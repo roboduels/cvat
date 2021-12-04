@@ -25,7 +25,7 @@ context('Import annotations for frames with dots in name.', { browser: '!firefox
     const createRectangleShape2Points = {
         points: 'By 2 Points',
         type: 'Shape',
-        labelName: labelName,
+        labelName,
         firstX: 250,
         firstY: 350,
         secondX: 350,
@@ -66,10 +66,20 @@ context('Import annotations for frames with dots in name.', { browser: '!firefox
         it('Save job. Dump annotation to YOLO format. Remove annotation. Save job.', () => {
             cy.saveJob('PATCH', 200, 'saveJobDump');
             cy.intercept('GET', '/api/v1/tasks/**/annotations**').as('dumpAnnotations');
-            cy.interactMenu('Dump annotations');
-            cy.get('.cvat-menu-dump-submenu-item').within(() => {
-                cy.contains(dumpType).click();
-            });
+            cy.interactMenu('Export task dataset');
+            cy.get('.cvat-modal-export-task').find('.cvat-modal-export-select').click();
+            cy.get('.ant-select-dropdown')
+                .not('.ant-select-dropdown-hidden')
+                .within(() => {
+                    cy.get('.rc-virtual-list-holder')
+                        .trigger('wheel', { deltaY: 1000 })
+                        .trigger('wheel', { deltaY: 1000 })
+                        .contains('.cvat-modal-export-option-item', dumpType)
+                        .should('be.visible')
+                        .click();
+                });
+            cy.get('.cvat-modal-export-select').should('contain.text', dumpType);
+            cy.get('.cvat-modal-export-task').contains('button', 'OK').click();
             cy.wait('@dumpAnnotations', { timeout: 5000 }).its('response.statusCode').should('equal', 202);
             cy.wait('@dumpAnnotations').its('response.statusCode').should('equal', 201);
             cy.removeAnnotations();
@@ -87,6 +97,7 @@ context('Import annotations for frames with dots in name.', { browser: '!firefox
         it('Upload annotation with YOLO format to job.', () => {
             cy.interactMenu('Upload annotations');
             cy.contains('.cvat-menu-load-submenu-item', dumpType.split(' ')[0])
+                .scrollIntoView()
                 .should('be.visible')
                 .within(() => {
                     cy.get('.cvat-menu-load-submenu-item-button')
@@ -94,11 +105,8 @@ context('Import annotations for frames with dots in name.', { browser: '!firefox
                         .get('input[type=file]')
                         .attachFile(annotationArchiveName);
                 });
-            cy.intercept('PUT', '/api/v1/jobs/**/annotations**').as('uploadAnnotationsPut');
-            cy.intercept('GET', '/api/v1/jobs/**/annotations**').as('uploadAnnotationsGet');
+            cy.intercept('GET', '/api/v1/jobs/**/annotations').as('uploadAnnotationsGet');
             confirmUpdate('.cvat-modal-content-load-job-annotation');
-            cy.wait('@uploadAnnotationsPut', { timeout: 5000 }).its('response.statusCode').should('equal', 202);
-            cy.wait('@uploadAnnotationsPut').its('response.statusCode').should('equal', 201);
             cy.wait('@uploadAnnotationsGet').its('response.statusCode').should('equal', 200);
             cy.get('.cvat-notification-notice-upload-annotations-fail').should('not.exist');
             cy.get('#cvat_canvas_shape_1').should('exist');
