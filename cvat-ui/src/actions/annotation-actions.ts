@@ -1670,6 +1670,8 @@ export function toggleGradesFormState(): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         const state: CombinedState = getStore().getState();
         dispatch(setGradesFormState(!state.annotation.gradesFrom.open));
+    };
+}
 
 export function switchNavigationBlocked(navigationBlocked: boolean): AnyAction {
     return {
