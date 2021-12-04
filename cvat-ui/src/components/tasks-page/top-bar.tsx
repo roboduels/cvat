@@ -25,7 +25,7 @@ interface VisibleTopBarProps {
 
 export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element {
     const {
-        query, searchValue, onSearch, onFileUpload, taskImporting, onFilterStatus, filterStatus,
+        query, onSearch, onFileUpload, taskImporting, onFilterStatus, filterStatus,
     } = props;
 
     const history = useHistory();
@@ -36,7 +36,6 @@ export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element 
                 <Row justify='space-between' align='middle'>
                     <Col>
                         <Text className='cvat-title'>My Assigned Tasks</Text>
-                        <SearchField instance='task' onSearch={onSearch} query={query} />
                     </Col>
                     <Col>
                         <Row gutter={8}>
@@ -79,15 +78,7 @@ export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element 
                 </Row>
                 <Row justify='space-between' align='middle'>
                     <Col>
-                        <SearchTooltip instance='task'>
-                            <Input.Search
-                                className='cvat-task-page-search-task'
-                                defaultValue={searchValue}
-                                onSearch={onSearch}
-                                size='large'
-                                placeholder='Search'
-                            />
-                        </SearchTooltip>
+                        <SearchField instance='task' onSearch={onSearch} query={query} />
                     </Col>
                     <Col>
                         <Row gutter={8}>
