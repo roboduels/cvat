@@ -44,6 +44,8 @@ import showPlatformNotification, {
 } from 'utils/platform-checker';
 import '../styles.scss';
 import EmailConfirmationPage from './email-confirmation-page/email-confirmed';
+import ActivityListPage from '../containers/activity-page/activity-list-page';
+import ActivityShowPage from '../containers/activity-page/activity-show-page';
 
 interface CVATAppProps {
     loadFormats: () => void;
@@ -339,6 +341,8 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
                                         <Route exact path='/tasks/create' component={CreateTaskPageContainer} />
                                         <Route exact path='/tasks/:id' component={TaskPageContainer} />
                                         <Route exact path='/tasks/:tid/jobs/:jid' component={AnnotationPageContainer} />
+                                        <Route exact path='/activity' component={ActivityListPage} />
+                                        <Route exact path='/activity/:uid' component={ActivityShowPage} />
                                         <Route exact path='/cloudstorages' component={CloudStoragesPageComponent} />
                                         <Route
                                             exact

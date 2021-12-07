@@ -148,7 +148,9 @@ function HeaderContainer(props: Props): JSX.Element {
         isModelsPluginActive,
     } = props;
 
-    const { CHANGELOG_URL, LICENSE_URL, GITTER_URL, FORUM_URL, GITHUB_URL } = consts;
+    const {
+        CHANGELOG_URL, LICENSE_URL, GITTER_URL, FORUM_URL, GITHUB_URL,
+    } = consts;
 
     const history = useHistory();
 
@@ -285,6 +287,18 @@ function HeaderContainer(props: Props): JSX.Element {
                 <Button
                     className='cvat-header-button'
                     type='link'
+                    value='activity'
+                    href='/activity'
+                    onClick={(event: React.MouseEvent): void => {
+                        event.preventDefault();
+                        history.push('/activity');
+                    }}
+                >
+                    Activity
+                </Button>
+                <Button
+                    className='cvat-header-button'
+                    type='link'
                     value='cloudstorages'
                     href='/cloudstorages?page=1'
                     onClick={(event: React.MouseEvent): void => {
@@ -331,6 +345,7 @@ function HeaderContainer(props: Props): JSX.Element {
                     href={GITHUB_URL}
                     onClick={(event: React.MouseEvent): void => {
                         event.preventDefault();
+                        // eslint-disable-next-line security/detect-non-literal-fs-filename
                         window.open(GITHUB_URL, '_blank');
                     }}
                 >

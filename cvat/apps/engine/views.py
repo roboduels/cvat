@@ -1,14 +1,11 @@
 # Copyright (C) 2018-2021 Intel Corporation
 #
 # SPDX-License-Identifier: MIT
-import hashlib
 import errno
 import io
 import os
 import os.path as osp
-import pytz
 import shutil
-import time
 import traceback
 import uuid
 from datetime import datetime
@@ -16,12 +13,13 @@ from distutils.util import strtobool
 from tempfile import mkstemp, NamedTemporaryFile
 
 import cv2
-from django.db.models.query import Prefetch
 import django_rq
+import pytz
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from django.db.models.query import Prefetch
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -42,18 +40,19 @@ from sendfile import sendfile
 import cvat.apps.dataset_manager as dm
 import cvat.apps.dataset_manager.views  # pylint: disable=unused-import
 from cvat.apps.authentication import auth
-from cvat.apps.engine.cloud_provider import get_cloud_storage_instance, Credentials, Status
 from cvat.apps.dataset_manager.bindings import CvatImportError
 from cvat.apps.dataset_manager.serializers import DatasetFormatsSerializer
+from cvat.apps.engine.backup import import_task
+from cvat.apps.engine.cloud_provider import get_cloud_storage_instance, Credentials, Status
 from cvat.apps.engine.frame_provider import FrameProvider
 from cvat.apps.engine.media_extractors import ImageListReader
 from cvat.apps.engine.mime_types import mimetypes
+from cvat.apps.engine.models import CloudStorage as CloudStorageModel
 from cvat.apps.engine.models import (
     Job, StatusChoice, Task, Project, Review, Issue,
     Comment, StorageMethodChoice, ReviewStatus, StorageChoice, Image,
     CredentialsTypeChoice, CloudProviderChoice, Activities
 )
-from cvat.apps.engine.models import CloudStorage as CloudStorageModel
 from cvat.apps.engine.serializers import (
     AboutSerializer, AnnotationFileSerializer, BasicUserSerializer,
     DataMetaSerializer, DataSerializer, ExceptionSerializer,
@@ -62,9 +61,8 @@ from cvat.apps.engine.serializers import (
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
     CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, )
-from utils.dataset_manifest import ImageManifestManager
 from cvat.apps.engine.utils import av_scan_paths, log_activity
-from cvat.apps.engine.backup import import_task
+from utils.dataset_manifest import ImageManifestManager
 from . import models, task
 from .log import clogger, slogger
 
@@ -231,7 +229,7 @@ class ProjectFilter(filters.FilterSet):
         openapi.Parameter('status', openapi.IN_QUERY, description="Find all projects with a specific status",
                           type=openapi.TYPE_STRING, enum=[str(i) for i in StatusChoice]),
         openapi.Parameter('names_only', openapi.IN_QUERY, description="Returns only names and id's of projects.",
-            type=openapi.TYPE_BOOLEAN)]))
+                          type=openapi.TYPE_BOOLEAN)]))
 @method_decorator(name='create', decorator=swagger_auto_schema(operation_summary='Method creates a new project'))
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(operation_summary='Method returns details of a specific project'))
 @method_decorator(name='destroy', decorator=swagger_auto_schema(operation_summary='Method deletes a specific project'))
@@ -302,76 +300,76 @@ class ProjectViewSet(auth.ProjectGetQuerySetMixin, viewsets.ModelViewSet):
                                          context={"request": request})
         return Response(serializer.data)
 
-
     @swagger_auto_schema(method='get', operation_summary='Export project as a dataset in a specific format',
-        manual_parameters=[
-            openapi.Parameter('format', openapi.IN_QUERY,
-                description="Desired output format name\nYou can get the list of supported formats at:\n/server/annotation/formats",
-                type=openapi.TYPE_STRING, required=True),
-            openapi.Parameter('filename', openapi.IN_QUERY,
-                description="Desired output file name",
-                type=openapi.TYPE_STRING, required=False),
-            openapi.Parameter('action', in_=openapi.IN_QUERY,
-                description='Used to start downloading process after annotation file had been created',
-                type=openapi.TYPE_STRING, required=False, enum=['download'])
-        ],
-        responses={'202': openapi.Response(description='Exporting has been started'),
-            '201': openapi.Response(description='Output file is ready for downloading'),
-            '200': openapi.Response(description='Download of file started'),
-            '405': openapi.Response(description='Format is not available'),
-        }
-    )
+                         manual_parameters=[
+                             openapi.Parameter('format', openapi.IN_QUERY,
+                                               description="Desired output format name\nYou can get the list of supported formats at:\n/server/annotation/formats",
+                                               type=openapi.TYPE_STRING, required=True),
+                             openapi.Parameter('filename', openapi.IN_QUERY,
+                                               description="Desired output file name",
+                                               type=openapi.TYPE_STRING, required=False),
+                             openapi.Parameter('action', in_=openapi.IN_QUERY,
+                                               description='Used to start downloading process after annotation file had been created',
+                                               type=openapi.TYPE_STRING, required=False, enum=['download'])
+                         ],
+                         responses={'202': openapi.Response(description='Exporting has been started'),
+                                    '201': openapi.Response(description='Output file is ready for downloading'),
+                                    '200': openapi.Response(description='Download of file started'),
+                                    '405': openapi.Response(description='Format is not available'),
+                                    }
+                         )
     @action(detail=True, methods=['GET'], serializer_class=None,
-        url_path='dataset')
+            url_path='dataset')
     def dataset_export(self, request, pk):
-        db_project = self.get_object() # force to call check_object_permissions
+        db_project = self.get_object()  # force to call check_object_permissions
 
         format_name = request.query_params.get("format", "")
         return _export_annotations(db_instance=db_project,
-            rq_id="/api/v1/project/{}/dataset/{}".format(pk, format_name),
-            request=request,
-            action=request.query_params.get("action", "").lower(),
-            callback=dm.views.export_project_as_dataset,
-            format_name=format_name,
-            filename=request.query_params.get("filename", "").lower(),
-        )
+                                   rq_id="/api/v1/project/{}/dataset/{}".format(pk, format_name),
+                                   request=request,
+                                   action=request.query_params.get("action", "").lower(),
+                                   callback=dm.views.export_project_as_dataset,
+                                   format_name=format_name,
+                                   filename=request.query_params.get("filename", "").lower(),
+                                   )
 
     @swagger_auto_schema(method='get', operation_summary='Method allows to download project annotations',
-        manual_parameters=[
-            openapi.Parameter('format', openapi.IN_QUERY,
-                description="Desired output format name\nYou can get the list of supported formats at:\n/server/annotation/formats",
-                type=openapi.TYPE_STRING, required=True),
-            openapi.Parameter('filename', openapi.IN_QUERY,
-                description="Desired output file name",
-                type=openapi.TYPE_STRING, required=False),
-            openapi.Parameter('action', in_=openapi.IN_QUERY,
-                description='Used to start downloading process after annotation file had been created',
-                type=openapi.TYPE_STRING, required=False, enum=['download'])
-        ],
-        responses={
-            '202': openapi.Response(description='Dump of annotations has been started'),
-            '201': openapi.Response(description='Annotations file is ready to download'),
-            '200': openapi.Response(description='Download of file started'),
-            '405': openapi.Response(description='Format is not available'),
-            '401': openapi.Response(description='Format is not specified'),
-        }
-    )
+                         manual_parameters=[
+                             openapi.Parameter('format', openapi.IN_QUERY,
+                                               description="Desired output format name\nYou can get the list of supported formats at:\n/server/annotation/formats",
+                                               type=openapi.TYPE_STRING, required=True),
+                             openapi.Parameter('filename', openapi.IN_QUERY,
+                                               description="Desired output file name",
+                                               type=openapi.TYPE_STRING, required=False),
+                             openapi.Parameter('action', in_=openapi.IN_QUERY,
+                                               description='Used to start downloading process after annotation file had been created',
+                                               type=openapi.TYPE_STRING, required=False, enum=['download'])
+                         ],
+                         responses={
+                             '202': openapi.Response(description='Dump of annotations has been started'),
+                             '201': openapi.Response(description='Annotations file is ready to download'),
+                             '200': openapi.Response(description='Download of file started'),
+                             '405': openapi.Response(description='Format is not available'),
+                             '401': openapi.Response(description='Format is not specified'),
+                         }
+                         )
     @action(detail=True, methods=['GET'],
-        serializer_class=LabeledDataSerializer)
+            serializer_class=LabeledDataSerializer)
     def annotations(self, request, pk):
-        db_project = self.get_object() # force to call check_object_permissions
+        db_project = self.get_object()  # force to call check_object_permissions
         format_name = request.query_params.get('format')
         if format_name:
             return _export_annotations(db_instance=db_project,
-                rq_id="/api/v1/projects/{}/annotations/{}".format(pk, format_name),
-                request=request,
-                action=request.query_params.get("action", "").lower(),
-                callback=dm.views.export_project_annotations,
-                format_name=format_name,
-                filename=request.query_params.get("filename", "").lower(),
-            )
+                                       rq_id="/api/v1/projects/{}/annotations/{}".format(pk, format_name),
+                                       request=request,
+                                       action=request.query_params.get("action", "").lower(),
+                                       callback=dm.views.export_project_annotations,
+                                       format_name=format_name,
+                                       filename=request.query_params.get("filename", "").lower(),
+                                       )
         else:
-            return Response("Format is not specified",status=status.HTTP_400_BAD_REQUEST)
+            return Response("Format is not specified", status=status.HTTP_400_BAD_REQUEST)
+
 
 class TaskFilter(filters.FilterSet):
     project = filters.CharFilter(field_name="project__name", lookup_expr="icontains")
@@ -579,7 +577,6 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
             if updated_instance.project_id is not None:
                 Project.objects.get(id=updated_instance.project_id).save()
 
-
     def perform_create(self, serializer):
         owner = self.request.data.get('owner', None)
         if owner:
@@ -778,13 +775,13 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
             format_name = request.query_params.get('format')
             if format_name:
                 return _export_annotations(db_instance=db_task,
-                    rq_id="/api/v1/tasks/{}/annotations/{}".format(pk, format_name),
-                    request=request,
-                    action=request.query_params.get("action", "").lower(),
-                    callback=dm.views.export_task_annotations,
-                    format_name=format_name,
-                    filename=request.query_params.get("filename", "").lower(),
-                )
+                                           rq_id="/api/v1/tasks/{}/annotations/{}".format(pk, format_name),
+                                           request=request,
+                                           action=request.query_params.get("action", "").lower(),
+                                           callback=dm.views.export_task_annotations,
+                                           format_name=format_name,
+                                           filename=request.query_params.get("filename", "").lower(),
+                                           )
             else:
                 data = dm.task.get_task_data(pk)
                 serializer = LabeledDataSerializer(data=data)
@@ -914,13 +911,14 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
 
         format_name = request.query_params.get("format", "")
         return _export_annotations(db_instance=db_task,
-            rq_id="/api/v1/tasks/{}/dataset/{}".format(pk, format_name),
-            request=request,
-            action=request.query_params.get("action", "").lower(),
-            callback=dm.views.export_task_as_dataset,
-            format_name=format_name,
-            filename=request.query_params.get("filename", "").lower(),
-        )
+                                   rq_id="/api/v1/tasks/{}/dataset/{}".format(pk, format_name),
+                                   request=request,
+                                   action=request.query_params.get("action", "").lower(),
+                                   callback=dm.views.export_task_as_dataset,
+                                   format_name=format_name,
+                                   filename=request.query_params.get("filename", "").lower(),
+                                   )
+
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(operation_summary='Method returns details of a job'))
 @method_decorator(name='update', decorator=swagger_auto_schema(operation_summary='Method updates a job by id'))
@@ -1236,6 +1234,7 @@ class RedefineDescriptionField(FieldInspector):
                                      'supported: range=aws_range'
         return result
 
+
 class CloudStorageFilter(filters.FilterSet):
     display_name = filters.CharFilter(field_name='display_name', lookup_expr='icontains')
     provider_type = filters.CharFilter(field_name='provider_type', lookup_expr='icontains')
@@ -1247,6 +1246,7 @@ class CloudStorageFilter(filters.FilterSet):
     class Meta:
         model = models.CloudStorage
         fields = ('id', 'display_name', 'provider_type', 'resource', 'credentials_type', 'description', 'owner')
+
 
 @method_decorator(
     name='retrieve',
@@ -1340,12 +1340,12 @@ class CloudStorageViewSet(auth.CloudStorageGetQuerySetMixin, viewsets.ModelViewS
         except IntegrityError:
             response = HttpResponseBadRequest('Same storage already exists')
         except ValidationError as exceptions:
-                msg_body = ""
-                for ex in exceptions.args:
-                    for field, ex_msg in ex.items():
-                        msg_body += ': '.join([field, ex_msg if isinstance(ex_msg, str) else str(ex_msg[0])])
-                        msg_body += '\n'
-                return HttpResponseBadRequest(msg_body)
+            msg_body = ""
+            for ex in exceptions.args:
+                for field, ex_msg in ex.items():
+                    msg_body += ': '.join([field, ex_msg if isinstance(ex_msg, str) else str(ex_msg[0])])
+                    msg_body += '\n'
+            return HttpResponseBadRequest(msg_body)
         except APIException as ex:
             return Response(data=ex.get_full_details(), status=ex.status_code)
         except Exception as ex:
@@ -1387,14 +1387,14 @@ class CloudStorageViewSet(auth.CloudStorageGetQuerySetMixin, viewsets.ModelViewS
             file_status = storage.get_file_status(manifest_path)
             if file_status == Status.NOT_FOUND:
                 raise FileNotFoundError(errno.ENOENT,
-                    "Not found on the cloud storage {}".format(db_storage.display_name), manifest_path)
+                                        "Not found on the cloud storage {}".format(db_storage.display_name), manifest_path)
             elif file_status == Status.FORBIDDEN:
                 raise PermissionError(errno.EACCES,
-                    "Access to the file on the '{}' cloud storage is denied".format(db_storage.display_name), manifest_path)
+                                      "Access to the file on the '{}' cloud storage is denied".format(db_storage.display_name), manifest_path)
 
             full_manifest_path = os.path.join(db_storage.get_storage_dirname(), manifest_path)
             if not os.path.exists(full_manifest_path) or \
-                    datetime.utcfromtimestamp(os.path.getmtime(full_manifest_path)).replace(tzinfo=pytz.UTC) < storage.get_file_last_modified(manifest_path):
+                datetime.utcfromtimestamp(os.path.getmtime(full_manifest_path)).replace(tzinfo=pytz.UTC) < storage.get_file_last_modified(manifest_path):
                 storage.download_file(manifest_path, full_manifest_path)
             manifest = ImageManifestManager(full_manifest_path, db_storage.get_storage_dirname())
             # need to update index
@@ -1452,7 +1452,7 @@ class CloudStorageViewSet(auth.CloudStorageGetQuerySetMixin, viewsets.ModelViewS
                 for manifest_model in db_storage.manifests.all():
                     full_manifest_path = os.path.join(db_storage.get_storage_dirname(), manifest_model.filename)
                     if not os.path.exists(full_manifest_path) or \
-                            datetime.utcfromtimestamp(os.path.getmtime(full_manifest_path)).replace(tzinfo=pytz.UTC) < storage.get_file_last_modified(manifest_model.filename):
+                        datetime.utcfromtimestamp(os.path.getmtime(full_manifest_path)).replace(tzinfo=pytz.UTC) < storage.get_file_last_modified(manifest_model.filename):
                         storage.download_file(manifest_model.filename, full_manifest_path)
                     manifest = ImageManifestManager(
                         os.path.join(db_storage.get_storage_dirname(), manifest_model.filename),
@@ -1473,10 +1473,10 @@ class CloudStorageViewSet(auth.CloudStorageGetQuerySetMixin, viewsets.ModelViewS
                 file_status = storage.get_file_status(preview_path)
                 if file_status == Status.NOT_FOUND:
                     raise FileNotFoundError(errno.ENOENT,
-                        "Not found on the cloud storage {}".format(db_storage.display_name), preview_path)
+                                            "Not found on the cloud storage {}".format(db_storage.display_name), preview_path)
                 elif file_status == Status.FORBIDDEN:
                     raise PermissionError(errno.EACCES,
-                        "Access to the file on the '{}' cloud storage is denied".format(db_storage.display_name), preview_path)
+                                          "Access to the file on the '{}' cloud storage is denied".format(db_storage.display_name), preview_path)
                 with NamedTemporaryFile() as temp_image:
                     storage.download_file(preview_path, temp_image.name)
                     reader = ImageListReader([temp_image.name])
@@ -1607,6 +1607,7 @@ def _import_annotations(request, rq_id, rq_func, pk, format_name):
 
     return Response(status=status.HTTP_202_ACCEPTED)
 
+
 def _export_annotations(db_instance, rq_id, request, format_name, action, callback, filename):
     if action not in {"", "download"}:
         raise serializers.ValidationError(
@@ -1639,13 +1640,13 @@ def _export_annotations(db_instance, rq_id, request, format_name, action, callba
                     rq_job.delete()
 
                     timestamp = datetime.strftime(last_instance_update_time,
-                        "%Y_%m_%d_%H_%M_%S")
+                                                  "%Y_%m_%d_%H_%M_%S")
                     filename = filename or \
-                        "{}_{}-{}-{}{}".format(
-                            "project" if isinstance(db_instance, models.Project) else "task",
-                            db_instance.name, timestamp,
-                            format_name, osp.splitext(file_path)[1]
-                        )
+                               "{}_{}-{}-{}{}".format(
+                                   "project" if isinstance(db_instance, models.Project) else "task",
+                                   db_instance.name, timestamp,
+                                   format_name, osp.splitext(file_path)[1]
+                               )
                     return sendfile(request, file_path, attachment=True,
                                     attachment_filename=filename.lower())
                 else:
@@ -1668,14 +1669,14 @@ def _export_annotations(db_instance, rq_id, request, format_name, action, callba
 
     ttl = (dm.views.PROJECT_CACHE_TTL if isinstance(db_instance, Project) else dm.views.TASK_CACHE_TTL).total_seconds()
     queue.enqueue_call(func=callback,
-        args=(db_instance.id, format_name, server_address), job_id=rq_id,
-        meta={ 'request_time': timezone.localtime() },
-        result_ttl=ttl, failure_ttl=ttl)
+                       args=(db_instance.id, format_name, server_address), job_id=rq_id,
+                       meta={'request_time': timezone.localtime()},
+                       result_ttl=ttl, failure_ttl=ttl)
     return Response(status=status.HTTP_202_ACCEPTED)
 
 
 class ActivityFilter(filters.FilterSet):
-    activity_type = filters.CharFilter(field_name="activity_type", lookup_expr="exact")
+    activity_type = filters.CharFilter(field_name="activity_type", lookup_expr="icontains")
     user_id = filters.NumberFilter(field_name="user_id", lookup_expr="exact")
 
     class Meta:
@@ -1688,3 +1689,46 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     search_fields = ("activity_type", "user_id")
     filterset_class = ActivityFilter
     serializer_class = ActivitySerializer
+
+    def list(self, request, *args, **kwargs):
+        params = {}
+        user_id = self.request.query_params.get('user_id', '').split(',')
+        activity_type = self.request.query_params.get('activity_type', '').split(',')
+        task_id = self.request.query_params.get('task_id', '').split(',')
+
+        def map_str(x):
+            return str(x).strip()
+
+        def map_int(x):
+            x = map_str(x)
+
+            try:
+                return int(x)
+            except ValueError:
+                return x
+
+        def filter_empty(x):
+            return x is not None and x != ''
+
+        if len(user_id) > 0:
+            user_id = list(filter(filter_empty, map(map_int, user_id)))
+
+        if len(task_id) > 0:
+            task_id = list(filter(filter_empty, map(map_str, task_id)))
+
+        if len(activity_type) > 0:
+            activity_type = list(filter(filter_empty, map(map_str, activity_type)))
+
+        if len(user_id) > 0:
+            params['user_id__in'] = user_id
+
+        if len(activity_type) > 0:
+            params['activity_type__in'] = activity_type
+
+        if len(task_id) > 0:
+            params['options__task_id__in'] = task_id
+
+        activities = models.ActivityLog.objects.prefetch_related('user').filter(**params).order_by('-id').all()
+        data = ActivitySerializer(activities, many=True)
+
+        return Response(data.data)
