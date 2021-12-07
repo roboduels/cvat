@@ -109,7 +109,7 @@ def md5_hash(frame):
         frame = frame.to_image()
     elif isinstance(frame, str):
         frame = Image.open(frame, 'r')
-    return hashlib.md5(frame.tobytes()).hexdigest()  # nosec
+    return hashlib.md5(frame.tobytes()).hexdigest() # nosec
 
 
 def log_activity(activity_type, user, options=None, extra=None):
@@ -135,3 +135,10 @@ def log_activity(activity_type, user, options=None, extra=None):
         hash=hash_content,
         defaults=defaults,
     )
+
+def parse_specific_attributes(specific_attributes):
+    assert isinstance(specific_attributes, str), 'Specific attributes must be a string'
+    return {
+        item.split('=')[0].strip(): item.split('=')[1].strip()
+            for item in specific_attributes.split('&')
+    } if specific_attributes else dict()

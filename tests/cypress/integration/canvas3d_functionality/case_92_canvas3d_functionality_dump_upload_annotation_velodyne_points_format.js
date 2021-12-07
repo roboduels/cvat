@@ -9,35 +9,16 @@ import { taskName, labelName } from '../../support/const_canvas3d';
 context('Canvas 3D functionality. Dump/upload annotation. "Velodyne Points" format.', () => {
     const caseId = '92';
     const cuboidCreationParams = {
-        labelName: labelName,
+        labelName,
     };
     const dumpTypeVC = 'Kitti Raw Format';
     let annotationVCArchiveName = '';
+    let annotationVCArchiveNameCustomeName = '';
 
     function confirmUpdate(modalWindowClassName) {
-        cy.get(modalWindowClassName).within(() => {
+        cy.get(modalWindowClassName).should('be.visible').within(() => {
             cy.contains('button', 'Update').click();
         });
-    }
-
-    function uploadToTask(toTaskName) {
-        cy.contains('.cvat-item-task-name', toTaskName)
-            .parents('.cvat-tasks-list-item')
-            .find('.cvat-menu-icon')
-            .trigger('mouseover');
-        cy.contains('Upload annotations').trigger('mouseover');
-        cy.readFile('cypress/downloads/' + annotationVCArchiveName, 'binary')
-            .then(Cypress.Blob.binaryStringToBlob)
-            .then((fileContent) => {
-                cy.contains('.cvat-menu-load-submenu-item', dumpTypeVC.split(' ')[0])
-                    .should('be.visible')
-                    .within(() => {
-                        cy.get('.cvat-menu-load-submenu-item-button').click().get('input[type=file]').attachFile({
-                            fileContent: fileContent,
-                            fileName: annotationVCArchiveName,
-                        });
-                    });
-            });
     }
 
     before(() => {
@@ -45,49 +26,56 @@ context('Canvas 3D functionality. Dump/upload annotation. "Velodyne Points" form
         cy.openJob();
         cy.wait(1000); // Waiting for the point cloud to display
         cy.create3DCuboid(cuboidCreationParams);
+        cy.saveJob('PATCH', 200, 'saveJob');
     });
 
     describe(`Testing case "${caseId}"`, () => {
-        it('Save a job. Dump with "Velodyne Points" format.', () => {
-            cy.saveJob('PATCH', 200, 'saveJob');
-            cy.intercept('GET', '/api/v1/tasks/**/annotations**').as('dumpAnnotations');
-            cy.interactMenu('Dump annotations');
-            cy.get('.cvat-menu-dump-submenu-item').within(() => {
-                cy.contains(dumpTypeVC).click();
+        it('Export with "Velodyne Points" format.', () => {
+            const exportAnnotation = {
+                as: 'exportAnnotations',
+                type: 'annotations',
+                format: dumpTypeVC,
+            };
+            cy.exportTask(exportAnnotation);
+            cy.getDownloadFileName().then((file) => {
+                annotationVCArchiveName = file;
+                cy.verifyDownload(annotationVCArchiveName);
             });
-            cy.wait('@dumpAnnotations', { timeout: 5000 }).its('response.statusCode').should('equal', 202);
-            cy.wait('@dumpAnnotations').its('response.statusCode').should('equal', 201);
+        });
+
+        it('Export with "Point Cloud" format. Renaming the archive', () => {
+            const exportAnnotationRenameArchive = {
+                as: 'exportAnnotationsRenameArchive',
+                type: 'annotations',
+                format: dumpTypeVC,
+                archiveCustomeName: 'task_export_3d_annotation_custome_name_vc_format',
+            };
+            cy.exportTask(exportAnnotationRenameArchive);
+            cy.getDownloadFileName().then((file) => {
+                annotationVCArchiveNameCustomeName = file;
+                cy.verifyDownload(annotationVCArchiveNameCustomeName);
+            });
             cy.removeAnnotations();
             cy.saveJob('PUT');
             cy.get('#cvat-objects-sidebar-state-item-1').should('not.exist');
-
-            cy.wait(2000); // Waiting for the full download.
-            cy.task('listFiles', 'cypress/downloads').each((fileName) => {
-                if (fileName.includes(dumpTypeVC.toLowerCase())) {
-                    annotationVCArchiveName = fileName;
-                }
-            });
         });
 
         it('Upload "Velodyne Points" format annotation to job.', () => {
             cy.interactMenu('Upload annotations');
-            cy.readFile('cypress/downloads/' + annotationVCArchiveName, 'binary')
+            cy.readFile(`cypress/fixtures/${annotationVCArchiveName}`, 'binary')
                 .then(Cypress.Blob.binaryStringToBlob)
                 .then((fileContent) => {
                     cy.contains('.cvat-menu-load-submenu-item', dumpTypeVC.split(' ')[0])
                         .should('be.visible')
                         .within(() => {
                             cy.get('.cvat-menu-load-submenu-item-button').click().get('input[type=file]').attachFile({
-                                fileContent: fileContent,
+                                fileContent,
                                 fileName: annotationVCArchiveName,
                             });
                         });
                 });
-            cy.intercept('PUT', '/api/v1/jobs/**/annotations**').as('uploadAnnotationsPut');
-            cy.intercept('GET', '/api/v1/jobs/**/annotations**').as('uploadAnnotationsGet');
             confirmUpdate('.cvat-modal-content-load-job-annotation');
-            cy.wait('@uploadAnnotationsPut', { timeout: 5000 }).its('response.statusCode').should('equal', 202);
-            cy.wait('@uploadAnnotationsPut').its('response.statusCode').should('equal', 201);
+            cy.intercept('GET', '/api/v1/jobs/**/annotations**').as('uploadAnnotationsGet');
             cy.wait('@uploadAnnotationsGet').its('response.statusCode').should('equal', 200);
             cy.get('#cvat-objects-sidebar-state-item-1').should('exist');
             cy.removeAnnotations();
@@ -96,7 +84,23 @@ context('Canvas 3D functionality. Dump/upload annotation. "Velodyne Points" form
 
         it('Upload annotation to task.', () => {
             cy.goToTaskList();
-            uploadToTask(taskName);
+            cy.contains('.cvat-item-task-name', taskName)
+                .parents('.cvat-tasks-list-item')
+                .find('.cvat-menu-icon')
+                .trigger('mouseover');
+            cy.contains('Upload annotations').trigger('mouseover');
+            cy.readFile(`cypress/fixtures/${annotationVCArchiveNameCustomeName}`, 'binary')
+                .then(Cypress.Blob.binaryStringToBlob)
+                .then((fileContent) => {
+                    cy.contains('.cvat-menu-load-submenu-item', dumpTypeVC.split(' ')[0])
+                        .should('be.visible')
+                        .within(() => {
+                            cy.get('.cvat-menu-load-submenu-item-button').click().get('input[type=file]').attachFile({
+                                fileName: annotationVCArchiveNameCustomeName,
+                                fileContent,
+                            });
+                        });
+                });
             confirmUpdate('.cvat-modal-content-load-task-annotation');
             cy.contains('Annotations have been loaded').should('be.visible');
             cy.get('[data-icon="close"]').click();

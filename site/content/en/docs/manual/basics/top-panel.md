@@ -1,7 +1,8 @@
 ---
 title: 'Top Panel'
 linkTitle: 'Top Panel'
-weight: 21
+weight: 7
+description: 'Overview of controls available on the top panel of the annotation tool.'
 ---
 
 ![](/images/image035.jpg)
@@ -18,7 +19,12 @@ Button assignment:
 
 - `Dump Annotations` — downloads annotations from a task.
 - `Upload Annotations` — uploads annotations into a task.
-- `Remove Annotations` — removes annotations from the current job.
+- `Remove Annotations` — calls the confirmation window if you click `Delete`, the annotation of the current job
+  will be removed, if you click `Select range` you can remove annotation on range frames, if you activate checkbox
+  `Delete only keyframe for tracks` then only keyframes will be deleted from the tracks, on the selected range.
+
+  ![](/images/image229.jpg)
+
 - `Export as a dataset` — download a data set from a task. Several formats are available:
   - [Datumaro](https://github.com/openvinotoolkit/cvat/tree/develop/cvat/apps/dataset_manager/formats/datumaro)
   - [Pascal VOC 2012](http://host.robots.ox.ac.uk/pascal/VOC/)
@@ -48,6 +54,17 @@ Use buttons to undo actions or redo them.
 ![](/images/image223.jpg)
 
 Used to complete the creation of the object. This button appears only when the object is being created.
+
+---
+
+## Block
+
+![](/images/image226.jpg)
+
+Used to pause automatic line creation when drawing a polygon with 
+[OpenCV Intelligent scissors](/docs/manual/advanced/opencv-tools/#intelligent-scissors).
+Also used to postpone server requests when creating an object using [AI Tools](/docs/manual/advanced/ai-tools/).
+When blocking is activated, the button turns blue.
 
 ---
 

@@ -23,18 +23,27 @@ import CreateProjectPageComponent from 'components/create-project-page/create-pr
 import ProjectPageComponent from 'components/project-page/project-page';
 import TasksPageContainer from 'containers/tasks-page/tasks-page';
 import LoginWithTokenComponent from 'components/login-with-token/login-with-token';
+import ExportDatasetModal from 'components/export-dataset/export-dataset-modal';
 import CreateTaskPageContainer from 'containers/create-task-page/create-task-page';
 import TaskPageContainer from 'containers/task-page/task-page';
 import ModelsPageContainer from 'containers/models-page/models-page';
 import AnnotationPageContainer from 'containers/annotation-page/annotation-page';
 import LoginPageContainer from 'containers/login-page/login-page';
 import RegisterPageContainer from 'containers/register-page/register-page';
+import CloudStoragesPageComponent from 'components/cloud-storages-page/cloud-storages-page';
+import CreateCloudStoragePageComponent from 'components/create-cloud-storage-page/create-cloud-storage-page';
+import UpdateCloudStoragePageComponent from 'components/update-cloud-storage-page/update-cloud-storage-page';
 import getCore from 'cvat-core-wrapper';
 import GlobalHotKeys, { KeyMap } from 'utils/mousetrap-react';
 import { NotificationsState } from 'reducers/interfaces';
 import { customWaViewHit } from 'utils/enviroment';
-import showPlatformNotification, { platformInfo, stopNotifications } from 'utils/platform-checker';
+import showPlatformNotification, {
+    platformInfo,
+    stopNotifications,
+    showUnsupportedNotification,
+} from 'utils/platform-checker';
 import '../styles.scss';
+import EmailConfirmationPage from './email-confirmation-page/email-confirmed';
 
 interface CVATAppProps {
     loadFormats: () => void;
@@ -87,6 +96,50 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
         });
 
         verifyAuthorized();
+
+        const {
+            name, version, engine, os,
+        } = platformInfo();
+
+        if (showPlatformNotification()) {
+            stopNotifications(false);
+            Modal.warning({
+                title: 'Unsupported platform detected',
+                className: 'cvat-modal-unsupported-platform-warning',
+                content: (
+                    <>
+                        <Row>
+                            <Col>
+                                <Text>
+                                    {`The browser you are using is ${name} ${version} based on ${engine}.` +
+                                        ' CVAT was tested in the latest versions of Chrome and Firefox.' +
+                                        ' We recommend to use Chrome (or another Chromium based browser)'}
+                                </Text>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Text type='secondary'>{`The operating system is ${os}`}</Text>
+                            </Col>
+                        </Row>
+                    </>
+                ),
+                onOk: () => stopNotifications(true),
+            });
+        } else if (showUnsupportedNotification()) {
+            stopNotifications(false);
+            Modal.warning({
+                title: 'Unsupported features detected',
+                className: 'cvat-modal-unsupported-features-warning',
+                content: (
+                    <Text>
+                        {`${name} v${version} does not support API, which is used by CVAT. `}
+                        It is strongly recommended to update your browser.
+                    </Text>
+                ),
+                onOk: () => stopNotifications(true),
+            });
+        }
     }
 
     public componentDidUpdate(): void {
@@ -269,37 +322,6 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
             },
         };
 
-        if (showPlatformNotification()) {
-            stopNotifications(false);
-            const {
-                name, version, engine, os,
-            } = platformInfo();
-
-            Modal.warning({
-                title: 'Unsupported platform detected',
-                className: 'cvat-modal-unsupported-platform-warning',
-                content: (
-                    <>
-                        <Row>
-                            <Col>
-                                <Text>
-                                    {`The browser you are using is ${name} ${version} based on ${engine}.` +
-                                        ' CVAT was tested in the latest versions of Chrome and Firefox.' +
-                                        ' We recommend to use Chrome (or another Chromium based browser)'}
-                                </Text>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col>
-                                <Text type='secondary'>{`The operating system is ${os}`}</Text>
-                            </Col>
-                        </Row>
-                    </>
-                ),
-                onOk: () => stopNotifications(true),
-            });
-        }
-
         if (readyForRender) {
             if (user && user.isVerified) {
                 return (
@@ -317,6 +339,17 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
                                         <Route exact path='/tasks/create' component={CreateTaskPageContainer} />
                                         <Route exact path='/tasks/:id' component={TaskPageContainer} />
                                         <Route exact path='/tasks/:tid/jobs/:jid' component={AnnotationPageContainer} />
+                                        <Route exact path='/cloudstorages' component={CloudStoragesPageComponent} />
+                                        <Route
+                                            exact
+                                            path='/cloudstorages/create'
+                                            component={CreateCloudStoragePageComponent}
+                                        />
+                                        <Route
+                                            exact
+                                            path='/cloudstorages/update/:id'
+                                            component={UpdateCloudStoragePageComponent}
+                                        />
                                         {isModelPluginActive && (
                                             <Route exact path='/models' component={ModelsPageContainer} />
                                         )}
@@ -326,6 +359,8 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
                                         />
                                     </Switch>
                                 </GlobalHotKeys>
+                                {/* eslint-disable-next-line */}
+                                <ExportDatasetModal />
                                 {/* eslint-disable-next-line */}
                                 <a id='downloadAnchor' target='_blank' style={{ display: 'none' }} download />
                             </Layout.Content>
@@ -350,6 +385,9 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
                             path='/auth/password/reset/confirm'
                             component={ResetPasswordPageConfirmComponent}
                         />
+
+                        <Route exact path='/auth/email-confirmation' component={EmailConfirmationPage} />
+
                         <Redirect
                             to={location.pathname.length > 1 ? `/auth/login/?next=${location.pathname}` : '/auth/login'}
                         />

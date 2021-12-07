@@ -41,6 +41,10 @@ class CLI():
             data['image_quality'] = kwargs.get('image_quality')
         if 'frame_step' in kwargs:
             data['frame_filter'] = f"step={kwargs.get('frame_step')}"
+        if 'copy_data' in kwargs:
+            data['copy_data'] = kwargs.get('copy_data')
+        if 'use_cache' in kwargs:
+            data['use_cache'] = kwargs.get('use_cache')
 
         response = self.session.post(url, data=data, files=files)
         response.raise_for_status()
@@ -166,7 +170,7 @@ class CLI():
             # FIXME It is better to use meta information from the server
             # to determine the extension
             # replace '.jpe' or '.jpeg' with a more used '.jpg'
-            if im_ext == '.jpe' or '.jpeg' or None:
+            if im_ext in ('.jpe', '.jpeg', None):
                 im_ext = '.jpg'
 
             outfile = 'task_{}_frame_{:06d}{}'.format(task_id, frame_id, im_ext)

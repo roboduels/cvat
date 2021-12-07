@@ -7,25 +7,25 @@ import { useHistory } from 'react-router';
 import { Row, Col } from 'antd/lib/grid';
 import { PlusOutlined, UploadOutlined, LoadingOutlined } from '@ant-design/icons';
 import Button from 'antd/lib/button';
-import Input from 'antd/lib/input';
 import Text from 'antd/lib/typography/Text';
 import Upload from 'antd/lib/upload';
 import Radio from 'antd/lib/radio';
 
-import SearchTooltip from 'components/search-tooltip/search-tooltip';
+import SearchField from 'components/search-field/search-field';
+import { TasksQuery } from 'reducers/interfaces';
 
 interface VisibleTopBarProps {
-    onSearch: (value: string) => void;
     onFilterStatus: (value: string) => void;
+    onSearch: (query: TasksQuery) => void;
     onFileUpload(file: File): void;
-    searchValue: string;
+    query: TasksQuery;
     taskImporting: boolean;
     filterStatus: string;
 }
 
 export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element {
     const {
-        searchValue, onSearch, onFileUpload, taskImporting, onFilterStatus, filterStatus,
+        query, onSearch, onFileUpload, taskImporting, onFilterStatus, filterStatus,
     } = props;
 
     const history = useHistory();
@@ -78,15 +78,7 @@ export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element 
                 </Row>
                 <Row justify='space-between' align='middle'>
                     <Col>
-                        <SearchTooltip instance='task'>
-                            <Input.Search
-                                className='cvat-task-page-search-task'
-                                defaultValue={searchValue}
-                                onSearch={onSearch}
-                                size='large'
-                                placeholder='Search'
-                            />
-                        </SearchTooltip>
+                        <SearchField instance='task' onSearch={onSearch} query={query} />
                     </Col>
                     <Col>
                         <Row gutter={8}>

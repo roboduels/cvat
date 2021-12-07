@@ -1,4 +1,4 @@
-// Copyright (C) 2019-2020 Intel Corporation
+// Copyright (C) 2019-2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
 
@@ -333,6 +333,40 @@
         '#733380',
     ];
 
+    /**
+     * Types of cloud storage providers
+     * @enum {string}
+     * @name CloudStorageProviderType
+     * @memberof module:API.cvat.enums
+     * @property {string} AWS_S3 'AWS_S3_BUCKET'
+     * @property {string} AZURE 'AZURE_CONTAINER'
+     * @property {string} GOOGLE_CLOUD_STORAGE 'GOOGLE_CLOUD_STORAGE'
+     * @readonly
+     */
+    const CloudStorageProviderType = Object.freeze({
+        AWS_S3_BUCKET: 'AWS_S3_BUCKET',
+        AZURE_CONTAINER: 'AZURE_CONTAINER',
+        GOOGLE_CLOUD_STORAGE: 'GOOGLE_CLOUD_STORAGE',
+    });
+
+    /**
+     * Types of cloud storage credentials
+     * @enum {string}
+     * @name CloudStorageCredentialsType
+     * @memberof module:API.cvat.enums
+     * @property {string} KEY_SECRET_KEY_PAIR 'KEY_SECRET_KEY_PAIR'
+     * @property {string} ACCOUNT_NAME_TOKEN_PAIR 'ACCOUNT_NAME_TOKEN_PAIR'
+     * @property {string} ANONYMOUS_ACCESS 'ANONYMOUS_ACCESS'
+     * @property {string} KEY_FILE_PATH 'KEY_FILE_PATH'
+     * @readonly
+     */
+    const CloudStorageCredentialsType = Object.freeze({
+        KEY_SECRET_KEY_PAIR: 'KEY_SECRET_KEY_PAIR',
+        ACCOUNT_NAME_TOKEN_PAIR: 'ACCOUNT_NAME_TOKEN_PAIR',
+        ANONYMOUS_ACCESS: 'ANONYMOUS_ACCESS',
+        KEY_FILE_PATH: 'KEY_FILE_PATH',
+    });
+
     module.exports = {
         ShareFileType,
         TaskStatus,
@@ -348,5 +382,7 @@
         colors,
         Source,
         DimensionType,
+        CloudStorageProviderType,
+        CloudStorageCredentialsType,
     };
 })();

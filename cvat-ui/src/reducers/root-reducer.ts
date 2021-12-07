@@ -18,6 +18,8 @@ import shortcutsReducer from './shortcuts-reducer';
 import userAgreementsReducer from './useragreements-reducer';
 import reviewReducer from './review-reducer';
 import gradesReducer from './grades-reducer';
+import exportReducer from './export-reducer';
+import cloudStoragesReducer from './cloud-storages-reducer';
 
 export default function createRootReducer(): Reducer {
     return combineReducers({
@@ -36,5 +38,7 @@ export default function createRootReducer(): Reducer {
         userAgreements: userAgreementsReducer,
         review: reviewReducer,
         grades: gradesReducer,
+        export: exportReducer,
+        cloudStorages: cloudStoragesReducer,
     });
 }

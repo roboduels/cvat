@@ -10,8 +10,10 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from django.db import models
+from django.db.models.fields import FloatField
 from django.utils.translation import gettext_lazy as _
 
+from cvat.apps.engine.utils import parse_specific_attributes
 
 class SafeCharField(models.CharField):
     def get_prep_value(self, value):
@@ -194,7 +196,7 @@ class Project(models.Model):
                                  on_delete=models.SET_NULL, related_name="+")
     bug_tracker = models.CharField(max_length=2000, blank=True, default="")
     created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=32, choices=StatusChoice.choices(),
                               default=StatusChoice.ANNOTATION)
     training_project = models.ForeignKey(TrainingProject, null=True, blank=True, on_delete=models.SET_NULL)
@@ -506,6 +508,7 @@ class Shape(models.Model):
     occluded = models.BooleanField(default=False)
     z_order = models.IntegerField(default=0)
     points = FloatArrayField()
+    rotation = FloatField(default=0)
 
     class Meta:
         abstract = True
@@ -583,6 +586,7 @@ class CloudProviderChoice(str, Enum):
     AWS_S3 = 'AWS_S3_BUCKET'
     AZURE_CONTAINER = 'AZURE_CONTAINER'
     GOOGLE_DRIVE = 'GOOGLE_DRIVE'
+    GOOGLE_CLOUD_STORAGE = 'GOOGLE_CLOUD_STORAGE'
 
     @classmethod
     def choices(cls):
@@ -598,8 +602,9 @@ class CloudProviderChoice(str, Enum):
 
 class CredentialsTypeChoice(str, Enum):
     # ignore bandit issues because false positives
-    TEMP_KEY_SECRET_KEY_TOKEN_SET = 'TEMP_KEY_SECRET_KEY_TOKEN_SET'  # nosec
-    ACCOUNT_NAME_TOKEN_PAIR = 'ACCOUNT_NAME_TOKEN_PAIR'  # nosec
+    KEY_SECRET_KEY_PAIR = 'KEY_SECRET_KEY_PAIR' # nosec
+    ACCOUNT_NAME_TOKEN_PAIR = 'ACCOUNT_NAME_TOKEN_PAIR' # nosec
+    KEY_FILE_PATH = 'KEY_FILE_PATH'
     ANONYMOUS_ACCESS = 'ANONYMOUS_ACCESS'
 
     @classmethod
@@ -613,26 +618,36 @@ class CredentialsTypeChoice(str, Enum):
     def __str__(self):
         return self.value
 
+class Manifest(models.Model):
+    filename = models.CharField(max_length=1024, default='manifest.jsonl')
+    cloud_storage = models.ForeignKey('CloudStorage', on_delete=models.CASCADE, null=True, related_name='manifests')
+
+    def __str__(self):
+        return '{}'.format(self.filename)
 
 class CloudStorage(models.Model):
     # restrictions:
-    # AWS bucket name, Azure container name - 63
+    # AWS bucket name, Azure container name - 63, Google bucket name - 63 without dots and 222 with dots
+    # https://cloud.google.com/storage/docs/naming-buckets#requirements
     # AWS access key id - 20
     # AWS secret access key - 40
     # AWS temporary session tocken - None
     # The size of the security token that AWS STS API operations return is not fixed.
     # We strongly recommend that you make no assumptions about the maximum size.
     # The typical token size is less than 4096 bytes, but that can vary.
+    # specific attributes:
+    # location - max 23
+    # project ID: 6 - 30 (https://cloud.google.com/resource-manager/docs/creating-managing-projects#before_you_begin)
     provider_type = models.CharField(max_length=20, choices=CloudProviderChoice.choices())
-    resource = models.CharField(max_length=63)
+    resource = models.CharField(max_length=222)
     display_name = models.CharField(max_length=63)
     owner = models.ForeignKey(User, null=True, blank=True,
                               on_delete=models.SET_NULL, related_name="cloud_storages")
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     credentials = models.CharField(max_length=500)
-    credentials_type = models.CharField(max_length=29, choices=CredentialsTypeChoice.choices())  # auth_type
-    specific_attributes = models.CharField(max_length=50, blank=True)
+    credentials_type = models.CharField(max_length=29, choices=CredentialsTypeChoice.choices())#auth_type
+    specific_attributes = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
 
     class Meta:
@@ -649,14 +664,16 @@ class CloudStorage(models.Model):
         return os.path.join(self.get_storage_dirname(), 'logs')
 
     def get_log_path(self):
-        return os.path.join(self.get_storage_dirname(), "storage.log")
+        return os.path.join(self.get_storage_logs_dirname(), "storage.log")
+
+    def get_preview_path(self):
+        return os.path.join(self.get_storage_dirname(), 'preview.jpeg')
 
     def get_specific_attributes(self):
-        specific_attributes = self.specific_attributes
-        return {
-            item.split('=')[0].strip(): item.split('=')[1].strip()
-            for item in specific_attributes.split('&')
-        } if specific_attributes else dict()
+        return parse_specific_attributes(self.specific_attributes)
+
+    def get_key_file_path(self):
+        return os.path.join(self.get_storage_dirname(), 'key.json')
 
 
 class Activities(Enum):

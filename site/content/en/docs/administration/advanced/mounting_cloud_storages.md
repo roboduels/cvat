@@ -2,6 +2,7 @@
 title: 'Mounting cloud storage'
 linkTitle: 'Mounting cloud storage'
 weight: 10
+description: 'Instructions on how to mount AWS S3 bucket, Microsoft Azure container or Google Drive as a filesystem.'
 ---
 
 <!--lint disable heading-style-->
@@ -204,9 +205,9 @@ Follow the first 7 mounting steps above.
 
 1. Edit `/etc/fstab` with the blobfuse script. Add the following line(replace paths):
 
-```bash
-/absolute/path/to/azure_fuse </path/to/desired/mountpoint> fuse allow_other,user,_netdev
-```
+   ```bash
+   /absolute/path/to/azure_fuse </path/to/desired/mountpoint> fuse allow_other,user,_netdev
+   ```
 
 ##### <a name="azure_using_systemd">Using systemd</a>
 

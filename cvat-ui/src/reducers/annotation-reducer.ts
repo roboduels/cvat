@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React from 'react';
 import { AnyAction } from 'redux';
 import { AnnotationActionTypes } from 'actions/annotation-actions';
 import { AuthActionTypes } from 'actions/auth-actions';
@@ -39,7 +38,7 @@ const defaultState: AnnotationState = {
             pointID: null,
             clientID: null,
         },
-        instance: new Canvas(),
+        instance: null,
         ready: false,
         activeControl: ActiveControl.CURSOR,
     },
@@ -64,6 +63,7 @@ const defaultState: AnnotationState = {
         },
         playing: false,
         frameAngles: [],
+        navigationBlocked: false,
         contextImage: {
             fetching: false,
             data: null,
@@ -76,7 +76,6 @@ const defaultState: AnnotationState = {
         activeObjectType: ObjectType.SHAPE,
     },
     annotations: {
-        selectedStatesID: [],
         activatedStateID: null,
         activatedAttributeID: null,
         saving: {
@@ -108,7 +107,6 @@ const defaultState: AnnotationState = {
         collecting: false,
         data: null,
     },
-    aiToolsRef: React.createRef(),
     colors: [],
     sidebarCollapsed: false,
     appearanceCollapsed: false,
@@ -170,6 +168,10 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
             if (job.task.dimension === DimensionType.DIM_3D) {
                 workspaceSelected = Workspace.STANDARD3D;
                 activeShapeType = ShapeType.CUBOID;
+            }
+
+            if (state.canvas.instance) {
+                state.canvas.instance.destroy();
             }
 
             return {
@@ -709,7 +711,7 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
                 canvas: { activeControl, instance },
             } = state;
 
-            if (activeControl !== ActiveControl.CURSOR || instance.mode() !== CanvasMode.IDLE) {
+            if (activeControl !== ActiveControl.CURSOR || (instance as Canvas | Canvas3d).mode() !== CanvasMode.IDLE) {
                 return state;
             }
 
@@ -719,17 +721,6 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
                     ...state.annotations,
                     activatedStateID,
                     activatedAttributeID,
-                },
-            };
-        }
-        case AnnotationActionTypes.SELECT_OBJECTS: {
-            const { selectedStatesID } = action.payload;
-
-            return {
-                ...state,
-                annotations: {
-                    ...state.annotations,
-                    selectedStatesID,
                 },
             };
         }
@@ -929,23 +920,23 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
                     ...state.annotations,
                     history,
                     states,
-                    selectedStatesID: [],
                     activatedStateID: null,
                     collapsed: {},
                 },
             };
         }
+        // Added Remove Annotations
         case AnnotationActionTypes.REMOVE_JOB_ANNOTATIONS_SUCCESS: {
             const { history } = action.payload;
+            const { states } = action.payload;
             return {
                 ...state,
                 annotations: {
                     ...state.annotations,
                     history,
-                    selectedStatesID: [],
+                    states,
                     activatedStateID: null,
                     collapsed: {},
-                    states: [],
                 },
             };
         }
@@ -994,7 +985,9 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
         }
         case AnnotationActionTypes.FETCH_ANNOTATIONS_SUCCESS: {
             const { activatedStateID } = state.annotations;
-            const { states, minZ, maxZ } = action.payload;
+            const {
+                states, history, minZ, maxZ,
+            } = action.payload;
 
             return {
                 ...state,
@@ -1002,6 +995,7 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
                     ...state.annotations,
                     activatedStateID: updateActivatedStateID(states, activatedStateID),
                     states,
+                    history,
                     zLayer: {
                         min: minZ,
                         max: maxZ,
@@ -1223,8 +1217,20 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
                 },
             };
         }
+        case AnnotationActionTypes.SWITCH_NAVIGATION_BLOCKED: {
+            return {
+                ...state,
+                player: {
+                    ...state.player,
+                    navigationBlocked: action.payload.navigationBlocked,
+                },
+            };
+        }
         case AnnotationActionTypes.CLOSE_JOB:
         case AuthActionTypes.LOGOUT_SUCCESS: {
+            if (state.canvas.instance) {
+                state.canvas.instance.destroy();
+            }
             return { ...defaultState };
         }
         case AnnotationActionTypes.SET_GRADES_FORM_STATE: {
