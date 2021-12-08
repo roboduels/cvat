@@ -13,6 +13,8 @@ services:
       POSTGRES_USER: root
       POSTGRES_DB: cvat
       POSTGRES_HOST_AUTH_METHOD: trust
+      WEBHOOK_CVAT_GRADES_SECRET: 274af7372eed0c0d3a9253dcbbdb7d06fb86327a
+      ROBOGRADING_API: http://192.168.1.6
     volumes:
       - cvat_db:/var/lib/postgresql/data
     networks:

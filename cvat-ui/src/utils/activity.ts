@@ -75,9 +75,8 @@ export function computeActivity(activities: Activity[]): ComputedActivity {
         let score = scores[key] || 0;
 
         if (item.activity_type === Activities.TASK_ANNOTATION_CHANGED) {
-            score += scoreVal(item.options.shapes_no) +
-                     scoreVal(item.options.tags_no) +
-                     scoreVal(item.options.tracks_no);
+            score +=
+                scoreVal(item.options.shapes_no) + scoreVal(item.options.tags_no) + scoreVal(item.options.tracks_no);
         } else {
             score += 1;
         }

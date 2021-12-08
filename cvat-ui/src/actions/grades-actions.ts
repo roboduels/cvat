@@ -23,13 +23,11 @@ export enum GradesActionsTypes {
 
 export const gradesActions = {
     setGrades: (values: GradesState['values']) => createAction(GradesActionsTypes.LOAD_VALUES, { values }),
-    assignGrades: (values: Partial<GradesState['values']>) =>
-        createAction(GradesActionsTypes.ASSIGN_VALUES, { values }),
+    assignGrades: (values: Partial<GradesState['values']>) => createAction(GradesActionsTypes.ASSIGN_VALUES, { values }),
     setLoading: (loading: boolean) => createAction(GradesActionsTypes.SET_LOADING, { loading }),
     setError: (error: string | Error | null) => createAction(GradesActionsTypes.SET_ERROR, { error }),
     setWarning: (warning: string | Error | null) => createAction(GradesActionsTypes.SET_WARNING, { warning }),
-    updateValue: (key: keyof GradesState['values'] | string, value: string | number) =>
-        createAction(GradesActionsTypes.UPDATE_VALUE, { key, value }),
+    updateValue: (key: keyof GradesState['values'] | string, value: string | number) => createAction(GradesActionsTypes.UPDATE_VALUE, { key, value }),
 };
 
 export type GradesActions = ActionUnion<typeof gradesActions>;
@@ -45,6 +43,14 @@ function apiCall(endpoint: string, opts: AxiosRequestConfig = {}): Promise<Axios
             Authorization: `Bearer ${token}`,
         },
     });
+}
+
+async function sendGrades(action: string, values: any): Promise<void> {
+    try {
+        await Axios.post('/api/v1/cvat-grades', { action, values });
+    } catch (e) {
+        console.error('error sending grades', e);
+    }
 }
 
 export const setErrorAsync = (error: string | Error): ThunkAction => async (dispatch) => {
@@ -247,38 +253,44 @@ export const submitHumanGradesAsync = (certificateId?: string | number | null): 
         notification.info({
             message: 'Updating human grades...',
         });
-        const { data } = await apiCall(`/v2/robograding/certificates/?certificate_id=${certificateId}`, {
-            method: 'PATCH',
-            data: {
-                front_centering_human_grade: mapGradeValue(values.front_centering_human_grade),
-                front_corners_human_grade: mapGradeValue(values.front_corners_human_grade),
-                front_edges_human_grade: mapGradeValue(values.front_edges_human_grade),
-                front_surface_human_grade: mapGradeValue(values.front_surface_human_grade),
-                back_centering_human_grade: mapGradeValue(values.back_centering_human_grade),
-                back_corners_human_grade: mapGradeValue(values.back_corners_human_grade),
-                back_edges_human_grade: mapGradeValue(values.back_edges_human_grade),
-                back_surface_human_grade: mapGradeValue(values.back_surface_human_grade),
-                overall_centering_grade: overallCenteringGrade,
-                overall_corners_grade: overallCornersGrade,
-                overall_edges_grade: overallEdgesGrade,
-                overall_surface_grade: overallSurfaceGrade,
-                overall_grade: {
-                    grade: overallGrade,
-                    nickname: overallGradeNickname,
-                },
+
+        const data = {
+            front_centering_human_grade: mapGradeValue(values.front_centering_human_grade),
+            front_corners_human_grade: mapGradeValue(values.front_corners_human_grade),
+            front_edges_human_grade: mapGradeValue(values.front_edges_human_grade),
+            front_surface_human_grade: mapGradeValue(values.front_surface_human_grade),
+            back_centering_human_grade: mapGradeValue(values.back_centering_human_grade),
+            back_corners_human_grade: mapGradeValue(values.back_corners_human_grade),
+            back_edges_human_grade: mapGradeValue(values.back_edges_human_grade),
+            back_surface_human_grade: mapGradeValue(values.back_surface_human_grade),
+            overall_centering_grade: overallCenteringGrade,
+            overall_corners_grade: overallCornersGrade,
+            overall_edges_grade: overallEdgesGrade,
+            overall_surface_grade: overallSurfaceGrade,
+            overall_grade: {
+                grade: overallGrade,
+                nickname: overallGradeNickname,
             },
-        });
+        };
+
+        const [{ data: res }] = await Promise.all([
+            apiCall(`/v2/robograding/certificates/?certificate_id=${certificateId}`, {
+                method: 'PATCH',
+                data,
+            }),
+            sendGrades('human_grades', data),
+        ]);
 
         dispatch(
             gradesActions.assignGrades({
-                back_centering_human_grade: mapGradeValue(data.back_centering_human_grade),
-                back_corners_human_grade: mapGradeValue(data.back_corners_human_grade),
-                back_edges_human_grade: mapGradeValue(data.back_edges_human_grade),
-                back_surface_human_grade: mapGradeValue(data.back_surface_human_grade),
-                front_centering_human_grade: mapGradeValue(data.front_centering_human_grade),
-                front_corners_human_grade: mapGradeValue(data.front_corners_human_grade),
-                front_edges_human_grade: mapGradeValue(data.front_edges_human_grade),
-                front_surface_human_grade: mapGradeValue(data.front_surface_human_grade),
+                back_centering_human_grade: mapGradeValue(res.back_centering_human_grade),
+                back_corners_human_grade: mapGradeValue(res.back_corners_human_grade),
+                back_edges_human_grade: mapGradeValue(res.back_edges_human_grade),
+                back_surface_human_grade: mapGradeValue(res.back_surface_human_grade),
+                front_centering_human_grade: mapGradeValue(res.front_centering_human_grade),
+                front_corners_human_grade: mapGradeValue(res.front_corners_human_grade),
+                front_edges_human_grade: mapGradeValue(res.front_edges_human_grade),
+                front_surface_human_grade: mapGradeValue(res.front_surface_human_grade),
             }),
         );
 

@@ -73,5 +73,6 @@ urlpatterns = [
 
     # entry point for API
     path('api/v1/auth/', include('cvat.apps.authentication.urls')),
-    path('api/v1/', include((router.urls, 'cvat'), namespace='v1'))
+    path('api/v1/', include((router.urls, 'cvat'), namespace='v1')),
+    path('api/v1/cvat-grades', views.post_grades)
 ]

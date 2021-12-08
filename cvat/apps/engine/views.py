@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 import errno
+import hashlib
+import hmac
 import io
 import os
 import os.path as osp
@@ -15,6 +17,7 @@ from tempfile import mkstemp, NamedTemporaryFile
 import cv2
 import django_rq
 import pytz
+import requests
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -1732,3 +1735,21 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         data = ActivitySerializer(activities, many=True)
 
         return Response(data.data)
+
+
+def post_grades(request):
+    if request.method == "POST":
+        secret = os.environ.get("WEBHOOK_CVAT_GRADES_SECRET")
+        api = os.environ.get("ROBOGRADING_API")
+        print("using: secret={} api={}".format(secret, api))
+
+        body = request.body
+        signature = hmac.new(secret.encode(), msg=body, digestmod=hashlib.sha256).hexdigest()
+        result = requests.post('{}/api/webhooks/cvat-grades'.format(api), data=body, headers={
+            "Signature": signature,
+            "Content-Type": request.content_type
+        })
+
+        return HttpResponse(result.content, status=result.status_code)
+
+    return HttpResponse("EMPTY")
