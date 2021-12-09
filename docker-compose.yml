@@ -48,8 +48,17 @@ services:
       - cvat_data:/home/django/data
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
+      - './cvat:/home/django/cvat'
     networks:
       - cvat
+    build:
+      context: .
+      args:
+        http_proxy:
+        https_proxy:
+        socks_proxy:
+        CLAM_AV:
+        INSTALL_SOURCES:
 
   cvat_ui:
     build:
