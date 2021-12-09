@@ -24,7 +24,7 @@ class BasicUserSerializer(serializers.ModelSerializer):
             if unknown_keys:
                 if set(['is_staff', 'is_superuser', 'groups']) & unknown_keys:
                     message = 'You do not have permissions to access some of' + \
-                        ' these fields: {}'.format(unknown_keys)
+                              ' these fields: {}'.format(unknown_keys)
                 else:
                     message = 'Got unknown fields: {}'.format(unknown_keys)
                 raise serializers.ValidationError(message)
@@ -35,24 +35,26 @@ class BasicUserSerializer(serializers.ModelSerializer):
         fields = ('url', 'id', 'username', 'first_name', 'last_name')
         ordering = ['-id']
 
+
 class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(many=True,
-        slug_field='name', queryset=Group.objects.all())
+                                          slug_field='name', queryset=Group.objects.all())
 
     class Meta:
         model = User
         fields = ('url', 'id', 'username', 'first_name', 'last_name', 'email',
-            'groups', 'is_staff', 'is_superuser', 'is_active', 'last_login',
-            'date_joined')
+                  'groups', 'is_staff', 'is_superuser', 'is_active', 'last_login',
+                  'date_joined')
         read_only_fields = ('last_login', 'date_joined')
-        write_only_fields = ('password', )
+        write_only_fields = ('password',)
         ordering = ['-id']
+
 
 class AttributeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.AttributeSpec
         fields = ('id', 'name', 'mutable', 'input_type', 'default_value',
-            'values')
+                  'values')
 
     # pylint: disable=no-self-use
     def to_internal_value(self, data):
@@ -69,10 +71,11 @@ class AttributeSerializer(serializers.ModelSerializer):
 
         return attribute
 
+
 class LabelSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     attributes = AttributeSerializer(many=True, source='attributespec_set',
-        default=[])
+                                     default=[])
     color = serializers.CharField(allow_blank=True, required=False)
     deleted = serializers.BooleanField(required=False, help_text="Delete label if value is true from proper Task/Project object")
 
@@ -99,7 +102,7 @@ class LabelSerializer(serializers.ModelSerializer):
         if not validated_data.get('id') is None:
             try:
                 db_label = models.Label.objects.get(id=validated_data['id'],
-                    **instance)
+                                                    **instance)
             except models.Label.DoesNotExist:
                 raise exceptions.NotFound(detail='Not found label with id #{} to change'.format(validated_data['id']))
             db_label.name = validated_data.get('name', db_label.name)
@@ -112,8 +115,8 @@ class LabelSerializer(serializers.ModelSerializer):
             return
         if not validated_data.get('color', None):
             label_names = [l.name for l in
-                instance[tuple(instance.keys())[0]].label_set.exclude(id=db_label.id).order_by('id')
-            ]
+                           instance[tuple(instance.keys())[0]].label_set.exclude(id=db_label.id).order_by('id')
+                           ]
             db_label.color = get_label_color(db_label.name, label_names)
         else:
             db_label.color = validated_data.get('color', db_label.color)
@@ -123,10 +126,10 @@ class LabelSerializer(serializers.ModelSerializer):
                 label=db_label, name=attr['name'], defaults=attr)
             if created:
                 logger.info("New {} attribute for {} label was created"
-                    .format(db_attr.name, db_label.name))
+                            .format(db_attr.name, db_label.name))
             else:
                 logger.info("{} attribute for {} label was updated"
-                    .format(db_attr.name, db_label.name))
+                            .format(db_attr.name, db_label.name))
 
                 # FIXME: need to update only "safe" fields
                 db_attr.default_value = attr.get('default_value', db_attr.default_value)
@@ -135,10 +138,12 @@ class LabelSerializer(serializers.ModelSerializer):
                 db_attr.values = attr.get('values', db_attr.values)
                 db_attr.save()
 
+
 class JobCommitSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.JobCommit
         fields = ('id', 'version', 'author', 'message', 'timestamp')
+
 
 class JobSerializer(serializers.ModelSerializer):
     task_id = serializers.ReadOnlyField(source="segment.task.id")
@@ -152,8 +157,9 @@ class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Job
         fields = ('url', 'id', 'assignee', 'assignee_id', 'reviewer',
-            'reviewer_id', 'status', 'start_frame', 'stop_frame', 'task_id')
+                  'reviewer_id', 'status', 'start_frame', 'stop_frame', 'task_id')
         read_only_fields = ('assignee', 'reviewer')
+
 
 class SimpleJobSerializer(serializers.ModelSerializer):
     assignee = BasicUserSerializer(allow_null=True)
@@ -166,6 +172,7 @@ class SimpleJobSerializer(serializers.ModelSerializer):
         fields = ('url', 'id', 'assignee', 'assignee_id', 'reviewer', 'reviewer_id', 'status')
         read_only_fields = ('assignee', 'reviewer')
 
+
 class SegmentSerializer(serializers.ModelSerializer):
     jobs = SimpleJobSerializer(many=True, source='job_set')
 
@@ -173,10 +180,11 @@ class SegmentSerializer(serializers.ModelSerializer):
         model = models.Segment
         fields = ('start_frame', 'stop_frame', 'jobs')
 
+
 class ClientFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ClientFile
-        fields = ('file', )
+        fields = ('file',)
 
     # pylint: disable=no-self-use
     def to_internal_value(self, data):
@@ -190,10 +198,11 @@ class ClientFileSerializer(serializers.ModelSerializer):
         else:
             return instance
 
+
 class ServerFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ServerFile
-        fields = ('file', )
+        fields = ('file',)
 
     # pylint: disable=no-self-use
     def to_internal_value(self, data):
@@ -202,11 +211,12 @@ class ServerFileSerializer(serializers.ModelSerializer):
     # pylint: disable=no-self-use
     def to_representation(self, instance):
         return instance.file if instance else instance
+
 
 class RemoteFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.RemoteFile
-        fields = ('file', )
+        fields = ('file',)
 
     # pylint: disable=no-self-use
     def to_internal_value(self, data):
@@ -215,14 +225,15 @@ class RemoteFileSerializer(serializers.ModelSerializer):
     # pylint: disable=no-self-use
     def to_representation(self, instance):
         return instance.file if instance else instance
+
 
 class RqStatusSerializer(serializers.Serializer):
     state = serializers.ChoiceField(choices=[
         "Queued", "Started", "Finished", "Failed"])
     message = serializers.CharField(allow_blank=True, default="")
 
-class WriteOnceMixin:
 
+class WriteOnceMixin:
     """Adds support for write once fields to serializers.
 
     To use it, specify a list of fields as `write_once_fields` on the
@@ -267,6 +278,7 @@ class WriteOnceMixin:
 
         return extra_kwargs
 
+
 class DataSerializer(serializers.ModelSerializer):
     image_quality = serializers.IntegerField(min_value=0, max_value=100)
     use_zip_chunks = serializers.BooleanField(default=False)
@@ -280,8 +292,8 @@ class DataSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Data
         fields = ('chunk_size', 'size', 'image_quality', 'start_frame', 'stop_frame', 'frame_filter',
-            'compressed_chunk_type', 'original_chunk_type', 'client_files', 'server_files', 'remote_files', 'use_zip_chunks',
-            'cloud_storage_id', 'use_cache', 'copy_data', 'storage_method', 'storage')
+                  'compressed_chunk_type', 'original_chunk_type', 'client_files', 'server_files', 'remote_files', 'use_zip_chunks',
+                  'cloud_storage_id', 'use_cache', 'copy_data', 'storage_method', 'storage')
 
     # pylint: disable=no-self-use
     def validate_frame_filter(self, value):
@@ -336,6 +348,7 @@ class DataSerializer(serializers.ModelSerializer):
         db_data.save()
         return db_data
 
+
 class TaskSerializer(WriteOnceMixin, serializers.ModelSerializer):
     labels = LabelSerializer(many=True, source='label_set', partial=True, required=False)
     segments = SegmentSerializer(many=True, source='segment_set', read_only=True)
@@ -358,12 +371,12 @@ class TaskSerializer(WriteOnceMixin, serializers.ModelSerializer):
     class Meta:
         model = models.Task
         fields = ('url', 'id', 'name', 'project_id', 'mode', 'owner', 'assignee', 'owner_id', 'assignee_id',
-            'bug_tracker', 'created_date', 'updated_date', 'overlap',
-            'segment_size', 'status', 'labels', 'segments',
-            'data_chunk_size', 'data_compressed_chunk_type', 'data_original_chunk_type', 'size', 'image_quality',
-            'data', 'dimension', 'subset', 'order_id', 'certificate_id')
+                  'bug_tracker', 'created_date', 'updated_date', 'overlap',
+                  'segment_size', 'status', 'labels', 'segments',
+                  'data_chunk_size', 'data_compressed_chunk_type', 'data_original_chunk_type', 'size', 'image_quality',
+                  'data', 'dimension', 'subset', 'order_id', 'certificate_id')
         read_only_fields = ('mode', 'created_date', 'updated_date', 'status', 'data_chunk_size', 'owner', 'assignee',
-            'data_compressed_chunk_type', 'data_original_chunk_type', 'size', 'image_quality', 'data')
+                            'data_compressed_chunk_type', 'data_original_chunk_type', 'size', 'image_quality', 'data')
         write_once_fields = ('overlap', 'segment_size', 'project_id')
         ordering = ['-id']
 
@@ -420,7 +433,7 @@ class TaskSerializer(WriteOnceMixin, serializers.ModelSerializer):
         if validated_project_id is not None and validated_project_id != instance.project_id:
             project = models.Project.objects.get(id=validated_data.get('project_id', None))
             if project.tasks.count() and project.tasks.first().dimension != instance.dimension:
-                    raise serializers.ValidationError(f'Dimension ({instance.dimension}) of the task must be the same as other tasks in project ({project.tasks.first().dimension})')
+                raise serializers.ValidationError(f'Dimension ({instance.dimension}) of the task must be the same as other tasks in project ({project.tasks.first().dimension})')
             if instance.project_id is None:
                 for old_label in instance.label_set.all():
                     try:
@@ -523,7 +536,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         read_only_fields = ('created_date', 'updated_date', 'tasks', 'status', 'owner', 'asignee', 'task_subsets', 'dimension')
         ordering = ['-id']
 
-
     def to_representation(self, instance):
         response = super().to_representation(instance)
         task_subsets = set(instance.tasks.values_list('subset', flat=True))
@@ -576,13 +588,13 @@ class ProjectSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
     def validate_labels(self, value):
         if value:
             label_names = [label['name'] for label in value]
             if len(label_names) != len(set(label_names)):
                 raise serializers.ValidationError('All label names must be unique for the project')
         return value
+
 
 class ExceptionSerializer(serializers.Serializer):
     system = serializers.CharField(max_length=255)
@@ -599,12 +611,14 @@ class ExceptionSerializer(serializers.Serializer):
     line = serializers.IntegerField()
     column = serializers.IntegerField()
     stack = serializers.CharField(max_length=8192,
-        style={'base_template': 'textarea.html'}, allow_blank=True)
+                                  style={'base_template': 'textarea.html'}, allow_blank=True)
+
 
 class AboutSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=128)
     description = serializers.CharField(max_length=2048)
     version = serializers.CharField(max_length=64)
+
 
 class FrameMetaSerializer(serializers.Serializer):
     width = serializers.IntegerField()
@@ -612,11 +626,13 @@ class FrameMetaSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=1024)
     has_related_context = serializers.BooleanField()
 
+
 class PluginsSerializer(serializers.Serializer):
     GIT_INTEGRATION = serializers.BooleanField()
     ANALYTICS = serializers.BooleanField()
     MODELS = serializers.BooleanField()
     PREDICT = serializers.BooleanField()
+
 
 class DataMetaSerializer(serializers.ModelSerializer):
     frames = FrameMetaSerializer(many=True, allow_null=True)
@@ -643,6 +659,7 @@ class DataMetaSerializer(serializers.ModelSerializer):
             'frames',
         )
 
+
 class AttributeValSerializer(serializers.Serializer):
     spec_id = serializers.IntegerField()
     value = serializers.CharField(max_length=4096, allow_blank=True)
@@ -651,16 +668,19 @@ class AttributeValSerializer(serializers.Serializer):
         data['value'] = str(data['value'])
         return super().to_internal_value(data)
 
+
 class AnnotationSerializer(serializers.Serializer):
     id = serializers.IntegerField(default=None, allow_null=True)
     frame = serializers.IntegerField(min_value=0)
     label_id = serializers.IntegerField(min_value=0)
     group = serializers.IntegerField(min_value=0, allow_null=True)
-    source = serializers.CharField(default = 'manual')
+    source = serializers.CharField(default='manual')
+
 
 class LabeledImageSerializer(AnnotationSerializer):
     attributes = AttributeValSerializer(many=True,
-        source="labeledimageattributeval_set")
+                                        source="labeledimageattributeval_set")
+
 
 class ShapeSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=models.ShapeType.choices())
@@ -672,32 +692,38 @@ class ShapeSerializer(serializers.Serializer):
         allow_empty=False,
     )
 
+
 class LabeledShapeSerializer(ShapeSerializer, AnnotationSerializer):
     attributes = AttributeValSerializer(many=True,
-        source="labeledshapeattributeval_set")
+                                        source="labeledshapeattributeval_set")
+
 
 class TrackedShapeSerializer(ShapeSerializer):
     id = serializers.IntegerField(default=None, allow_null=True)
     frame = serializers.IntegerField(min_value=0)
     outside = serializers.BooleanField()
     attributes = AttributeValSerializer(many=True,
-        source="trackedshapeattributeval_set")
+                                        source="trackedshapeattributeval_set")
+
 
 class LabeledTrackSerializer(AnnotationSerializer):
     shapes = TrackedShapeSerializer(many=True, allow_empty=False,
-        source="trackedshape_set")
+                                    source="trackedshape_set")
     attributes = AttributeValSerializer(many=True,
-        source="labeledtrackattributeval_set")
+                                        source="labeledtrackattributeval_set")
+
 
 class LabeledDataSerializer(serializers.Serializer):
     version = serializers.IntegerField()
-    tags   = LabeledImageSerializer(many=True)
+    tags = LabeledImageSerializer(many=True)
     shapes = LabeledShapeSerializer(many=True)
     tracks = LabeledTrackSerializer(many=True)
+
 
 class FileInfoSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=1024)
     type = serializers.ChoiceField(choices=["REG", "DIR"])
+
 
 class LogEventSerializer(serializers.Serializer):
     job_id = serializers.IntegerField(required=False)
@@ -711,11 +737,14 @@ class LogEventSerializer(serializers.Serializer):
     payload = serializers.DictField(required=False)
     is_active = serializers.BooleanField()
 
+
 class AnnotationFileSerializer(serializers.Serializer):
     annotation_file = serializers.FileField()
 
+
 class TaskFileSerializer(serializers.Serializer):
     task_file = serializers.FileField()
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     assignee = BasicUserSerializer(allow_null=True, required=False)
@@ -726,9 +755,10 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Review
         fields = '__all__'
-        read_only_fields = ('id', 'assignee', 'reviewer', )
-        write_once_fields = ('job', 'reviewer_id', 'assignee_id', 'estimated_quality', 'status', )
+        read_only_fields = ('id', 'assignee', 'reviewer',)
+        write_once_fields = ('job', 'reviewer_id', 'assignee_id', 'estimated_quality', 'status',)
         ordering = ['-id']
+
 
 class IssueSerializer(serializers.ModelSerializer):
     owner = BasicUserSerializer(allow_null=True, required=False)
@@ -744,9 +774,10 @@ class IssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Issue
         fields = '__all__'
-        read_only_fields = ('created_date', 'id', 'owner', 'resolver', )
-        write_once_fields = ('frame', 'position', 'job', 'owner_id', 'review', )
+        read_only_fields = ('created_date', 'id', 'owner', 'resolver',)
+        write_once_fields = ('frame', 'position', 'job', 'owner_id', 'review',)
         ordering = ['-id']
+
 
 class CommentSerializer(serializers.ModelSerializer):
     author = BasicUserSerializer(allow_null=True, required=False)
@@ -755,11 +786,13 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Comment
         fields = '__all__'
-        read_only_fields = ('created_date', 'updated_date', 'id', 'author', )
-        write_once_fields = ('issue', 'author_id', )
+        read_only_fields = ('created_date', 'updated_date', 'id', 'author',)
+        write_once_fields = ('issue', 'author_id',)
+
 
 class CombinedIssueSerializer(IssueSerializer):
     comment_set = CommentSerializer(many=True)
+
 
 class CombinedReviewSerializer(ReviewSerializer):
     issue_set = CombinedIssueSerializer(many=True)
@@ -778,26 +811,30 @@ class CombinedReviewSerializer(ReviewSerializer):
 
         return db_review
 
+
 class ManifestSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Manifest
-        fields = ('filename', )
+        fields = ('filename',)
 
     # pylint: disable=no-self-use
     def to_internal_value(self, data):
-        return {'filename': data }
+        return {'filename': data}
 
     # pylint: disable=no-self-use
     def to_representation(self, instance):
         return instance.filename if instance else instance
 
+
 class BaseCloudStorageSerializer(serializers.ModelSerializer):
     owner = BasicUserSerializer(required=False)
     manifests = ManifestSerializer(many=True, default=[])
+
     class Meta:
         model = models.CloudStorage
         exclude = ['credentials']
         read_only_fields = ('created_date', 'updated_date', 'owner')
+
 
 class CloudStorageSerializer(serializers.ModelSerializer):
     owner = BasicUserSerializer(required=False)
@@ -852,7 +889,7 @@ class CloudStorageSerializer(serializers.ModelSerializer):
             secret_key=validated_data.pop('secret_key', ''),
             session_token=validated_data.pop('session_token', ''),
             key_file_path=temporary_file,
-            credentials_type = validated_data.get('credentials_type')
+            credentials_type=validated_data.get('credentials_type')
         )
         details = {
             'resource': validated_data.get('resource'),
@@ -926,8 +963,8 @@ class CloudStorageSerializer(serializers.ModelSerializer):
             'type': instance.credentials_type,
             'value': instance.credentials,
         })
-        credentials_dict = {k:v for k,v in validated_data.items() if k in {
-            'key','secret_key', 'account_name', 'session_token', 'key_file_path',
+        credentials_dict = {k: v for k, v in validated_data.items() if k in {
+            'key', 'secret_key', 'account_name', 'session_token', 'key_file_path',
             'credentials_type'
         }}
 
@@ -1000,9 +1037,42 @@ class CloudStorageSerializer(serializers.ModelSerializer):
         slogger.glob.error(message)
         raise serializers.ValidationError({field: message})
 
-class RelatedFileSerializer(serializers.ModelSerializer):
 
+class RelatedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.RelatedFile
         fields = '__all__'
         read_only_fields = ('path',)
+
+
+class UserFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+        ordering = ['-id']
+
+
+class ActivitySerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(required=True)
+    activity_type = serializers.CharField(required=True)
+    hash = serializers.CharField(read_only=True)
+    options = serializers.JSONField()
+    user = UserFieldSerializer(allow_null=True, required=False)
+
+    class Meta:
+        model = models.ActivityLog
+        fields = (
+            'user',
+            'user_id',
+            'activity_type',
+            'options',
+            'hash',
+        )
+        read_only_fields = (
+            'user',
+            'user_id',
+            'activity_type',
+            'options',
+            'hash'
+        )
+        ordering = ['-id']

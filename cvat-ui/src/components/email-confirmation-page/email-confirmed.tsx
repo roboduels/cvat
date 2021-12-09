@@ -17,9 +17,9 @@ const { Countdown } = Statistic;
  */
 
 function EmailConfirmationPage(): JSX.Element {
-    const linkRef = useRef();
+    const linkRef = useRef<HTMLAnchorElement | null>(null);
     const onFinish = () => {
-        linkRef.current.click();
+        linkRef.current?.click();
     };
     return (
         <Layout>

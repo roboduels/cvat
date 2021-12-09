@@ -28,12 +28,12 @@ import Text from 'antd/lib/typography/Text';
 import getCore from 'cvat-core-wrapper';
 import consts from 'consts';
 
-import AGSLogo from '../../assets/ags-logo.png';
 import { AccountIcon } from 'icons';
 import ChangePasswordDialog from 'components/change-password-modal/change-password-modal';
 import { switchSettingsDialog as switchSettingsDialogAction } from 'actions/settings-actions';
 import { logoutAsync, authActions } from 'actions/auth-actions';
 import { CombinedState } from 'reducers/interfaces';
+import AGSLogo from '../../assets/ags-logo.png';
 import SettingsModal from './settings-modal/settings-modal';
 
 const core = getCore();
@@ -233,7 +233,7 @@ function HeaderContainer(props: Props): JSX.Element {
                 <SettingOutlined />
                 Settings
             </Menu.Item>
-            <Menu.Item key='about' onClick={showAboutModal}>
+            <Menu.Item key='about' onClick={() => showAboutModal()}>
                 <InfoCircleOutlined />
                 About
             </Menu.Item>
@@ -259,14 +259,7 @@ function HeaderContainer(props: Props): JSX.Element {
     return (
         <Layout.Header className='cvat-header'>
             <div className='cvat-left-header'>
-                <img 
-                    src={AGSLogo} 
-                    className='cvat-logo-icon' 
-                    onClick={(event: React.MouseEvent): void => {
-                        event.preventDefault();
-                        history.push('/tasks');
-                    }}
-                />
+                <img src={AGSLogo} alt='AGS' className='cvat-logo-icon' />
                 <Button
                     className='cvat-header-button'
                     type='link'
@@ -290,6 +283,18 @@ function HeaderContainer(props: Props): JSX.Element {
                     }}
                 >
                     Tasks
+                </Button>
+                <Button
+                    className='cvat-header-button'
+                    type='link'
+                    value='activity'
+                    href='/activity'
+                    onClick={(event: React.MouseEvent): void => {
+                        event.preventDefault();
+                        history.push('/activity');
+                    }}
+                >
+                    Activity
                 </Button>
                 <Button
                     className='cvat-header-button'
@@ -340,6 +345,7 @@ function HeaderContainer(props: Props): JSX.Element {
                     href={GITHUB_URL}
                     onClick={(event: React.MouseEvent): void => {
                         event.preventDefault();
+                        // eslint-disable-next-line security/detect-non-literal-fs-filename
                         window.open(GITHUB_URL, '_blank');
                     }}
                 >

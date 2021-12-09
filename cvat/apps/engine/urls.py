@@ -47,6 +47,7 @@ def wrap_swagger(view):
 router = routers.DefaultRouter(trailing_slash=False)
 router.register('projects', views.ProjectViewSet)
 router.register('tasks', views.TaskViewSet)
+router.register('activity', views.ActivityViewSet)
 router.register('jobs', views.JobViewSet)
 router.register('users', views.UserViewSet)
 router.register('server', views.ServerViewSet, basename='server')
@@ -72,5 +73,6 @@ urlpatterns = [
 
     # entry point for API
     path('api/v1/auth/', include('cvat.apps.authentication.urls')),
-    path('api/v1/', include((router.urls, 'cvat'), namespace='v1'))
+    path('api/v1/', include((router.urls, 'cvat'), namespace='v1')),
+    path('api/v1/cvat-grades', views.post_grades)
 ]
