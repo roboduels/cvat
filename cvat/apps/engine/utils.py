@@ -18,7 +18,7 @@ from PIL import Image
 
 from django.core.exceptions import ValidationError
 
-import cvat.apps.engine.models
+from cvat.apps.engine.models import ActivityLog
 
 Import = namedtuple("Import", ["module", "name", "alias"])
 
@@ -129,7 +129,7 @@ def log_activity(activity_type, user, options=None, extra=None):
         'hash': hash_content,
     }
 
-    models.ActivityLog.objects.update_or_create(
+    ActivityLog.objects.update_or_create(
         activity_type=activity_type,
         user=user,
         hash=hash_content,
