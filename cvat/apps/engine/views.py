@@ -1745,7 +1745,7 @@ def post_grades(request):
 
         body = request.body
         signature = hmac.new(secret.encode(), msg=body, digestmod=hashlib.sha256).hexdigest()
-        result = requests.post('{}/api/webhooks/cvat-grades'.format(api), data=body, headers={
+        result = requests.post('{}/webhooks/cvat-grades'.format(api), data=body, headers={
             "Signature": signature,
             "Content-Type": request.content_type
         })
