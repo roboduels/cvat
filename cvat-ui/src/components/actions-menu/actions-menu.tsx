@@ -54,10 +54,8 @@ function ActionsMenuComponent(props: Props): JSX.Element {
         if (!params) {
             return;
         }
-        copyParams.domEvent.preventDefault();
-        copyParams.domEvent.stopPropagation();
-        
-        latestParams = copyParams;
+        params.domEvent.preventDefault();
+        params.domEvent.stopPropagation();
 
         if (params.key === Actions.DELETE_TASK) {
             Modal.confirm({
@@ -79,7 +77,7 @@ function ActionsMenuComponent(props: Props): JSX.Element {
     }
 
     return (
-        <Menu selectable={false} className='cvat-actions-menu' onClick={onClickMenuWrapper}>
+        <Menu selectable={false} className='cvat-actions-menu' onClick={(menuInfo) => onClickMenuWrapper(menuInfo)}>
             {LoadSubmenu({
                 loaders,
                 loadActivity,

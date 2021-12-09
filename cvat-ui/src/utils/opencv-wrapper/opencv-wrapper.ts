@@ -12,7 +12,7 @@ const core = getCore();
 const baseURL = core.config.backendAPI.slice(0, -7);
 
 export interface Segmentation {
-    intelligentScissorsFactory: (onChangeToolsBlockerState:(event:string)=>void) => IntelligentScissors;
+    intelligentScissorsFactory: (onChangeToolsBlockerState: (event: string) => void) => IntelligentScissors;
 }
 
 export interface Contours {
@@ -76,6 +76,7 @@ export class OpenCVWrapper {
         await waitFor(
             100,
             () =>
+                // eslint-disable-next-line implicit-arrow-linebreak
                 typeof global.cv !== 'undefined' && typeof global.cv.segmentation_IntelligentScissorsMB !== 'undefined',
         );
 
@@ -126,7 +127,8 @@ export class OpenCVWrapper {
         }
 
         return {
-            intelligentScissorsFactory: (onChangeToolsBlockerState:(event:string)=>void) =>
+            intelligentScissorsFactory: (onChangeToolsBlockerState: (event: string) => void) =>
+                // eslint-disable-next-line implicit-arrow-linebreak
                 new IntelligentScissorsImplementation(this.cv, onChangeToolsBlockerState),
         };
     }

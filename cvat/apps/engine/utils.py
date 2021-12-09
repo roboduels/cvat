@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 import ast
+from datetime import datetime
+
 import cv2 as cv
 from collections import namedtuple
 import hashlib
@@ -16,7 +18,10 @@ from PIL import Image
 
 from django.core.exceptions import ValidationError
 
+import cvat.apps.engine.models
+
 Import = namedtuple("Import", ["module", "name", "alias"])
+
 
 def parse_imports(source_code: str):
     root = ast.parse(source_code)
@@ -31,6 +36,7 @@ def parse_imports(source_code: str):
 
         for n in node.names:
             yield Import(module, n.name, n.asname)
+
 
 def import_modules(source_code: str):
     results = {}
@@ -49,8 +55,10 @@ def import_modules(source_code: str):
 
     return results
 
+
 class InterpreterError(Exception):
     pass
+
 
 def execute_python_code(source_code, global_vars=None, local_vars=None):
     try:
@@ -72,26 +80,29 @@ def execute_python_code(source_code, global_vars=None, local_vars=None):
         line_number = traceback.extract_tb(tb)[-1][1]
         raise InterpreterError("{} at line {}: {}".format(error_class, line_number, details))
 
+
 def av_scan_paths(*paths):
     if 'yes' == os.environ.get('CLAM_AV'):
         command = ['clamscan', '--no-summary', '-i', '-o']
         command.extend(paths)
-        res = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE) # nosec
+        res = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # nosec
         if res.returncode:
             raise ValidationError(res.stdout)
 
+
 def rotate_image(image, angle):
     height, width = image.shape[:2]
-    image_center = (width/2, height/2)
+    image_center = (width / 2, height / 2)
     matrix = cv.getRotationMatrix2D(image_center, angle, 1.)
-    abs_cos = abs(matrix[0,0])
-    abs_sin = abs(matrix[0,1])
+    abs_cos = abs(matrix[0, 0])
+    abs_sin = abs(matrix[0, 1])
     bound_w = int(height * abs_sin + width * abs_cos)
     bound_h = int(height * abs_cos + width * abs_sin)
-    matrix[0, 2] += bound_w/2 - image_center[0]
-    matrix[1, 2] += bound_h/2 - image_center[1]
+    matrix[0, 2] += bound_w / 2 - image_center[0]
+    matrix[1, 2] += bound_h / 2 - image_center[1]
     matrix = cv.warpAffine(image, matrix, (bound_w, bound_h))
     return matrix
+
 
 def md5_hash(frame):
     if isinstance(frame, VideoFrame):
@@ -99,6 +110,31 @@ def md5_hash(frame):
     elif isinstance(frame, str):
         frame = Image.open(frame, 'r')
     return hashlib.md5(frame.tobytes()).hexdigest() # nosec
+
+
+def log_activity(activity_type, user, options=None, extra=None):
+    if options is None:
+        options = {}
+    if extra is None:
+        extra = {}
+
+    hash_content = hashlib.sha1("{}:{}:{}".format(activity_type, user.id, options).encode('utf-8')).hexdigest()
+    options['time'] = datetime.now().isoformat()
+    options = {**options, **extra}
+
+    defaults = {
+        'activity_type': activity_type,
+        'user': user,
+        'options': options,
+        'hash': hash_content,
+    }
+
+    models.ActivityLog.objects.update_or_create(
+        activity_type=activity_type,
+        user=user,
+        hash=hash_content,
+        defaults=defaults,
+    )
 
 def parse_specific_attributes(specific_attributes):
     assert isinstance(specific_attributes, str), 'Specific attributes must be a string'

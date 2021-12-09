@@ -225,8 +225,10 @@ function JobListComponent(props: Props & RouteComponentProps): JSX.Element {
             ),
             sorter: sorter('assignee.assignee.username'),
             filters: collectUsers('assignee'),
-            onFilter: (value: string | number | boolean, record: any) =>
-                (record.assignee.assignee?.username || false) === value,
+            onFilter: (value: string | number | boolean, record: any) => {
+                const username = record.assignee.assignee?.username || false;
+                return username === value;
+            },
         },
         {
             title: 'Reviewer',
@@ -246,8 +248,10 @@ function JobListComponent(props: Props & RouteComponentProps): JSX.Element {
             ),
             sorter: sorter('reviewer.reviewer.username'),
             filters: collectUsers('reviewer'),
-            onFilter: (value: string | number | boolean, record: any) =>
-                (record.reviewer.reviewer?.username || false) === value,
+            onFilter: (value: string | number | boolean, record: any) => {
+                const username = record.reviewer.reviewer?.username || false;
+                return username === value;
+            },
         },
     ];
 

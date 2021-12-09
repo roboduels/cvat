@@ -130,8 +130,8 @@ function ActionsMenuContainer(props: OwnProps & StateToProps & DispatchToProps):
             dumpers={dumpers}
             loadActivity={loadActivity}
             inferenceIsActive={inferenceIsActive}
-            onClickMenu={onClickMenu}
-            onUploadAnnotations={onUploadAnnotations}
+            onClickMenu={(params) => onClickMenu(params)}
+            onUploadAnnotations={(format, file) => onUploadAnnotations(format, file)}
             taskDimension={taskInstance.dimension}
             exportIsActive={exportIsActive}
         />
