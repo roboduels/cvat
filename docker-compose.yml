@@ -9,12 +9,8 @@ services:
     container_name: cvat_db
     image: postgres:10-alpine
     restart: always
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_DB: cvat
-      POSTGRES_HOST_AUTH_METHOD: trust
-      WEBHOOK_CVAT_GRADES_SECRET: 274af7372eed0c0d3a9253dcbbdb7d06fb86327a
-      ROBOGRADING_API: http://192.168.1.6
+    env_file:
+      - ./.envs/.postgres
     volumes:
       - cvat_db:/var/lib/postgresql/data
     networks:
@@ -34,12 +30,8 @@ services:
     depends_on:
       - cvat_redis
       - cvat_db
-    environment:
-      DJANGO_MODWSGI_EXTRA_ARGS: ''
-      ALLOWED_HOSTS: '*'
-      CVAT_REDIS_HOST: 'cvat_redis'
-      CVAT_POSTGRES_HOST: 'cvat_db'
-      ADAPTIVE_AUTO_ANNOTATION: 'false'
+    env_file:
+      - ./.envs/.django
     labels:
       - traefik.enable=true
       - traefik.http.services.cvat.loadbalancer.server.port=8080
