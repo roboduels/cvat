@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 import React, { useCallback } from 'react';
-import './grades-form-advanced-controls.scss';
+import './styles.scss';
 import Button from 'antd/lib/button';
 
 interface Props {
