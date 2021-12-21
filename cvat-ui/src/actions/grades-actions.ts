@@ -33,10 +33,11 @@ export const gradesActions = {
 export type GradesActions = ActionUnion<typeof gradesActions>;
 
 function apiCall(endpoint: string, opts: AxiosRequestConfig = {}): Promise<AxiosResponse> {
-    const token = process.env.API_TOKEN;
+    const url = process.env.AGS_API_URL;
+    const token = process.env.AGS_API_TOKEN;
     return Axios.request({
         ...opts,
-        baseURL: 'https://api.agscard.com/api',
+        baseURL: url,
         url: endpoint,
         headers: {
             ...(opts.headers || {}),
