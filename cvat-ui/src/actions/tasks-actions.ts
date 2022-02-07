@@ -4,7 +4,7 @@
 
 import { AnyAction, Dispatch, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { TasksQuery, CombinedState } from 'reducers/interfaces';
+import { TasksQuery, CombinedState, Task } from 'reducers/interfaces';
 import { getCVATStore } from 'cvat-store';
 import getCore from 'cvat-core-wrapper';
 import { getInferenceStatusAsync } from './models-actions';
@@ -36,6 +36,8 @@ export enum TasksActionTypes {
     IMPORT_TASK_SUCCESS = 'IMPORT_TASK_SUCCESS',
     IMPORT_TASK_FAILED = 'IMPORT_TASK_FAILED',
     SWITCH_MOVE_TASK_MODAL_VISIBLE = 'SWITCH_MOVE_TASK_MODAL_VISIBLE',
+    MARK_TASK_CHECKED = 'MARK_TASK_CHECKED',
+    GRADING_QUEUE_JOB = 'GRADING_QUEUE_JOB',
 }
 
 function getTasks(): AnyAction {
@@ -554,5 +556,27 @@ export function moveTaskToProjectAsync(
         } catch (error) {
             dispatch(updateTaskFailed(error, taskInstance));
         }
+    };
+}
+
+export function markTaskChecked(task: Task): AnyAction {
+    return {
+        type: TasksActionTypes.MARK_TASK_CHECKED,
+        payload: { task },
+    };
+}
+export function setGradingQueueJob({
+    task, frame, options, error,
+}: Record<'task' | 'frame' | 'options', any> & { error?: any }, status: string): AnyAction {
+    return {
+        type: TasksActionTypes.GRADING_QUEUE_JOB,
+        payload: {
+            status,
+            error,
+            frame: frame.number,
+            taskId: task.id,
+            certId: options.certificateId,
+            orderId: options.orderId,
+        },
     };
 }

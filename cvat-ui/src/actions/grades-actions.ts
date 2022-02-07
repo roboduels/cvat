@@ -125,7 +125,7 @@ export const loadingGradesAsync =
                     front_surface_laser_grade: mapGradeValue(result?.laser_front_scan?.surface_grade?.grade),
                 }),
             );
-        } catch (error: any) {
+        } catch (error) {
             if (error.isAxiosError) {
                 const { data } = error.response;
                 dispatch(setErrorAsync(data.detail));
@@ -145,34 +145,46 @@ interface SubmitAnnotationFrameInput {
 }
 
 export const submitAnnotationFrameToGradeAsync =
-    (input: SubmitAnnotationFrameInput & { withMasks?: boolean }): ThunkAction => async (dispatch, getState) => {
+    (input: SubmitAnnotationFrameInput & {
+        withMasks?: boolean;
+        noNotifications?: boolean;
+        frame?: any;
+        annotation?: any;
+        job?: any;
+        resolve?: () => void;
+        reject?: (e: any) => void;
+    }): ThunkAction => async (dispatch, getState) => {
         if (!input.orientation) {
             dispatch(setWarningAsync(orientationNotFound));
         }
 
+        const { resolve, reject } = input;
         const state = getState() as CombinedState;
-        const { states } = state.annotation.annotations;
-        const { frame } = state.annotation.player;
+        const states: any[] = input.annotation || state.annotation?.annotations?.states || [];
+        const { frame: annotationFrame } = state.annotation.player;
         const formData = new FormData();
 
+        const theFrame = (input.frame || annotationFrame);
+        const frameName = theFrame.filename;
+
         if (input.withMasks) {
-            const job = state.annotation.job.instance;
-            const image = await job.frames.frameData(frame.number);
-            formData.append('image', image, frame.filename);
+            const job = input.job || state.annotation.job.instance;
+            const image = await job.frames.frameData((theFrame || annotationFrame).number);
+            formData.append('image', image, frameName);
         }
 
         formData.append(
             'payload',
             JSON.stringify({
-                filename: frame.filename,
+                filename: frameName,
                 objects: states.map((item) => ({
                     points: item.points,
                     label: item.label.name,
                     shape: item.shapeType,
                 })),
                 image: {
-                    width: frame.data.width,
-                    height: frame.data.height,
+                    width: theFrame.data.width,
+                    height: theFrame.data.height,
                 },
             }),
         );
@@ -189,9 +201,11 @@ export const submitAnnotationFrameToGradeAsync =
 
         try {
             dispatch(gradesActions.setLoading(true));
-            notification.info({
-                message: 'Updating Robo grades...',
-            });
+            if (!input.noNotifications) {
+                notification.info({
+                    message: 'Updating Robo grades...',
+                });
+            }
             const { data } = await apiCall('/cvat-to-grade/', {
                 method: 'POST',
                 data: formData,
@@ -208,14 +222,24 @@ export const submitAnnotationFrameToGradeAsync =
                 );
             }
 
-            notification.success({
-                message: 'Robo grades has been updated successfully.',
-            });
-        } catch (e: any) {
-            notification.error({
-                message: 'Robo grades couldn\'t be updated.',
-            });
+            if (!input.noNotifications) {
+                notification.success({
+                    message: 'Robo grades has been updated successfully.',
+                });
+            }
+            if (resolve) {
+                resolve();
+            }
+        } catch (e) {
+            if (!input.noNotifications) {
+                notification.error({
+                    message: 'Robo grades couldn\'t be updated.',
+                });
+            }
             dispatch(setErrorAsync(e));
+            if (reject) {
+                reject(e);
+            }
         }
         dispatch(gradesActions.setLoading(false));
     };
@@ -299,7 +323,7 @@ export const submitHumanGradesAsync =
             notification.success({
                 message: 'Human grades has been updated successfully.',
             });
-        } catch (e: any) {
+        } catch (e) {
             notification.error({
                 message: 'Human grades couldn\'t be updated.',
             });
