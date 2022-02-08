@@ -175,6 +175,47 @@
     padding: 0 30px;
 }
 
-#cvat-import-task-button-loading {
-    margin-left: 10;
+.cvat-tasks-list-item {
+    position: relative;
+}
+
+.cvat-task-item-checkbox {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+}
+
+.cvat-jobs-manager {
+    background-color: #fff;
+    position: fixed;
+    bottom: 0;
+    right: 72px;
+    border-radius: 8px 8px 0 0;
+    padding: 14px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+}
+
+.cvat-jobs-manager-progress {
+    min-width: 480px;
+    margin-top: 14px;
+    margin-bottom: 14px;
+}
+
+.cvat-jobs-manager-tree {
+    min-height: 400px;
+    max-height: 600px;
+    overflow: auto;
+}
+
+.cvat-jobs-manager-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cvat-jobs-manager-title {
+    font-weight: 500;
+    font-size: 16px;
+    margin: 0 14px 0 0;
 }

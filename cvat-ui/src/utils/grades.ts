@@ -58,16 +58,24 @@ export const mapGradeValue = (value?: number | string | null): number => {
     return Number(`${value}`.replace(/,/g, '.').trim()) || 0;
 };
 
-export const parseFilename = (filename: string): ParsedFilename => {
+export const parseFilename = (filename: string, task: any = {}): ParsedFilename => {
     const segments = filename.split('-+');
-    const orderId = segments[0] || '';
-    const certificateId = segments[1] || '';
+    let orderId = segments[0] || '';
+    let certificateId = segments[1] || '';
     const imageFilename = segments[2] || '';
     const matches = imageFilename.match(/^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$/i) || [];
     const cardName = (matches[1] || '').replace(certificateId, '').replace(/^[_-]/, '').replace(/[_-]$/, '');
     const orientation = matches[3] as any;
     const imageType = matches[4] as any;
     const extension = matches[5];
+
+    if (task.certificateId) {
+        certificateId = task.certificateId;
+    }
+
+    if (task.orderId) {
+        orderId = task.orderId;
+    }
 
     return {
         orderId,

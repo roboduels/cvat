@@ -43,6 +43,8 @@ const defaultState: TasksState = {
         backups: {},
     },
     importing: false,
+    checkedTasks: {},
+    pendingJobs: {},
 };
 
 export default (state: TasksState = defaultState, action: AnyAction): TasksState => {
@@ -339,6 +341,23 @@ export default (state: TasksState = defaultState, action: AnyAction): TasksState
         case AuthActionTypes.LOGOUT_SUCCESS: {
             return { ...defaultState };
         }
+        case TasksActionTypes.MARK_TASK_CHECKED:
+            return {
+                ...state,
+                checkedTasks: {
+                    ...state.checkedTasks,
+                    [action.payload.task.id]: state.checkedTasks[action.payload.task.id] ? null : action.payload.task,
+                },
+            };
+
+        case TasksActionTypes.GRADING_QUEUE_JOB:
+            return {
+                ...state,
+                pendingJobs: {
+                    ...state.pendingJobs,
+                    [`${action.payload.taskId}_${action.payload.frame}`]: action.payload,
+                },
+            };
         default:
             return state;
     }

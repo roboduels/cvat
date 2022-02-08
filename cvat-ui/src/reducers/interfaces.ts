@@ -6,6 +6,7 @@ import { Canvas3d } from 'cvat-canvas3d/src/typescript/canvas3d';
 import { Canvas, RectDrawingMethod, CuboidDrawingMethod } from 'cvat-canvas-wrapper';
 import { IntelligentScissors } from 'utils/opencv-wrapper/intelligent-scissors';
 import { KeyMap } from 'utils/mousetrap-react';
+import { MutableRefObject } from 'react';
 
 export type StringObject = {
     [index: string]: string;
@@ -30,6 +31,7 @@ export interface ProjectsQuery {
     name: string | null;
     status: string | null;
     assignee: string | null;
+
     [key: string]: string | boolean | number | null | undefined;
 }
 
@@ -66,6 +68,7 @@ export interface TasksQuery {
     status: string | null;
     mode: string | null;
     projectId: number | null;
+
     [key: string]: string | number | null;
 }
 
@@ -104,6 +107,15 @@ export interface TasksState {
             [tid: number]: boolean;
         };
     };
+    checkedTasks: Record<number | string, Task>;
+    pendingJobs: Record<string, {
+        status: any;
+        frame: any;
+        taskId: any;
+        certId: any;
+        orderId: any;
+        error?: any;
+    }>;
 }
 
 export interface ExportState {
@@ -133,6 +145,7 @@ export interface CloudStoragesQuery {
     resourceName: string | null;
     providerType: string | null;
     credentialsType: string | null;
+
     [key: string]: string | number | null | undefined;
 }
 
@@ -142,6 +155,7 @@ interface CloudStorageAdditional {
     status: string | null;
     preview: string;
 }
+
 type CloudStorageStatus = Pick<CloudStorageAdditional, 'fetching' | 'initialized' | 'status'>;
 type CloudStoragePreview = Pick<CloudStorageAdditional, 'fetching' | 'initialized' | 'preview'>;
 
@@ -554,8 +568,8 @@ export interface AnnotationState {
         filters: any[];
         resetGroupFlag: boolean;
         history: {
-            undo: [string, number][];
-            redo: [string, number][];
+            undo: [ string, number ][];
+            redo: [ string, number ][];
         };
         saving: {
             forceExit: boolean;

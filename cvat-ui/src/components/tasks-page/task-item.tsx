@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Intel Corporation
+// Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
 
@@ -17,6 +17,7 @@ import ActionsMenuContainer from 'containers/actions-menu/actions-menu';
 import { ActiveInference } from 'reducers/interfaces';
 import { MenuIcon } from 'icons';
 import UserSelector, { User } from 'components/task-page/user-selector';
+import Checkbox from 'antd/lib/checkbox';
 import AutomaticAnnotationProgress from './automatic-annotation-progress';
 import { fetchActivitiesOfTask } from '../../utils/activity';
 
@@ -25,12 +26,14 @@ export interface TaskItemProps {
     previewImage: string;
     deleted: boolean;
     hidden: boolean;
+    checked?: boolean;
     activeInference: ActiveInference | null;
 
-    cancelAutoAnnotation (): void;
+    cancelAutoAnnotation(): void;
 
     onTaskUpdate: (taskInstance: any) => void;
     onJobUpdate: (jobInstance: any) => void;
+    onCheck: (taskInstance: any) => void;
 }
 
 interface State {
@@ -68,6 +71,11 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         }
     }
 
+    private stopPropagation(e: any): void {
+        e?.preventDefault();
+        e?.stopPropagation();
+    }
+
     private renderPreview(): JSX.Element {
         const { previewImage } = this.props;
         return (
@@ -76,6 +84,22 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     <img alt='Preview' className='cvat-task-item-preview' src={previewImage} />
                 </div>
             </Col>
+        );
+    }
+
+    private renderCheckbox(): JSX.Element | null {
+        const { checked, onCheck, taskInstance } = this.props;
+        if (!onCheck) {
+            return null;
+        }
+
+        return (
+            <div className='cvat-task-item-checkbox'>
+                <Checkbox
+                    checked={!!checked}
+                    onChange={() => onCheck(taskInstance)}
+                />
+            </div>
         );
     }
 
@@ -248,19 +272,17 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     <Col className='cvat-item-open-task-actions'>
                         <Text
                             className='cvat-text-color'
-                            onClick={(e: React.MouseEvent) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
+                            onClick={(e) => this.stopPropagation(e)}
                         >
                             Actions
                         </Text>
                         <Dropdown
-                            overlay={<ActionsMenuContainer taskInstance={taskInstance} />}
-                            onClick={(e: React.MouseEvent) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
+                            overlay={(
+                                <ActionsMenuContainer
+                                    taskInstance={taskInstance}
+                                />
+                            )}
+                            {...({ onClick: (e: any) => this.stopPropagation(e) } as any)}
                         >
                             <Icon className='cvat-menu-icon' component={MenuIcon} />
                         </Dropdown>
@@ -272,10 +294,8 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
 
     public render(): JSX.Element {
         const {
-            deleted, hidden, taskInstance, history,
+            deleted, hidden,
         } = this.props;
-        const { id } = taskInstance;
-        const jobId = taskInstance?.jobs?.[0]?.id;
 
         const style = {};
         if (deleted) {
@@ -286,7 +306,6 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         if (hidden) {
             (style as any).display = 'none';
         }
-        (style as any).cursor = 'pointer';
 
         return (
             <Row
@@ -294,11 +313,8 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                 justify='center'
                 align='top'
                 style={{ ...style }}
-                onClick={(e: React.MouseEvent): void => {
-                    e.preventDefault();
-                    history.push(`/tasks/${id}/jobs/${jobId}`);
-                }}
             >
+                { this.renderCheckbox() }
                 { this.renderPreview() }
                 { this.renderDescription() }
                 { this.renderProgress() }

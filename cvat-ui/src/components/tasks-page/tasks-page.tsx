@@ -11,7 +11,7 @@ import Button from 'antd/lib/button';
 import message from 'antd/lib/message';
 import Text from 'antd/lib/typography/Text';
 
-import { TasksQuery } from 'reducers/interfaces';
+import { Task, TasksQuery } from 'reducers/interfaces';
 import FeedbackComponent from 'components/feedback/feedback';
 import TaskListContainer from 'containers/tasks-page/tasks-list';
 import TopBar from './top-bar';
@@ -27,6 +27,7 @@ interface TasksPageProps {
     hideEmptyTasks: (hideEmpty: boolean) => void;
     onImportTask: (file: File) => void;
     taskImporting: boolean;
+    checkedTasks: Record<string | number, Task>;
 }
 
 function updateQuery(previousQuery: TasksQuery, searchString: string): TasksQuery {
@@ -74,7 +75,7 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
 
         if (
             prevProps.location.search !== location.search ||
-            (prevProps.taskImporting === true && taskImporting === false)
+            (prevProps.taskImporting && !taskImporting)
         ) {
             // get new tasks if any query changes
             const query = updateQuery(gettingQuery, location.search);
@@ -149,7 +150,7 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
 
     public render(): JSX.Element {
         const {
-            tasksFetching, gettingQuery, numberOfVisibleTasks, onImportTask, taskImporting,
+            tasksFetching, gettingQuery, numberOfVisibleTasks, onImportTask, taskImporting, checkedTasks,
         } = this.props;
 
         if (tasksFetching) {
@@ -164,7 +165,8 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
                     onFileUpload={onImportTask}
                     taskImporting={taskImporting}
                     onFilterStatus={this.filterByStatus}
-                    filterStatus={gettingQuery['status']}
+                    filterStatus={gettingQuery.status}
+                    checkedTasks={checkedTasks}
                 />
                 {numberOfVisibleTasks ? (
                     <TaskListContainer onSwitchPage={this.handlePagination} />
