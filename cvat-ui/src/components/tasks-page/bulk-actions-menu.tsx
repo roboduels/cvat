@@ -124,7 +124,6 @@ export default function BulkActionsMenu(props: Props): JSX.Element | null {
 
         const frames = await getFrames(checkedTasks);
         const chunks = chunk(frames, 4);
-        console.log(chunks);
         processChunks(chunks, { dispatch, withMasks });
     }, [checkedTasks]);
 

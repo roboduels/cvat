@@ -183,8 +183,8 @@ export const submitAnnotationFrameToGradeAsync =
                     shape: item.shapeType,
                 })),
                 image: {
-                    width: theFrame.data.width,
-                    height: theFrame.data.height,
+                    width: theFrame.width ?? theFrame.data.width,
+                    height: theFrame.height ?? theFrame.data.height,
                 },
             }),
         );
