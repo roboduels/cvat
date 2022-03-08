@@ -482,3 +482,4 @@ CACHES = {
 
 USE_CACHE = True
 
+REVIEWER_SPECIAL_LABELS = os.getenv("REVIEWER_SPECIAL_LABELS", "reviewer,grader-minor,grader-major").split(",")

@@ -279,8 +279,8 @@ def filter_task_queryset(queryset, user):
 def has_special_reviewer_label(label_ids):
     filtered_labels = Label.objects.filter(id__in=label_ids).values_list('name', flat=True)
     filtered_labels = list(filtered_labels)
-    reviewer_labels = ['reviewer', 'grader-minor', 'grader-major']
-    return any(elem in reviewer_labels for elem in filtered_labels)
+    reviewer_special_labels = settings.REVIEWER_SPECIAL_LABELS
+    return any(elem in reviewer_special_labels for elem in filtered_labels)
 
 class TaskGetQuerySetMixin(object):
     def get_queryset(self):
