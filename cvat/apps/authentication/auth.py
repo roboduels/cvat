@@ -12,6 +12,7 @@ from django.core import signing
 from rest_framework import authentication, exceptions
 from rest_framework.authentication import TokenAuthentication as _TokenAuthentication
 from django.contrib.auth import login
+from cvat.apps.engine.models import Label
 
 # Even with token authorization it is very important to have a valid session id
 # in cookies because in some cases we cannot use token authorization (e.g. when
@@ -75,6 +76,7 @@ has_admin_role = rules.is_group_member(str(AUTH_ROLE.ADMIN))
 has_user_role = rules.is_group_member(str(AUTH_ROLE.USER))
 has_annotator_role = rules.is_group_member(str(AUTH_ROLE.ANNOTATOR))
 has_observer_role = rules.is_group_member(str(AUTH_ROLE.OBSERVER))
+has_reviewer_role = rules.is_group_member(str(AUTH_ROLE.REVIEWER))
 
 @rules.predicate
 def is_project_owner(db_user, db_project):
@@ -168,15 +170,16 @@ rules.add_perm('engine.role.user', has_user_role)
 rules.add_perm('engine.role.admin', has_admin_role)
 rules.add_perm('engine.role.annotator', has_annotator_role)
 rules.add_perm('engine.role.observer', has_observer_role)
+rules.add_perm('engine.role.reviewer', has_reviewer_role)
 
-rules.add_perm('engine.project.create', has_admin_role | has_user_role)
+rules.add_perm('engine.project.create', has_admin_role)
 rules.add_perm('engine.project.access', has_admin_role | has_observer_role |
     is_project_owner | is_project_annotator)
 rules.add_perm('engine.project.change', has_admin_role | is_project_owner |
     is_project_assignee)
 rules.add_perm('engine.project.delete', has_admin_role | is_project_owner)
 
-rules.add_perm('engine.task.create', has_admin_role | has_user_role)
+rules.add_perm('engine.task.create', has_admin_role)
 rules.add_perm('engine.task.access', has_admin_role | has_observer_role |
     is_task_owner | is_task_annotator | is_task_reviewer)
 rules.add_perm('engine.task.change', has_admin_role | is_task_owner |
@@ -185,7 +188,7 @@ rules.add_perm('engine.task.delete', has_admin_role | is_task_owner)
 
 rules.add_perm('engine.job.access', has_admin_role | has_observer_role |
     is_job_owner | is_job_annotator | is_job_reviewer)
-rules.add_perm('engine.job.change', has_admin_role | is_job_owner | has_change_permissions)
+rules.add_perm('engine.job.change', has_admin_role | is_job_owner | ((has_annotator_role | has_reviewer_role) & has_change_permissions))
 rules.add_perm('engine.job.review', has_admin_role | (is_job_reviewer & has_change_permissions))
 
 rules.add_perm('engine.issue.change', has_admin_role | is_issue_owner)
@@ -194,7 +197,7 @@ rules.add_perm('engine.issue.destroy', has_admin_role | is_issue_owner)
 rules.add_perm('engine.comment.change', has_admin_role | is_comment_author)
 
 
-rules.add_perm('engine.cloudstorage.create', has_admin_role | has_user_role)
+rules.add_perm('engine.cloudstorage.create', has_admin_role)
 rules.add_perm('engine.cloudstorage.change', has_admin_role | is_cloud_storage_owner)
 
 class AdminRolePermission(BasePermission):
@@ -273,6 +276,12 @@ def filter_task_queryset(queryset, user):
 
     return queryset.filter(query_filter).distinct()
 
+def has_special_reviewer_label(label_ids):
+    filtered_labels = Label.objects.filter(id__in=label_ids).values_list('name', flat=True)
+    filtered_labels = list(filtered_labels)
+    reviewer_labels = ['reviewer', 'grader-minor', 'grader-major']
+    return any(elem in reviewer_labels for elem in filtered_labels)
+
 class TaskGetQuerySetMixin(object):
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -301,7 +310,13 @@ class JobAccessPermission(BasePermission):
 class JobChangePermission(BasePermission):
     # pylint: disable=no-self-use
     def has_object_permission(self, request, view, obj):
-        return request.user.has_perm('engine.job.change', obj)
+        if request.user.has_perm('engine.job.change', obj):
+            if request.user.has_perm('engine.role.annotator'):
+                shapes = request.data.get('shapes')
+                if shapes and has_special_reviewer_label([shape.get('label_id') for shape in shapes if shape.get('label_id') is not None]):
+                    return False
+            return True
+        return False
 
 class JobReviewPermission(BasePermission):
     # pylint: disable=no-self-use

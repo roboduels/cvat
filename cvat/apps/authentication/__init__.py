@@ -12,6 +12,7 @@ class AUTH_ROLE(Enum):
     USER = 'user'
     ANNOTATOR = 'annotator'
     OBSERVER = 'observer'
+    REVIEWER = 'reviewer'
 
     def __str__(self):
         return self.value
