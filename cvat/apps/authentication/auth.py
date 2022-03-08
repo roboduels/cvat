@@ -311,7 +311,7 @@ class JobChangePermission(BasePermission):
     # pylint: disable=no-self-use
     def has_object_permission(self, request, view, obj):
         if request.user.has_perm('engine.job.change', obj):
-            if request.user.has_perm('engine.role.annotator'):
+            if request.user.has_perm('engine.role.annotator') and not request.user.has_perm('engine.role.reviewer') and not request.user.has_perm('engine.role.admin'):
                 shapes = request.data.get('shapes')
                 if shapes and has_special_reviewer_label([shape.get('label_id') for shape in shapes if shape.get('label_id') is not None]):
                     return False
