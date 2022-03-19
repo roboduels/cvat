@@ -1754,7 +1754,7 @@ def get_grade_parameters(request, certificate_id):
                     orientation = filename_regex[3]
                     image_type = filename_regex[4]
                     labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
-                    objects = [{"points": labeled_shape.points, "label": labeled_shape.label, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+                    objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
 
                     payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
                     data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
