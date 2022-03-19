@@ -1739,7 +1739,7 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         return Response(data.data)
 
 @action(detail=False, methods=['GET'], serializer_class=GradeParametersFromCertificateSerializer)
-def get_grade_parameters(self, request, certificate_id):
+def get_grade_parameters(request, certificate_id):
     try:
         images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
         if len(images) == 1 or len(images) == 2:
@@ -1759,7 +1759,7 @@ def get_grade_parameters(self, request, certificate_id):
                 payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
                 data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
 
-            serializer = self.get_serializer(many=True, data=data)
+            serializer = GradeParametersFromCertificateSerializer(many=True, data=data)
             if serializer.is_valid(raise_exception=True):
                 return Response(serializer.data)
         else:
