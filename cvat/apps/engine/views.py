@@ -54,7 +54,7 @@ from cvat.apps.engine.models import CloudStorage as CloudStorageModel
 from cvat.apps.engine.models import (
     Job, StatusChoice, Task, Project, Review, Issue,
     Comment, StorageMethodChoice, ReviewStatus, StorageChoice, Image,
-    CredentialsTypeChoice, CloudProviderChoice, Activities
+    CredentialsTypeChoice, CloudProviderChoice, Activities, LabeledShape, Label
 )
 from cvat.apps.engine.serializers import (
     AboutSerializer, AnnotationFileSerializer, BasicUserSerializer,
@@ -63,7 +63,7 @@ from cvat.apps.engine.serializers import (
     LogEventSerializer, ProjectSerializer, ProjectSearchSerializer,
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
-    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, )
+    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersFromCertificateSerializer,)
 from cvat.apps.engine.utils import av_scan_paths, log_activity
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
@@ -1736,6 +1736,32 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
 
         return Response(data.data)
 
+class GradeParametersFromCertificateViewSet(viewsets.ViewSet):
+    def retrieve(self, request, certificate_id):
+        images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
+        if len(images) == 1 or len(images) == 2:
+            data_id = images[0].data_id
+            job = Job.objects.get(segment__task__data_id=data_id)
+            data = []
+            for image in images:
+                filename = image.path
+                width = image.width
+                height = image.height
+                filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
+                orientation = filename_regex[3]
+                image_type = filename_regex[4]
+                labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                objects = [{"points": labeled_shape.get("points"), "label": labeled_shape.get("label"), "shape": labeled_shape.get("type")} for labeled_shape in labeled_shapes]
+
+                payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
+                data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
+
+            serializer = GradeParametersFromCertificateSerializer(many=True, data=data)
+            if serializer.is_valid(raise_exception=True):
+                return Response(serializer.data)
+        else:
+            message = 'No suitable image found for the certificate'
+            return HttpResponseNotFound(message)
 
 def post_grades(request):
     if request.method == "POST":
