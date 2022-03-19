@@ -57,7 +57,6 @@ router.register('comments', views.CommentViewSet)
 router.register('restrictions', RestrictionsViewSet, basename='restrictions')
 router.register('predict', PredictView, basename='predict')
 router.register('cloudstorages', views.CloudStorageViewSet)
-router.register('grade-parameters', views.GradeParametersFromCertificateViewSet, basename='cron-helper')
 
 urlpatterns = [
     # Entry point for a client
@@ -75,5 +74,6 @@ urlpatterns = [
     # entry point for API
     path('api/v1/auth/', include('cvat.apps.authentication.urls')),
     path('api/v1/', include((router.urls, 'cvat'), namespace='v1')),
-    path('api/v1/cvat-grades', views.post_grades)
+    path('api/v1/cvat-grades', views.post_grades),
+    path('api/v1/grade-parameters/<certificate_id>/', views.get_grade_parameters)
 ]
