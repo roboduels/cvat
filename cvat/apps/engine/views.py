@@ -10,6 +10,7 @@ import os.path as osp
 import shutil
 import traceback
 import uuid
+import re
 from datetime import datetime
 from distutils.util import strtobool
 from tempfile import mkstemp, NamedTemporaryFile
