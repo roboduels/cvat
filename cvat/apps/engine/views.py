@@ -1743,6 +1743,7 @@ class GradeParametersFromCertificateView(APIView):
             images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
             if len(images) == 1 or len(images) == 2:
                 data_id = images[0].data_id
+                order_id = images[0].path.split('-+')[0]
                 job = Job.objects.get(segment__task__data_id=data_id)
                 data = []
                 for image in images:
@@ -1757,7 +1758,7 @@ class GradeParametersFromCertificateView(APIView):
                     payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
                     data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
 
-                return Response(data)
+                return Response({"order_id": order_id, "certificate_id": certificate_id, "results": data})
             else:
                 message = 'No suitable image found for the certificate'
                 return HttpResponseNotFound(message)
