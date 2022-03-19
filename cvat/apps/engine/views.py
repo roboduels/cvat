@@ -1744,7 +1744,6 @@ class GradeParametersFromCertificateView(APIView):
             images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
             if len(images) == 1 or len(images) == 2:
                 data_id = images[0].data_id
-                print('data_id:', data_id)
                 job = Job.objects.get(segment__task__data_id=data_id)
                 data = []
                 for image in images:
@@ -1753,19 +1752,12 @@ class GradeParametersFromCertificateView(APIView):
                     height = image.height
                     filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
                     orientation = filename_regex[3]
-                    print('orientation:', orientation)
                     image_type = filename_regex[4]
-                    print('image_type:', image_type)
-                    print('job.id:', job.id)
-                    print('image.frame:', image.frame)
                     labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
                     objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
-                    print('objects:', objects)
                     payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
-                    print('payload:', payload)
                     data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
 
-                print('data:', data)
                 serializer = GradeParametersFromCertificateSerializer(many=True, data=data)
                 if serializer.is_valid(raise_exception=True):
                     return Response(serializer.data)
