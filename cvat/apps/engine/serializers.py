@@ -1077,8 +1077,3 @@ class ActivitySerializer(serializers.ModelSerializer):
         )
         ordering = ['-id']
 
-class GradeParametersFromCertificateSerializer(serializers.Serializer):
-    payload = serializers.CharField(read_only=True)
-    orientation = serializers.CharField(read_only=True)
-    certificate_id = serializers.CharField(read_only=True)
-    image_type = serializers.CharField(read_only=True)

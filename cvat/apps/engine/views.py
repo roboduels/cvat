@@ -11,7 +11,6 @@ import shutil
 import traceback
 import uuid
 import re
-import json
 from datetime import datetime
 from distutils.util import strtobool
 from tempfile import mkstemp, NamedTemporaryFile
@@ -65,7 +64,7 @@ from cvat.apps.engine.serializers import (
     LogEventSerializer, ProjectSerializer, ProjectSearchSerializer,
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
-    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersFromCertificateSerializer,)
+    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, )
 from cvat.apps.engine.utils import av_scan_paths, log_activity
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
@@ -1755,12 +1754,10 @@ class GradeParametersFromCertificateView(APIView):
                     image_type = filename_regex[4]
                     labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
                     objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
-                    payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
+                    payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
                     data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
 
-                serializer = GradeParametersFromCertificateSerializer(many=True, data=data)
-                if serializer.is_valid(raise_exception=True):
-                    return Response(serializer.data)
+                return Response(data)
             else:
                 message = 'No suitable image found for the certificate'
                 return HttpResponseNotFound(message)
