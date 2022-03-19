@@ -1738,38 +1738,35 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
 
         return Response(data.data)
 
-def get_grade_parameters(request, certificate_id):
-    if request.method == "GET":
-        try:
-            images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
-            if len(images) == 1 or len(images) == 2:
-                data_id = images[0].data_id
-                job = Job.objects.get(segment__task__data_id=data_id)
-                data = []
-                for image in images:
-                    filename = image.path
-                    width = image.width
-                    height = image.height
-                    filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
-                    orientation = filename_regex[3]
-                    image_type = filename_regex[4]
-                    labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
-                    objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+@action(detail=False, methods=['GET'], serializer_class=GradeParametersFromCertificateSerializer)
+def get_grade_parameters(self, request, certificate_id):
+    try:
+        images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
+        if len(images) == 1 or len(images) == 2:
+            data_id = images[0].data_id
+            job = Job.objects.get(segment__task__data_id=data_id)
+            data = []
+            for image in images:
+                filename = image.path
+                width = image.width
+                height = image.height
+                filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
+                orientation = filename_regex[3]
+                image_type = filename_regex[4]
+                labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
 
-                    payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
-                    data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
+                payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
+                data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
 
-                serializer = GradeParametersFromCertificateSerializer(many=True, data=data)
-                if serializer.is_valid(raise_exception=True):
-                    return HttpResponse(serializer.data)
-            else:
-                message = 'No suitable image found for the certificate'
-                return HttpResponseNotFound(message)
-        except Exception as e:
-            return HttpResponseBadRequest(str(e))
-
-    message = 'Only GET Requests allowed'
-    return HttpResponseBadRequest(message)
+            serializer = self.get_serializer(many=True, data=data)
+            if serializer.is_valid(raise_exception=True):
+                return Response(serializer.data)
+        else:
+            message = 'No suitable image found for the certificate'
+            return HttpResponseNotFound(message)
+    except Exception as e:
+        return HttpResponseBadRequest(str(e))
 
 def post_grades(request):
     if request.method == "POST":
