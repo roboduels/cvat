@@ -1761,7 +1761,7 @@ def get_grade_parameters(request, certificate_id):
 
                 serializer = GradeParametersFromCertificateSerializer(many=True, data=data)
                 if serializer.is_valid(raise_exception=True):
-                    return Response(serializer.data)
+                    return HttpResponse(serializer.data)
             else:
                 message = 'No suitable image found for the certificate'
                 return HttpResponseNotFound(message)
