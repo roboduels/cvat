@@ -15,7 +15,6 @@ import json
 from datetime import datetime
 from distutils.util import strtobool
 from tempfile import mkstemp, NamedTemporaryFile
-
 import cv2
 import django_rq
 import pytz
@@ -35,6 +34,7 @@ from drf_yasg import openapi
 from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled, FieldInspector
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, serializers, status, viewsets
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, NotFound, ValidationError
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -1738,35 +1738,37 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
 
         return Response(data.data)
 
-@action(detail=False, methods=['GET'], serializer_class=GradeParametersFromCertificateSerializer)
-def get_grade_parameters(request, certificate_id):
-    try:
-        images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
-        if len(images) == 1 or len(images) == 2:
-            data_id = images[0].data_id
-            job = Job.objects.get(segment__task__data_id=data_id)
-            data = []
-            for image in images:
-                filename = image.path
-                width = image.width
-                height = image.height
-                filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
-                orientation = filename_regex[3]
-                image_type = filename_regex[4]
-                labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
-                objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+class GradeParametersFromCertificateView(APIView):
+    serializer_class = GradeParametersFromCertificateSerializer
 
-                payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
-                data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
+    def get(self, request, certificate_id):
+        try:
+            images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
+            if len(images) == 1 or len(images) == 2:
+                data_id = images[0].data_id
+                job = Job.objects.get(segment__task__data_id=data_id)
+                data = []
+                for image in images:
+                    filename = image.path
+                    width = image.width
+                    height = image.height
+                    filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
+                    orientation = filename_regex[3]
+                    image_type = filename_regex[4]
+                    labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                    objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
 
-            serializer = GradeParametersFromCertificateSerializer(many=True, data=data)
-            if serializer.is_valid(raise_exception=True):
-                return Response(serializer.data)
-        else:
-            message = 'No suitable image found for the certificate'
-            return HttpResponseNotFound(message)
-    except Exception as e:
-        return HttpResponseBadRequest(str(e))
+                    payload = json.dumps({"filename": filename, "objects": objects, "image": {"width": width, "height": height}})
+                    data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
+
+                serializer = self.get_serializer(many=True, data=data)
+                if serializer.is_valid(raise_exception=True):
+                    return Response(serializer.data)
+            else:
+                message = 'No suitable image found for the certificate'
+                return HttpResponseNotFound(message)
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
 
 def post_grades(request):
     if request.method == "POST":

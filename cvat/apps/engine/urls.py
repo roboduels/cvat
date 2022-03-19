@@ -75,5 +75,5 @@ urlpatterns = [
     path('api/v1/auth/', include('cvat.apps.authentication.urls')),
     path('api/v1/', include((router.urls, 'cvat'), namespace='v1')),
     path('api/v1/cvat-grades', views.post_grades),
-    path('api/v1/grade-parameters/<certificate_id>/', views.get_grade_parameters)
+    path('api/v1/grade-parameters/<certificate_id>/', views.GradeParametersFromCertificateView.as_view(), name="cron-helper")
 ]
