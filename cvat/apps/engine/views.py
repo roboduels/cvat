@@ -55,7 +55,7 @@ from cvat.apps.engine.models import CloudStorage as CloudStorageModel
 from cvat.apps.engine.models import (
     Job, StatusChoice, Task, Project, Review, Issue,
     Comment, StorageMethodChoice, ReviewStatus, StorageChoice, Image,
-    CredentialsTypeChoice, CloudProviderChoice, Activities, LabeledShape, Label
+    CredentialsTypeChoice, CloudProviderChoice, Activities, LabeledShape, Label, ClientFile
 )
 from cvat.apps.engine.serializers import (
     AboutSerializer, AnnotationFileSerializer, BasicUserSerializer,
@@ -1748,6 +1748,8 @@ class GradeParametersFromCertificateView(APIView):
                 data = []
                 for image in images:
                     filename = image.path
+                    image_file = ClientFile.objects.get(file__icontains=filename, data_id=data_id)
+                    image_path = image_file.file
                     width = image.width
                     height = image.height
                     filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
@@ -1756,7 +1758,7 @@ class GradeParametersFromCertificateView(APIView):
                     labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
                     objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
                     payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
-                    data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type})
+                    data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type, "image_path": image_path})
 
                 return Response({"order_id": order_id, "certificate_id": certificate_id, "results": data})
             else:
