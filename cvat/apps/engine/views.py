@@ -55,7 +55,7 @@ from cvat.apps.engine.models import CloudStorage as CloudStorageModel
 from cvat.apps.engine.models import (
     Job, StatusChoice, Task, Project, Review, Issue,
     Comment, StorageMethodChoice, ReviewStatus, StorageChoice, Image,
-    CredentialsTypeChoice, CloudProviderChoice, Activities, LabeledShape, Label, ClientFile
+    CredentialsTypeChoice, CloudProviderChoice, Activities, LabeledShape, Label
 )
 from cvat.apps.engine.serializers import (
     AboutSerializer, AnnotationFileSerializer, BasicUserSerializer,
@@ -1748,8 +1748,7 @@ class GradeParametersFromCertificateView(APIView):
                 data = []
                 for image in images:
                     filename = image.path
-                    image_file = ClientFile.objects.get(file__icontains=filename, data_id=data_id)
-                    image_path = image_file.file
+                    image_path = f"~/data/data/{data_id}/raw/{filename}"
                     width = image.width
                     height = image.height
                     filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
