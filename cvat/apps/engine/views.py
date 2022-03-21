@@ -1748,7 +1748,7 @@ class GradeParametersFromCertificateView(APIView):
                 data = []
                 for image in images:
                     filename = image.path
-                    image_path = f"~/data/data/{data_id}/raw/{filename}"
+                    image_path = f"data/data/{data_id}/raw/{filename}"
                     width = image.width
                     height = image.height
                     filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
