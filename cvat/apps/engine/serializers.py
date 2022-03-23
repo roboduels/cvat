@@ -1081,4 +1081,4 @@ class ActivitySerializer(serializers.ModelSerializer):
 class GradeParametersSerializer(serializers.Serializer):
     certificate_id = serializers.CharField(max_length=8, required=True)
     orientation = serializers.ChoiceField(choices=CARD_ORIENTATION_CHOICES, required=True)
-    image_type = serializers.CharField(choices=CARD_IMAGE_TYPE_CHOICES, default=LASER, required=True)
+    image_type = serializers.ChoiceField(choices=CARD_IMAGE_TYPE_CHOICES, default=LASER, required=True)
