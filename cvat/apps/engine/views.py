@@ -1745,10 +1745,12 @@ class GradeParametersFromCertificateView(APIView):
             if serializer.is_valid(raise_exception=True):
                 certificate_id = serializer.data.get("certificate_id")
                 orientation = serializer.data.get("orientation")
+                image_type = serializer.data.get("image_type")
 
                 image = Image.objects.get(
                     Q(path__icontains=f"-+{certificate_id}-+") &
-                    Q(path__icontains=f"_{orientation}_")
+                    Q(path__icontains=f"_{orientation}_") &
+                    Q(path__icontains=f"_{image_type}")
                 )
                 data_id = image.data_id
                 order_id = image.path.split('-+')[0]
