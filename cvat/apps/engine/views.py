@@ -22,6 +22,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from django.db.models import Q
 from django.db.models.query import Prefetch
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
@@ -64,7 +65,7 @@ from cvat.apps.engine.serializers import (
     LogEventSerializer, ProjectSerializer, ProjectSearchSerializer,
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
-    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, )
+    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, )
 from cvat.apps.engine.utils import av_scan_paths, log_activity
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
@@ -1738,31 +1739,37 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         return Response(data.data)
 
 class GradeParametersFromCertificateView(APIView):
-    def get(self, request, certificate_id):
+    def post(self, request):
         try:
-            images = Image.objects.filter(path__icontains=f"-+{certificate_id}-+")
-            if len(images) == 1 or len(images) == 2:
-                data_id = images[0].data_id
-                order_id = images[0].path.split('-+')[0]
-                job = Job.objects.get(segment__task__data_id=data_id)
-                data = []
-                for image in images:
-                    filename = image.path
-                    image_path = f"data/data/{data_id}/raw/{filename}"
-                    width = image.width
-                    height = image.height
-                    filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
-                    orientation = filename_regex[3]
-                    image_type = filename_regex[4]
-                    labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
-                    objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
-                    payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
-                    data.append({"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type, "image_path": image_path})
+            serializer = GradeParametersSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                certificate_id = serializer.data.get("certificate_id")
+                orientation = serializer.data.get("orientation")
 
-                return Response({"order_id": order_id, "certificate_id": certificate_id, "results": data})
-            else:
-                message = 'No suitable image found for the certificate'
-                return HttpResponseNotFound(message)
+                image = Image.objects.get(
+                    Q(path__icontains=f"-+{certificate_id}-+") &
+                    Q(path__icontains=f"_{orientation}_")
+                )
+                data_id = image.data_id
+                order_id = image.path.split('-+')[0]
+                job = Job.objects.get(segment__task__data_id=data_id)
+                filename = image.path
+                image_path = f"data/data/{data_id}/raw/{filename}"
+                width = image.width
+                height = image.height
+                filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
+                orientation = filename_regex[3]
+                image_type = filename_regex[4]
+                labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+                payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
+                result = {"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type, "image_path": image_path}
+
+                return Response({"order_id": order_id, "certificate_id": certificate_id, "result": result})
+
+        except Image.DoesNotExist:
+            message = 'No suitable image found for the certificate'
+            return HttpResponseNotFound(message)
         except Exception as e:
             return HttpResponseBadRequest(str(e))
 
