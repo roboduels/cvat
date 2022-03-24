@@ -1,0 +1,14 @@
+version: '3.3'
+
+services:
+  cron:
+    container_name: cron
+    image: openvino/cvat_server
+    restart: always
+    env_file:
+      - ./.envs/.django
+    networks:
+      - cvat
+    build:
+      context: .
+      dockerfile: Dockerfile.cron
