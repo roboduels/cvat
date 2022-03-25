@@ -100,6 +100,19 @@ services:
     networks:
       - cvat
 
+  cron:
+    container_name: cron
+    restart: always
+    env_file:
+      - ./.envs/.django
+    volumes:
+      - cvat_data:/root/data
+    build:
+      context: .
+      dockerfile: Dockerfile.cron
+    profiles:
+      - cron
+
 volumes:
   cvat_db:
   cvat_data:

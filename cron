@@ -1,1 +1,1 @@
-*/5 * * * * python ~/cronjob.py 2>&1
+0 4 * * * python3 /home/cronjob.py >> /var/log/cron.log 2>&1
