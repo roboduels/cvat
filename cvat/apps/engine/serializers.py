@@ -16,6 +16,7 @@ from cvat.apps.engine import models
 from cvat.apps.engine.cloud_provider import get_cloud_storage_instance, Credentials, Status
 from cvat.apps.engine.log import slogger
 from cvat.apps.engine.utils import parse_specific_attributes
+from cvat.apps.engine.choices import CARD_ORIENTATION_CHOICES, CARD_IMAGE_TYPE_CHOICES, LASER
 
 class BasicUserSerializer(serializers.ModelSerializer):
     def validate(self, data):
@@ -1076,3 +1077,8 @@ class ActivitySerializer(serializers.ModelSerializer):
             'hash'
         )
         ordering = ['-id']
+
+class GradeParametersSerializer(serializers.Serializer):
+    certificate_id = serializers.CharField(max_length=8, required=True)
+    orientation = serializers.ChoiceField(choices=CARD_ORIENTATION_CHOICES, required=True)
+    image_type = serializers.ChoiceField(choices=CARD_IMAGE_TYPE_CHOICES, default=LASER)

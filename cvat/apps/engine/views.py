@@ -10,10 +10,10 @@ import os.path as osp
 import shutil
 import traceback
 import uuid
+import re
 from datetime import datetime
 from distutils.util import strtobool
 from tempfile import mkstemp, NamedTemporaryFile
-
 import cv2
 import django_rq
 import pytz
@@ -22,6 +22,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from django.db.models import Q
 from django.db.models.query import Prefetch
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
@@ -33,6 +34,7 @@ from drf_yasg import openapi
 from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled, FieldInspector
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, serializers, status, viewsets
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, NotFound, ValidationError
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -54,7 +56,7 @@ from cvat.apps.engine.models import CloudStorage as CloudStorageModel
 from cvat.apps.engine.models import (
     Job, StatusChoice, Task, Project, Review, Issue,
     Comment, StorageMethodChoice, ReviewStatus, StorageChoice, Image,
-    CredentialsTypeChoice, CloudProviderChoice, Activities
+    CredentialsTypeChoice, CloudProviderChoice, Activities, LabeledShape, Label
 )
 from cvat.apps.engine.serializers import (
     AboutSerializer, AnnotationFileSerializer, BasicUserSerializer,
@@ -63,7 +65,7 @@ from cvat.apps.engine.serializers import (
     LogEventSerializer, ProjectSerializer, ProjectSearchSerializer,
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
-    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, )
+    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, )
 from cvat.apps.engine.utils import av_scan_paths, log_activity
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
@@ -1736,6 +1738,42 @@ class ActivityViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
 
         return Response(data.data)
 
+class GradeParametersFromCertificateView(APIView):
+    def post(self, request):
+        try:
+            serializer = GradeParametersSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                certificate_id = serializer.data.get("certificate_id")
+                orientation = serializer.data.get("orientation")
+                image_type = serializer.data.get("image_type")
+
+                image = Image.objects.get(
+                    Q(path__icontains=f"-+{certificate_id}-+") &
+                    Q(path__icontains=f"_{orientation}_") &
+                    Q(path__icontains=f"_{image_type}")
+                )
+                data_id = image.data_id
+                order_id = image.path.split('-+')[0]
+                job = Job.objects.get(segment__task__data_id=data_id)
+                filename = image.path
+                image_path = f"data/data/{data_id}/raw/{filename}"
+                width = image.width
+                height = image.height
+                filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
+                orientation = filename_regex[3]
+                image_type = filename_regex[4]
+                labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+                payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
+                result = {"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type, "image_path": image_path}
+
+                return Response({"order_id": order_id, "certificate_id": certificate_id, "result": result})
+
+        except Image.DoesNotExist:
+            message = 'No suitable image found for the certificate'
+            return HttpResponseNotFound(message)
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
 
 def post_grades(request):
     if request.method == "POST":
