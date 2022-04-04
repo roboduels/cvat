@@ -1748,7 +1748,7 @@ class GradeParametersFromCertificateView(APIView):
                 image_type = serializer.data.get("image_type")
 
                 image = Image.objects.get(
-                    Q(path__icontains=f"-+{certificate_id}-+") &
+                    (Q(path__icontains=f"-+{certificate_id}-+") | Q(path__icontains=f"-+{certificate_id}_")) &
                     Q(path__icontains=f"{orientation}_") &
                     Q(path__icontains=f"_{image_type}")
                 )
