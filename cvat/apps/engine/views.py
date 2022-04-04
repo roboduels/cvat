@@ -1759,7 +1759,7 @@ class GradeParametersFromCertificateView(APIView):
                 image_path = f"data/data/{data_id}/raw/{filename}"
                 width = image.width
                 height = image.height
-                filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[2])
+                filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[-1])
                 orientation = filename_regex[3]
                 image_type = filename_regex[4]
                 labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
