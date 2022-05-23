@@ -65,7 +65,7 @@ from cvat.apps.engine.serializers import (
     LogEventSerializer, ProjectSerializer, ProjectSearchSerializer,
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
-    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, )
+    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, GradeParametersFromFileNameSerializer )
 from cvat.apps.engine.utils import av_scan_paths, log_activity
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
@@ -1769,6 +1769,35 @@ class GradeParametersFromCertificateView(APIView):
                 result = {"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type, "image_path": image_path, "image_url": image_url}
 
                 return Response({"order_id": order_id, "certificate_id": certificate_id, "result": result})
+
+        except Image.DoesNotExist:
+            message = 'No suitable image found for the certificate'
+            return HttpResponseNotFound(message)
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
+
+class GradeParametersFromFileNameView(APIView):
+    def post(self, request):
+        try:
+            serializer = GradeParametersFromFileNameSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                filename = serializer.data.get("filename")
+
+                image = Image.objects.get(path__icontains=filename)
+                data_id = image.data_id
+                job = Job.objects.get(segment__task__data_id=data_id)
+                filename = image.path
+                image_path = f"data/data/{data_id}/raw/{filename}"
+                width = image.width
+                height = image.height
+                orientation = filename.split('_')[1]
+                image_url = f"https://pokemon-statics.s3.amazonaws.com/media/corners/{filename}"
+                labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+                payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
+                result = {"payload": payload, "orientation": orientation, "image_type": "cam", "image_path": image_path, "image_url": image_url}
+
+                return Response({"result": result})
 
         except Image.DoesNotExist:
             message = 'No suitable image found for the certificate'
