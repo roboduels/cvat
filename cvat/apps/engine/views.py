@@ -1746,6 +1746,7 @@ class GradeParametersFromCertificateView(APIView):
                 certificate_id = serializer.data.get("certificate_id")
                 orientation = serializer.data.get("orientation")
                 image_type = serializer.data.get("image_type")
+                task_status = serializer.data.get("task_status")
 
                 image = Image.objects.get(
                     (Q(path__icontains=f"-+{certificate_id}-+") | Q(path__icontains=f"-+{certificate_id}_")) &
@@ -1754,6 +1755,11 @@ class GradeParametersFromCertificateView(APIView):
                 )
                 data_id = image.data_id
                 order_id = image.path.split('-+')[0]
+                if task_status:
+                    task = Task.objects.get(data_id=data_id)
+                    if task.status != task_status:
+                        return Response({"order_id": order_id, "certificate_id": certificate_id, "result": None})
+
                 job = Job.objects.get(segment__task__data_id=data_id)
                 filename = image.path
                 image_path = f"data/data/{data_id}/raw/{filename}"

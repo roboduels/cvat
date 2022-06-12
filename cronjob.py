@@ -26,7 +26,7 @@ def get_grade_parameters(cert_id, orientation):
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': f'Basic {CVAT_API_TOKEN}'
     }
-    payload = f"certificate_id={cert_id}&orientation={orientation}"
+    payload = f"certificate_id={cert_id}&orientation={orientation}&task_status=completed"
     response = requests.request("POST", url, headers=headers, data=payload)
     response = response.json()
     order_id = response.get("order_id")
@@ -65,6 +65,8 @@ def post_cron_scan_logs(certificate_id, orientation, status, image_type=None, or
 def scan_one_side(cert_id, orientation):
     try:
         order_id, certificate_id, result = get_grade_parameters(cert_id=cert_id, orientation=orientation)
+        if result is None:
+            return True
     except Exception as e:
         post_cron_scan_logs(
             certificate_id=cert_id,
@@ -110,8 +112,16 @@ def scan_one_side(cert_id, orientation):
         )
 
 daily_scan_amount, front_missing_list, back_missing_list = get_missing_scans()
-for i in range(daily_scan_amount):
+front_not_completed = 0
+back_not_completed = 0
+for i in range(daily_scan_amount + front_not_completed):
     if i < len(front_missing_list):
-        scan_one_side(cert_id=front_missing_list[i], orientation='front')
+        skip = scan_one_side(cert_id=front_missing_list[i], orientation='front')
+        if skip == True:
+            front_not_completed += 1
+
+for i in range(daily_scan_amount + back_not_completed):
     if i < len(back_missing_list):
-        scan_one_side(cert_id=back_missing_list[i], orientation='back')
+        skip = scan_one_side(cert_id=back_missing_list[i], orientation='back')
+        if skip == True:
+            back_not_completed += 1

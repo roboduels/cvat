@@ -13,3 +13,11 @@ CARD_IMAGE_TYPE_CHOICES = (
     (LASER, 'Laser'),
     (CAM, 'Cam')
 )
+
+COMPLETED = 'completed'
+PENDING = 'annotation'
+
+TASK_STATUS_CHOICES = (
+    (COMPLETED, 'Completed'),
+    (PENDING, 'Pending')
+)
