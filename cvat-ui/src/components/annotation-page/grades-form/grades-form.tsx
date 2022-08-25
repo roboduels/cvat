@@ -26,7 +26,6 @@ import {
 } from '../../../actions/grades-actions';
 import { CombinedState } from '../../../reducers/interfaces';
 import { parseFilename } from '../../../utils/grades';
-import GradesFormAdvancedControls from './grades-form-advanced-controls';
 import './styles.scss';
 
 interface Props {
@@ -67,11 +66,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const handleClose = useCallback(() => {
         dispatch(setGradesFormState(false));
     }, [dispatch]);
-
-    const handleRobogrades = useCallback(async () => {
-        dispatch(submitAnnotationFrameToGradeAsync(frameOptions));
-        formRef.current?.setFieldsValue({});
-    }, [frameOptions]);
 
     const handleRobogradesAndMasks = useCallback(async () => {
         dispatch(submitAnnotationFrameToGradeAsync({ ...frameOptions, withMasks: true }));
@@ -384,10 +378,9 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             <Button type='primary' onClick={handleUpdate} block>
                                 Update grades
                             </Button>
-                            <Button type='primary' onClick={handleRobogrades} block>
-                                Generate Robogrades
+                            <Button type='primary' onClick={handleRobogradesAndMasks} block>
+                                Generate Robogrades & Masks
                             </Button>
-                            <GradesFormAdvancedControls onRobogradesAndMasks={handleRobogradesAndMasks} />
                         </Space>
                     </div>
                 </Col>
