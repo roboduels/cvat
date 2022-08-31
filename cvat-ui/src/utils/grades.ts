@@ -52,10 +52,10 @@ function roundOverallGrade(value: number): number {
 
 export const mapGradeValue = (value?: number | string | null): number => {
     if (typeof value === 'number') {
-        return value;
+        return value.toFixed(2);
     }
 
-    return Number(`${value}`.replace(/,/g, '.').trim()) || 0;
+    return (Number(`${value}`.replace(/,/g, '.').trim()) || 0).toFixed(2);
 };
 
 export const parseFilename = (filename: string, task: any = {}): ParsedFilename => {

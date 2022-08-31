@@ -5,9 +5,7 @@ import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import notification from 'antd/lib/notification';
 import { ActionUnion, createAction, ThunkAction } from '../utils/redux';
 import { CombinedState, GradesState } from '../reducers/interfaces';
-import {
-    calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue,
-} from '../utils/grades';
+import { calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue } from '../utils/grades';
 
 const certificateNotFound = (message: string): Error => new Error(`${message}, certificate number not found!`);
 const orientationNotFound = new Error('Cannot reload robo grades, orientation not found!');
@@ -23,11 +21,13 @@ export enum GradesActionsTypes {
 
 export const gradesActions = {
     setGrades: (values: GradesState['values']) => createAction(GradesActionsTypes.LOAD_VALUES, { values }),
-    assignGrades: (values: Partial<GradesState['values']>) => createAction(GradesActionsTypes.ASSIGN_VALUES, { values }),
+    assignGrades: (values: Partial<GradesState['values']>) =>
+        createAction(GradesActionsTypes.ASSIGN_VALUES, { values }),
     setLoading: (loading: boolean) => createAction(GradesActionsTypes.SET_LOADING, { loading }),
     setError: (error: string | Error | null) => createAction(GradesActionsTypes.SET_ERROR, { error }),
     setWarning: (warning: string | Error | null) => createAction(GradesActionsTypes.SET_WARNING, { warning }),
-    updateValue: (key: keyof GradesState['values'] | string, value: string | number) => createAction(GradesActionsTypes.UPDATE_VALUE, { key, value }),
+    updateValue: (key: keyof GradesState['values'] | string, value: string | number) =>
+        createAction(GradesActionsTypes.UPDATE_VALUE, { key, value }),
 };
 
 export type GradesActions = ActionUnion<typeof gradesActions>;
@@ -55,7 +55,8 @@ async function sendGrades(action: string, values: any): Promise<void> {
 }
 
 export const setErrorAsync =
-    (error: string | Error): ThunkAction => async (dispatch) => {
+    (error: string | Error): ThunkAction =>
+    async (dispatch) => {
         const axiosErr = error as AxiosError;
         if (axiosErr?.isAxiosError) {
             const { data } = axiosErr.response || {};
@@ -69,7 +70,8 @@ export const setErrorAsync =
     };
 
 export const setWarningAsync =
-    (warning: string | Error): ThunkAction => async (dispatch) => {
+    (warning: string | Error): ThunkAction =>
+    async (dispatch) => {
         dispatch(gradesActions.setWarning(warning));
         setTimeout(() => {
             dispatch(gradesActions.setWarning(null));
@@ -77,7 +79,8 @@ export const setWarningAsync =
     };
 
 export const updateTaskMeta =
-    (task: any, data: Record<'certificateId' | 'orderId', string>): ThunkAction => async () => {
+    (task: any, data: Record<'certificateId' | 'orderId', string>): ThunkAction =>
+    async () => {
         const { certificateId, orderId } = data;
         const task$ = task;
 
@@ -93,7 +96,8 @@ export const updateTaskMeta =
     };
 
 export const loadingGradesAsync =
-    (certificateId?: string | number): ThunkAction => async (dispatch) => {
+    (certificateId?: string | number): ThunkAction =>
+    async (dispatch) => {
         if (!certificateId) {
             dispatch(setErrorAsync(certificateNotFound('Cannot load human grades')));
             return;
@@ -115,14 +119,18 @@ export const loadingGradesAsync =
                     front_corners_human_grade: mapGradeValue(result?.front_corners_human_grade),
                     front_edges_human_grade: mapGradeValue(result?.front_edges_human_grade),
                     front_surface_human_grade: mapGradeValue(result?.front_surface_human_grade),
-                    back_centering_laser_grade: mapGradeValue(result?.laser_back_scan?.centering_grade?.grade),
-                    back_corners_laser_grade: mapGradeValue(result?.laser_back_scan?.corners_grade?.grade),
-                    back_edges_laser_grade: mapGradeValue(result?.laser_back_scan?.edges_grade?.grade),
-                    back_surface_laser_grade: mapGradeValue(result?.laser_back_scan?.surface_grade?.grade),
-                    front_centering_laser_grade: mapGradeValue(result?.laser_front_scan?.centering_grade?.grade),
-                    front_corners_laser_grade: mapGradeValue(result?.laser_front_scan?.corners_grade?.grade),
-                    front_edges_laser_grade: mapGradeValue(result?.laser_front_scan?.edges_grade?.grade),
-                    front_surface_laser_grade: mapGradeValue(result?.laser_front_scan?.surface_grade?.grade),
+                    back_centering_laser_grade: mapGradeValue(
+                        result?.laser_back_scan?.centering_result?.results?.grade,
+                    ),
+                    back_corners_laser_grade: mapGradeValue(result?.laser_back_scan?.corners_result?.results?.grade),
+                    back_edges_laser_grade: mapGradeValue(result?.laser_back_scan?.edges_result?.results?.grade),
+                    back_surface_laser_grade: mapGradeValue(result?.laser_back_scan?.surface_result?.results?.grade),
+                    front_centering_laser_grade: mapGradeValue(
+                        result?.laser_front_scan?.centering_result?.results?.grade,
+                    ),
+                    front_corners_laser_grade: mapGradeValue(result?.laser_front_scan?.corners_result?.results?.grade),
+                    front_edges_laser_grade: mapGradeValue(result?.laser_front_scan?.edges_result?.results?.grade),
+                    front_surface_laser_grade: mapGradeValue(result?.laser_front_scan?.surface_result?.results?.grade),
                 }),
             );
         } catch (error) {
@@ -145,15 +153,18 @@ interface SubmitAnnotationFrameInput {
 }
 
 export const submitAnnotationFrameToGradeAsync =
-    (input: SubmitAnnotationFrameInput & {
-        withMasks?: boolean;
-        noNotifications?: boolean;
-        frame?: any;
-        annotation?: any;
-        job?: any;
-        resolve?: () => void;
-        reject?: (e: any) => void;
-    }): ThunkAction => async (dispatch, getState) => {
+    (
+        input: SubmitAnnotationFrameInput & {
+            withMasks?: boolean;
+            noNotifications?: boolean;
+            frame?: any;
+            annotation?: any;
+            job?: any;
+            resolve?: () => void;
+            reject?: (e: any) => void;
+        },
+    ): ThunkAction =>
+    async (dispatch, getState) => {
         if (!input.orientation) {
             dispatch(setWarningAsync(orientationNotFound));
         }
@@ -164,7 +175,7 @@ export const submitAnnotationFrameToGradeAsync =
         const { frame: annotationFrame } = state.annotation.player;
         const formData = new FormData();
 
-        const theFrame = (input.frame || annotationFrame);
+        const theFrame = input.frame || annotationFrame;
         const frameName = theFrame.filename;
 
         const job = input.job || state.annotation.job.instance;
@@ -233,7 +244,7 @@ export const submitAnnotationFrameToGradeAsync =
         } catch (e) {
             if (!input.noNotifications) {
                 notification.error({
-                    message: 'Robo grades couldn\'t be updated.',
+                    message: "Robo grades couldn't be updated.",
                 });
             }
             dispatch(setErrorAsync(e));
@@ -245,7 +256,8 @@ export const submitAnnotationFrameToGradeAsync =
     };
 
 export const submitHumanGradesAsync =
-    (certificateId?: string | number | null): ThunkAction => async (dispatch, getState) => {
+    (certificateId?: string | number | null): ThunkAction =>
+    async (dispatch, getState) => {
         if (!certificateId) {
             dispatch(setErrorAsync(certificateNotFound('Cannot submit human grades')));
             return;
@@ -325,7 +337,7 @@ export const submitHumanGradesAsync =
             });
         } catch (e) {
             notification.error({
-                message: 'Human grades couldn\'t be updated.',
+                message: "Human grades couldn't be updated.",
             });
             dispatch(setErrorAsync(e));
         }

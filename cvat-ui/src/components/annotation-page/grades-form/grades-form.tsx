@@ -10,10 +10,9 @@ import Row from 'antd/lib/row';
 import Typography from 'antd/lib/typography';
 import Divider from 'antd/lib/divider';
 import Card from 'antd/lib/card';
+import Table from 'antd/lib/table';
 import { sum } from 'lodash';
-import React, {
-    useCallback, useEffect, useMemo, useRef, useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Space from 'antd/lib/space';
 import { setGradesFormState } from '../../../actions/annotation-actions';
@@ -111,7 +110,9 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     }, [task, setOrderId, setCertificateId]);
 
     const computeTotal = (list: string[]): number =>
-        sum(list.map((value) => parseFloat(`${value || 0}`))) / list.length;
+        (sum(list.map((value) => parseFloat(`${value || 0}`))) / list.length).toFixed(2);
+
+    const computeTotalOverall = (front: number | string, back: number | string): number => 0.6 * front + 0.4 * back;
 
     const computedHumanFrontTotal = useMemo(
         (): number =>
@@ -121,7 +122,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 formRef.current?.getFieldValue('front_corners_human_grade'),
                 formRef.current?.getFieldValue('front_surface_human_grade'),
             ]),
-        [formTimestamp],
+        [formTimestamp, values],
     );
 
     const computedHumanBackTotal = useMemo(
@@ -132,13 +133,30 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 formRef.current?.getFieldValue('back_corners_human_grade'),
                 formRef.current?.getFieldValue('back_surface_human_grade'),
             ]),
-        [formTimestamp],
+        [formTimestamp, values],
     );
 
-    const computedTotal = useMemo(() => computedHumanBackTotal * 0.4 + computedHumanFrontTotal * 0.6, [
-        computedHumanBackTotal,
-        computedHumanFrontTotal,
-    ]);
+    const computedRobogradesFrontTotal = useMemo(
+        (): number =>
+            computeTotal([
+                formRef.current?.getFieldValue('front_centering_laser_grade'),
+                formRef.current?.getFieldValue('front_edges_laser_grade'),
+                formRef.current?.getFieldValue('front_corners_laser_grade'),
+                formRef.current?.getFieldValue('front_surface_laser_grade'),
+            ]),
+        [formTimestamp, values],
+    );
+
+    const computedRobogradesBackTotal = useMemo(
+        (): number =>
+            computeTotal([
+                formRef.current?.getFieldValue('back_centering_laser_grade'),
+                formRef.current?.getFieldValue('back_edges_laser_grade'),
+                formRef.current?.getFieldValue('back_corners_laser_grade'),
+                formRef.current?.getFieldValue('back_surface_laser_grade'),
+            ]),
+        [formTimestamp, values],
+    );
 
     useEffect(() => {
         if (open) {
@@ -162,6 +180,44 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         return null;
     }
 
+    const totalGradesColumns = [
+        {
+            title: '',
+            dataIndex: 'gradeType',
+            key: 'gradeType',
+        },
+        {
+            title: <Text strong> Total Front </Text>,
+            dataIndex: 'totalFront',
+            key: 'totalFront',
+        },
+        {
+            title: <Text strong> Total Back </Text>,
+            dataIndex: 'totalBack',
+            key: 'totalBack',
+        },
+        {
+            title: <Text strong> Total Overall </Text>,
+            dataIndex: 'totalOverall',
+            key: 'totalOverall',
+        },
+    ];
+
+    const totalGradesRows = [
+        {
+            gradeType: 'Enhanced Robogrades',
+            totalFront: computedHumanFrontTotal,
+            totalBack: computedHumanBackTotal,
+            totalOverall: computeTotalOverall(computedHumanFrontTotal, computedHumanBackTotal),
+        },
+        {
+            gradeType: 'Robogrades',
+            totalFront: computedRobogradesFrontTotal,
+            totalBack: computedRobogradesBackTotal,
+            totalOverall: computeTotalOverall(computedRobogradesFrontTotal, computedRobogradesBackTotal),
+        },
+    ];
+
     return (
         <div className='grades-form'>
             <Row>
@@ -178,10 +234,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 {String(frameOptions.certificateId || '')}
                             </Typography.Text>
                             {frameOptions?.cardName ? (
-                                <Typography.Text>
-                                    #
-                                    {frameOptions.cardName}
-                                </Typography.Text>
+                                <Typography.Text>#{frameOptions.cardName}</Typography.Text>
                             ) : null}
                         </div>
 
@@ -210,21 +263,8 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                         ) : null}
                     </div>
                 </Col>
-                <Col span={9}>
-                    <Row>
-                        <Col span={8}>
-                            <Typography.Text strong>Total Front:&nbsp;</Typography.Text>
-                            <Typography.Text>{computedHumanFrontTotal.toFixed(2)}</Typography.Text>
-                        </Col>
-                        <Col span={8}>
-                            <Typography.Text strong>Total Back:&nbsp;</Typography.Text>
-                            <Typography.Text>{computedHumanBackTotal.toFixed(2)}</Typography.Text>
-                        </Col>
-                        <Col span={8}>
-                            <Typography.Text strong>Total Overall:&nbsp;</Typography.Text>
-                            <Typography.Text>{computedTotal.toFixed(2)}</Typography.Text>
-                        </Col>
-                    </Row>
+                <Col span={12}>
+                    <Table bordered columns={totalGradesColumns} dataSource={totalGradesRows} />
                 </Col>
                 {hasErrorOrWarning ? (
                     <Col span={8}>
@@ -253,13 +293,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                         initialValues={values}
                         onFieldsChange={handleFieldsChange}
                     >
-                        <Card
-                          type="inner"
-                          size="small"
-                          title="Enhanced Robogrades"
-                          className='grades-form-section'
-                        >
-                            <Typography.Text strong className='grades-form-inner-title'>Front of Card</Typography.Text>
+                        <Card type='inner' size='small' title='Enhanced Robogrades' className='grades-form-section'>
+                            <Typography.Text strong className='grades-form-inner-title'>
+                                Front of Card
+                            </Typography.Text>
                             <Row gutter={[16, 16]}>
                                 <Col span={6}>
                                     <Form.Item label='Centering' name='front_centering_human_grade'>
@@ -282,8 +319,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                     </Form.Item>
                                 </Col>
                             </Row>
-                            <Divider className='grades-form-separator'/>
-                            <Typography.Text strong className='grades-form-inner-title'>Back of Card</Typography.Text>
+                            <Divider className='grades-form-separator' />
+                            <Typography.Text strong className='grades-form-inner-title'>
+                                Back of Card
+                            </Typography.Text>
                             <Row gutter={[16, 16]}>
                                 <Col span={6}>
                                     <Form.Item label='Centering' name='back_centering_human_grade'>
@@ -308,13 +347,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             </Row>
                         </Card>
 
-                        <Card
-                          type="inner"
-                          size="small"
-                          title="Robogrades"
-                          className='grades-form-section'
-                        >
-                            <Typography.Text strong className='grades-form-inner-title'>Front of Card</Typography.Text>
+                        <Card type='inner' size='small' title='Robogrades' className='grades-form-section'>
+                            <Typography.Text strong className='grades-form-inner-title'>
+                                Front of Card
+                            </Typography.Text>
                             <Row gutter={[16, 16]}>
                                 <Col span={6}>
                                     <Form.Item label='Centering' name='front_centering_laser_grade'>
@@ -337,8 +373,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                     </Form.Item>
                                 </Col>
                             </Row>
-                            <Divider className='grades-form-separator'/>
-                            <Typography.Text strong className='grades-form-inner-title'>Back of Card</Typography.Text>
+                            <Divider className='grades-form-separator' />
+                            <Typography.Text strong className='grades-form-inner-title'>
+                                Back of Card
+                            </Typography.Text>
                             <Row gutter={[16, 16]}>
                                 <Col span={6}>
                                     <Form.Item label='Centering' name='back_centering_laser_grade'>
