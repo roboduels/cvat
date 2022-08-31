@@ -167,11 +167,11 @@ export const submitAnnotationFrameToGradeAsync =
         const theFrame = (input.frame || annotationFrame);
         const frameName = theFrame.filename;
 
-        if (input.withMasks) {
-            const job = input.job || state.annotation.job.instance;
-            const image = await job.frames.frameData((theFrame || annotationFrame).number);
-            formData.append('image', image, frameName);
-        }
+        const job = input.job || state.annotation.job.instance;
+        const image = await job.frames.frameData((theFrame || annotationFrame).number);
+        formData.append('image', image, frameName);
+
+        formData.append('without_mask', !input.withMasks);
 
         formData.append(
             'payload',
