@@ -187,17 +187,17 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             key: 'gradeType',
         },
         {
-            title: <Text strong> Total Front </Text>,
+            title: <Typography.Text strong> Total Front </Typography.Text>,
             dataIndex: 'totalFront',
             key: 'totalFront',
         },
         {
-            title: <Text strong> Total Back </Text>,
+            title: <Typography.Text strong> Total Back </Typography.Text>,
             dataIndex: 'totalBack',
             key: 'totalBack',
         },
         {
-            title: <Text strong> Total Overall </Text>,
+            title: <Typography.Text strong> Total Overall </Typography.Text>,
             dataIndex: 'totalOverall',
             key: 'totalOverall',
         },
