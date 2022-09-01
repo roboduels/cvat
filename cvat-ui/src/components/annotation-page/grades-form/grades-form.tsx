@@ -46,6 +46,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const error = useSelector((state: CombinedState) => state.grades.error);
     const warning = useSelector((state: CombinedState) => state.grades.warning);
     const values = useSelector((state: CombinedState) => state.grades.values);
+    const [computedHumanFrontTotal, setComputedHumanFrontTotal] = useState(0);
+    const [computedHumanBackTotal, setComputedHumanBackTotal] = useState(0);
+    const [computedRobogradesFrontTotal, setComputedRobogradesFrontTotal] = useState(0);
+    const [computedRobogradesBackTotal, setComputedRobogradesBackTotal] = useState(0);
     const frameFilename = useSelector((state: CombinedState) => state.annotation.player.frame.filename);
     const frameOptions = useMemo(() => {
         const options = parseFilename(frameFilename);
@@ -109,54 +113,46 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         });
     }, [task, setOrderId, setCertificateId]);
 
-    const computeTotal = (list: string[]): number =>
+    const computeTotal = (list: string[] | number[]): number =>
         (sum(list.map((value) => parseFloat(`${value || 0}`))) / list.length).toFixed(2);
 
-    const computeTotalOverall = (front: number | string, back: number | string): number => 0.6 * front + 0.4 * back;
+    const computeTotalOverall = (front: number | string, back: number | string): number =>
+        (0.6 * front + 0.4 * back).toFixed(2);
 
-    const computedHumanFrontTotal = useMemo(
-        (): number =>
+    useEffect(() => {
+        setComputedHumanFrontTotal(
             computeTotal([
                 formRef.current?.getFieldValue('front_centering_human_grade'),
                 formRef.current?.getFieldValue('front_edges_human_grade'),
                 formRef.current?.getFieldValue('front_corners_human_grade'),
                 formRef.current?.getFieldValue('front_surface_human_grade'),
             ]),
-        [formTimestamp, values],
-    );
-
-    const computedHumanBackTotal = useMemo(
-        (): number =>
+        );
+        setComputedHumanBackTotal(
             computeTotal([
                 formRef.current?.getFieldValue('back_centering_human_grade'),
                 formRef.current?.getFieldValue('back_edges_human_grade'),
                 formRef.current?.getFieldValue('back_corners_human_grade'),
                 formRef.current?.getFieldValue('back_surface_human_grade'),
             ]),
-        [formTimestamp, values],
-    );
-
-    const computedRobogradesFrontTotal = useMemo(
-        (): number =>
+        );
+        setComputedRobogradesFrontTotal(
             computeTotal([
                 formRef.current?.getFieldValue('front_centering_laser_grade'),
                 formRef.current?.getFieldValue('front_edges_laser_grade'),
                 formRef.current?.getFieldValue('front_corners_laser_grade'),
                 formRef.current?.getFieldValue('front_surface_laser_grade'),
             ]),
-        [formTimestamp, values],
-    );
-
-    const computedRobogradesBackTotal = useMemo(
-        (): number =>
+        );
+        setComputedRobogradesBackTotal(
             computeTotal([
                 formRef.current?.getFieldValue('back_centering_laser_grade'),
                 formRef.current?.getFieldValue('back_edges_laser_grade'),
                 formRef.current?.getFieldValue('back_corners_laser_grade'),
                 formRef.current?.getFieldValue('back_surface_laser_grade'),
             ]),
-        [formTimestamp, values],
-    );
+        );
+    }, [formTimestamp]);
 
     useEffect(() => {
         if (open) {
@@ -174,6 +170,38 @@ export function GradesForm({ task }: Props): JSX.Element | null {
 
     useEffect(() => {
         formRef.current?.setFieldsValue(values);
+        setComputedHumanFrontTotal(
+            computeTotal([
+                values?.front_centering_human_grade,
+                values?.front_edges_human_grade,
+                values?.front_corners_human_grade,
+                values?.front_surface_human_grade,
+            ]),
+        );
+        setComputedHumanBackTotal(
+            computeTotal([
+                values?.back_centering_human_grade,
+                values?.back_edges_human_grade,
+                values?.back_corners_human_grade,
+                values?.back_surface_human_grade,
+            ]),
+        );
+        setComputedRobogradesFrontTotal(
+            computeTotal([
+                values?.front_centering_laser_grade,
+                values?.front_edges_laser_grade,
+                values?.front_corners_laser_grade,
+                values?.front_surface_laser_grade,
+            ]),
+        );
+        setComputedRobogradesBackTotal(
+            computeTotal([
+                values?.back_centering_laser_grade,
+                values?.back_edges_laser_grade,
+                values?.back_corners_laser_grade,
+                values?.back_surface_laser_grade,
+            ]),
+        );
     }, [values]);
 
     if (!open) {
@@ -185,19 +213,20 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             title: '',
             dataIndex: 'gradeType',
             key: 'gradeType',
+            render: (text: string) => <Typography.Text strong>{text}</Typography.Text>,
         },
         {
-            title: <Typography.Text strong> Total Front </Typography.Text>,
+            title: <Typography.Text strong>Total Front</Typography.Text>,
             dataIndex: 'totalFront',
             key: 'totalFront',
         },
         {
-            title: <Typography.Text strong> Total Back </Typography.Text>,
+            title: <Typography.Text strong>Total Back</Typography.Text>,
             dataIndex: 'totalBack',
             key: 'totalBack',
         },
         {
-            title: <Typography.Text strong> Total Overall </Typography.Text>,
+            title: <Typography.Text strong>Total Overall</Typography.Text>,
             dataIndex: 'totalOverall',
             key: 'totalOverall',
         },
@@ -264,7 +293,13 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                     </div>
                 </Col>
                 <Col span={12}>
-                    <Table bordered columns={totalGradesColumns} dataSource={totalGradesRows} />
+                    <Table
+                        bordered
+                        columns={totalGradesColumns}
+                        dataSource={totalGradesRows}
+                        pagination={false}
+                        size='small'
+                    />
                 </Col>
                 {hasErrorOrWarning ? (
                     <Col span={8}>
@@ -300,22 +335,22 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             <Row gutter={[16, 16]}>
                                 <Col span={6}>
                                     <Form.Item label='Centering' name='front_centering_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label='Surface' name='front_surface_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label='Edges' name='front_edges_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label='Corners' name='front_corners_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                             </Row>
@@ -326,22 +361,22 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             <Row gutter={[16, 16]}>
                                 <Col span={6}>
                                     <Form.Item label='Centering' name='back_centering_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label='Surface' name='back_surface_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label='Edges' name='back_edges_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label='Corners' name='back_corners_human_grade'>
-                                        <Input type='number' max={10} min={0} step={1} />
+                                        <Input type='number' max={10} min={0} step={0.5} />
                                     </Form.Item>
                                 </Col>
                             </Row>
