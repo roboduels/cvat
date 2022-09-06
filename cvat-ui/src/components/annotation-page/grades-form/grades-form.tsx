@@ -11,7 +11,7 @@ import Typography from 'antd/lib/typography';
 import Divider from 'antd/lib/divider';
 import Card from 'antd/lib/card';
 import Table from 'antd/lib/table';
-import { sum } from 'lodash';
+import { sum, min } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Space from 'antd/lib/space';
@@ -50,6 +50,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const [computedHumanBackTotal, setComputedHumanBackTotal] = useState(0);
     const [computedRobogradesFrontTotal, setComputedRobogradesFrontTotal] = useState(0);
     const [computedRobogradesBackTotal, setComputedRobogradesBackTotal] = useState(0);
+    const [computedLowestTotal, setComputedLowestTotal] = useState(0);
     const frameFilename = useSelector((state: CombinedState) => state.annotation.player.frame.filename);
     const frameOptions = useMemo(() => {
         const options = parseFilename(frameFilename);
@@ -152,6 +153,26 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 formRef.current?.getFieldValue('back_surface_laser_grade'),
             ]),
         );
+        setComputedLowestTotal(
+            min([
+                computeTotal([
+                    formRef.current?.getFieldValue('front_centering_laser_grade'),
+                    formRef.current?.getFieldValue('back_centering_laser_grade'),
+                ]),
+                computeTotal([
+                    formRef.current?.getFieldValue('front_edges_laser_grade'),
+                    formRef.current?.getFieldValue('back_edges_laser_grade'),
+                ]),
+                computeTotal([
+                    formRef.current?.getFieldValue('front_corners_laser_grade'),
+                    formRef.current?.getFieldValue('back_corners_laser_grade'),
+                ]),
+                computeTotal([
+                    formRef.current?.getFieldValue('front_surface_laser_grade'),
+                    formRef.current?.getFieldValue('back_surface_laser_grade'),
+                ]),
+            ]) + 1,
+        );
     }, [formTimestamp]);
 
     useEffect(() => {
@@ -202,11 +223,27 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 values?.back_surface_laser_grade,
             ]),
         );
+        setComputedLowestTotal(
+            min([
+                computeTotal([values?.front_centering_laser_grade, values?.back_centering_laser_grade]),
+                computeTotal([values?.front_edges_laser_grade, values?.back_edges_laser_grade]),
+                computeTotal([values?.front_corners_laser_grade, values?.back_corners_laser_grade]),
+                computeTotal([values?.front_surface_laser_grade, values?.back_surface_laser_grade]),
+            ]) + 1,
+        );
     }, [values]);
 
     if (!open) {
         return null;
     }
+
+    const sharedOnCell = (_: any, index: number) => {
+        if (index === 2) {
+            return { colSpan: 0 };
+        }
+
+        return {};
+    };
 
     const totalGradesColumns = [
         {
@@ -219,16 +256,31 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             title: <Typography.Text strong>Total Front</Typography.Text>,
             dataIndex: 'totalFront',
             key: 'totalFront',
+            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Back</Typography.Text>,
             dataIndex: 'totalBack',
             key: 'totalBack',
+            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Overall</Typography.Text>,
             dataIndex: 'totalOverall',
             key: 'totalOverall',
+            render: (text: string, record: any) => {
+                record.gradeType === 'Robogrades' ? (
+                    <>
+                        <Typography.Text delete>{text}</Typography.Text>
+                        {` ${computedLowestTotal}`}
+                    </>
+                ) : (
+                    text
+                );
+            },
+            onCell: (_, index) => ({
+                colSpan: (index as number) === 2 ? 3 : 1,
+            }),
         },
     ];
 
@@ -244,6 +296,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             totalFront: computedRobogradesFrontTotal,
             totalBack: computedRobogradesBackTotal,
             totalOverall: computeTotalOverall(computedRobogradesFrontTotal, computedRobogradesBackTotal),
+        },
+        {
+            gradeType: 'Predicted Overall RoboGrade (no subgrades)',
+            totalOverall: 1, //TODO
         },
     ];
 
