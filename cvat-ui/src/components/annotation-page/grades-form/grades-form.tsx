@@ -237,14 +237,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         return null;
     }
 
-    const sharedOnCell = (_: any, index: number) => {
-        if (index === 2) {
-            return { colSpan: 0 };
-        }
-
-        return {};
-    };
-
     const totalGradesColumns = [
         {
             title: '',
@@ -256,13 +248,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             title: <Typography.Text strong>Total Front</Typography.Text>,
             dataIndex: 'totalFront',
             key: 'totalFront',
-            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Back</Typography.Text>,
             dataIndex: 'totalBack',
             key: 'totalBack',
-            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Overall</Typography.Text>,
@@ -278,9 +268,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                     text
                 );
             },
-            onCell: (_, index) => ({
-                colSpan: (index as number) === 2 ? 3 : 1,
-            }),
         },
     ];
 
