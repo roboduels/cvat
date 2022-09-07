@@ -237,16 +237,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         return null;
     }
 
-    const sharedOnCell = (_, index) => {
-        if (index === 2) {
-            return {
-                colSpan: 0,
-            };
-        }
-
-        return {};
-    };
-
     const totalGradesColumns = [
         {
             title: '',
@@ -258,13 +248,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             title: <Typography.Text strong>Total Front</Typography.Text>,
             dataIndex: 'totalFront',
             key: 'totalFront',
-            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Back</Typography.Text>,
             dataIndex: 'totalBack',
             key: 'totalBack',
-            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Overall</Typography.Text>,
@@ -279,13 +267,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 ) : (
                     text
                 ),
-            onCell: (_, index) => {
-                if (index === 2) {
-                    return {
-                        colSpan: 2,
-                    };
-                }
-            },
         },
     ];
 
@@ -304,7 +285,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         },
         {
             gradeType: 'Predicted Overall RoboGrade (no subgrades)',
-            totalOverall: 1, //TODO
+            totalFront: values?.front_overall_predicted_grade,
+            totalBack: values?.back_overall_predicted_grade,
+            totalOverall: computeTotalOverall(
+                values?.front_overall_predicted_grade,
+                values?.back_overall_predicted_grade,
+            ),
         },
     ];
 

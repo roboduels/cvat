@@ -27,6 +27,8 @@ const defaultState: GradesState = {
         back_corners_laser_grade: 0,
         back_edges_laser_grade: 0,
         back_surface_laser_grade: 0,
+        front_overall_predicted_grade: 0,
+        back_overall_predicted_grade: 0,
     },
 };
 

@@ -734,6 +734,8 @@ export interface GradesState {
         back_corners_laser_grade: number;
         back_edges_laser_grade: number;
         back_surface_laser_grade: number;
+        front_overall_predicted_grade: number;
+        back_overall_predicted_grade: number;
     };
 }
 
