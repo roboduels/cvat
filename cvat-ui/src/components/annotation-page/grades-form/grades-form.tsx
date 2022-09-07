@@ -155,22 +155,30 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         );
         setComputedLowestTotal(
             min([
-                computeTotal([
-                    formRef.current?.getFieldValue('front_centering_laser_grade'),
-                    formRef.current?.getFieldValue('back_centering_laser_grade'),
-                ]),
-                computeTotal([
-                    formRef.current?.getFieldValue('front_edges_laser_grade'),
-                    formRef.current?.getFieldValue('back_edges_laser_grade'),
-                ]),
-                computeTotal([
-                    formRef.current?.getFieldValue('front_corners_laser_grade'),
-                    formRef.current?.getFieldValue('back_corners_laser_grade'),
-                ]),
-                computeTotal([
-                    formRef.current?.getFieldValue('front_surface_laser_grade'),
-                    formRef.current?.getFieldValue('back_surface_laser_grade'),
-                ]),
+                parseFloat(
+                    computeTotal([
+                        formRef.current?.getFieldValue('front_centering_laser_grade'),
+                        formRef.current?.getFieldValue('back_centering_laser_grade'),
+                    ]),
+                ),
+                parseFloat(
+                    computeTotal([
+                        formRef.current?.getFieldValue('front_edges_laser_grade'),
+                        formRef.current?.getFieldValue('back_edges_laser_grade'),
+                    ]),
+                ),
+                parseFloat(
+                    computeTotal([
+                        formRef.current?.getFieldValue('front_corners_laser_grade'),
+                        formRef.current?.getFieldValue('back_corners_laser_grade'),
+                    ]),
+                ),
+                parseFloat(
+                    computeTotal([
+                        formRef.current?.getFieldValue('front_surface_laser_grade'),
+                        formRef.current?.getFieldValue('back_surface_laser_grade'),
+                    ]),
+                ),
             ]),
         );
     }, [formTimestamp]);
@@ -225,10 +233,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         );
         setComputedLowestTotal(
             min([
-                computeTotal([values?.front_centering_laser_grade, values?.back_centering_laser_grade]),
-                computeTotal([values?.front_edges_laser_grade, values?.back_edges_laser_grade]),
-                computeTotal([values?.front_corners_laser_grade, values?.back_corners_laser_grade]),
-                computeTotal([values?.front_surface_laser_grade, values?.back_surface_laser_grade]),
+                parseFloat(computeTotal([values?.front_centering_laser_grade, values?.back_centering_laser_grade])),
+                parseFloat(computeTotal([values?.front_edges_laser_grade, values?.back_edges_laser_grade])),
+                parseFloat(computeTotal([values?.front_corners_laser_grade, values?.back_corners_laser_grade])),
+                parseFloat(computeTotal([values?.front_surface_laser_grade, values?.back_surface_laser_grade])),
             ]),
         );
     }, [values]);
