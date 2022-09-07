@@ -258,15 +258,13 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             title: <Typography.Text strong>Total Overall</Typography.Text>,
             dataIndex: 'totalOverall',
             key: 'totalOverall',
-            render: (text: string, record: any) => {
-                record.gradeType === 'Robogrades' ? (
+            render: (text: string | number, record: any) => {
+                record.gradeType === 'Robogrades' ? return (
                     <>
                         <Typography.Text delete>{text}</Typography.Text>
                         {` ${computedLowestTotal}`}
                     </>
-                ) : (
-                    text
-                );
+                ) : return text;
             },
         },
     ];
