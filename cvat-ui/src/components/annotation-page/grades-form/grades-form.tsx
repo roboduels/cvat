@@ -171,7 +171,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                     formRef.current?.getFieldValue('front_surface_laser_grade'),
                     formRef.current?.getFieldValue('back_surface_laser_grade'),
                 ]),
-            ]) + 1,
+            ]),
         );
     }, [formTimestamp]);
 
@@ -229,13 +229,23 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 computeTotal([values?.front_edges_laser_grade, values?.back_edges_laser_grade]),
                 computeTotal([values?.front_corners_laser_grade, values?.back_corners_laser_grade]),
                 computeTotal([values?.front_surface_laser_grade, values?.back_surface_laser_grade]),
-            ]) + 1,
+            ]),
         );
     }, [values]);
 
     if (!open) {
         return null;
     }
+
+    const sharedOnCell = (_, index) => {
+        if (index === 2) {
+            return {
+                colSpan: 0,
+            };
+        }
+
+        return {};
+    };
 
     const totalGradesColumns = [
         {
@@ -248,11 +258,13 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             title: <Typography.Text strong>Total Front</Typography.Text>,
             dataIndex: 'totalFront',
             key: 'totalFront',
+            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Back</Typography.Text>,
             dataIndex: 'totalBack',
             key: 'totalBack',
+            onCell: sharedOnCell,
         },
         {
             title: <Typography.Text strong>Total Overall</Typography.Text>,
@@ -262,11 +274,18 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 record.gradeType === 'Robogrades' ? (
                     <>
                         <Typography.Text delete>{text}</Typography.Text>
-                        {` ${computedLowestTotal}`}
+                        {` ${(parseFloat(computedLowestTotal) + 1.0).toFixed(2)}`}
                     </>
                 ) : (
                     text
                 ),
+            onCell: (_, index) => {
+                if (index === 2) {
+                    return {
+                        colSpan: 2,
+                    };
+                }
+            },
         },
     ];
 
