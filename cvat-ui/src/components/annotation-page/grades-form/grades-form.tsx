@@ -156,28 +156,28 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         setComputedLowestTotal(
             min([
                 parseFloat(
-                    computeTotal([
+                    computeTotalOverall(
                         formRef.current?.getFieldValue('front_centering_laser_grade'),
                         formRef.current?.getFieldValue('back_centering_laser_grade'),
-                    ]),
+                    ),
                 ),
                 parseFloat(
-                    computeTotal([
+                    computeTotalOverall(
                         formRef.current?.getFieldValue('front_edges_laser_grade'),
                         formRef.current?.getFieldValue('back_edges_laser_grade'),
-                    ]),
+                    ),
                 ),
                 parseFloat(
-                    computeTotal([
+                    computeTotalOverall(
                         formRef.current?.getFieldValue('front_corners_laser_grade'),
                         formRef.current?.getFieldValue('back_corners_laser_grade'),
-                    ]),
+                    ),
                 ),
                 parseFloat(
-                    computeTotal([
+                    computeTotalOverall(
                         formRef.current?.getFieldValue('front_surface_laser_grade'),
                         formRef.current?.getFieldValue('back_surface_laser_grade'),
-                    ]),
+                    ),
                 ),
             ]),
         );
@@ -233,10 +233,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         );
         setComputedLowestTotal(
             min([
-                parseFloat(computeTotal([values?.front_centering_laser_grade, values?.back_centering_laser_grade])),
-                parseFloat(computeTotal([values?.front_edges_laser_grade, values?.back_edges_laser_grade])),
-                parseFloat(computeTotal([values?.front_corners_laser_grade, values?.back_corners_laser_grade])),
-                parseFloat(computeTotal([values?.front_surface_laser_grade, values?.back_surface_laser_grade])),
+                parseFloat(
+                    computeTotalOverall(values?.front_centering_laser_grade, values?.back_centering_laser_grade),
+                ),
+                parseFloat(computeTotalOverall(values?.front_edges_laser_grade, values?.back_edges_laser_grade)),
+                parseFloat(computeTotalOverall(values?.front_corners_laser_grade, values?.back_corners_laser_grade)),
+                parseFloat(computeTotalOverall(values?.front_surface_laser_grade, values?.back_surface_laser_grade)),
             ]),
         );
     }, [values]);
