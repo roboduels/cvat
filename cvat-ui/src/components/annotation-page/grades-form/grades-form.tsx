@@ -301,6 +301,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             totalOverall: computeTotalOverall(computedRobogradesFrontTotal, computedRobogradesBackTotal),
         },
         {
+            gradeType: 'Raw Robogrades',
+            totalFront: '0.00',
+            totalBack: '0.00',
+            totalOverall: '0.00',
+        },
+        {
             gradeType: 'Predicted Overall RoboGrade (no subgrades)',
             totalFront: values?.front_overall_predicted_grade,
             totalBack: values?.back_overall_predicted_grade,
