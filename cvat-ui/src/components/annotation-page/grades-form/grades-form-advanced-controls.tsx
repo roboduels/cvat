@@ -4,6 +4,7 @@
 import React, { useCallback } from 'react';
 import './styles.scss';
 import Button from 'antd/lib/button';
+import Space from 'antd/lib/space';
 
 interface Props {
     onRobogradesAndMasks(): void;
@@ -24,9 +25,14 @@ function GradesFormAdvancedControls({ onRobogradesAndMasks }: Props): JSX.Elemen
                 </Button>
             </div>
             {isExpanded && (
-                <Button block onClick={onRobogradesAndMasks}>
-                    Generate Robogrades & Masks
-                </Button>
+                <Space direction='vertical' style={{ width: '100%' }}>
+                    <Button block onClick={onRobogradesAndMasks}>
+                        Generate Robogrades & Masks
+                    </Button>
+                    <Button block onClick={() => {}}>
+                        Generate Raw Robogrades
+                    </Button>
+                </Space>
             )}
         </>
     );
