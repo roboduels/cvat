@@ -356,11 +356,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                         ) : null}
                     </div>
                 </Col>
-                <Col span={12}>
+                <Col span={12} className='grades-form-overall-grades'>
                     <Collapse defaultActiveKey={['1']}>
                         <Panel header='Overall Robogrades' key='1'>
                             <Table
-                                bordered
                                 columns={totalGradesColumns}
                                 dataSource={totalGradesRows}
                                 pagination={false}
@@ -394,14 +393,14 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 initialValues={values}
                 onFieldsChange={handleFieldsChange}
             >
-                <Row gutter={2} className='grades-form-section'>
+                <Row gutter={8} className='grades-form-section'>
                     <Col span={8}>
                         <Collapse defaultActiveKey={['1']}>
                             <Panel header='Enhanced Robogrades' key='1'>
                                 <Typography.Text strong className='grades-form-inner-title'>
                                     Front of Card
                                 </Typography.Text>
-                                <Row gutter={[16, 16]}>
+                                <Row gutter={[8, 16]}>
                                     <Col span={6}>
                                         <Form.Item label='Centering' name='front_centering_human_grade'>
                                             <Input type='number' max={10} min={0} step={0.5} />
@@ -427,7 +426,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <Typography.Text strong className='grades-form-inner-title'>
                                     Back of Card
                                 </Typography.Text>
-                                <Row gutter={[16, 16]}>
+                                <Row gutter={[8, 16]}>
                                     <Col span={6}>
                                         <Form.Item label='Centering' name='back_centering_human_grade'>
                                             <Input type='number' max={10} min={0} step={0.5} />
@@ -458,7 +457,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <Typography.Text strong className='grades-form-inner-title'>
                                     Front of Card
                                 </Typography.Text>
-                                <Row gutter={[16, 16]}>
+                                <Row gutter={[8, 16]}>
                                     <Col span={6}>
                                         <Form.Item label='Centering' name='front_centering_laser_grade'>
                                             <Input readOnly />
@@ -484,7 +483,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <Typography.Text strong className='grades-form-inner-title'>
                                     Back of Card
                                 </Typography.Text>
-                                <Row gutter={[16, 16]}>
+                                <Row gutter={[8, 16]}>
                                     <Col span={6}>
                                         <Form.Item label='Centering' name='back_centering_laser_grade'>
                                             <Input readOnly />
