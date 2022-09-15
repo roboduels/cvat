@@ -29,9 +29,11 @@ function GradesFormAdvancedControls({ onRobogradesAndMasks }: Props): JSX.Elemen
                     <Button block onClick={onRobogradesAndMasks}>
                         Generate Robogrades & Masks
                     </Button>
-                    <Button block onClick={() => {}}>
-                        Generate Raw Robogrades
-                    </Button>
+                    {/*
+                        <Button block onClick={() => {}}>
+                            Generate Raw Robogrades
+                        </Button>
+                    */}
                 </Space>
             )}
         </>

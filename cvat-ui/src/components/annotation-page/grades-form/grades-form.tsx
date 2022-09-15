@@ -300,12 +300,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             totalBack: computedRobogradesBackTotal,
             totalOverall: computeTotalOverall(computedRobogradesFrontTotal, computedRobogradesBackTotal),
         },
-        {
-            gradeType: 'Raw Robogrades',
-            totalFront: '0.00',
-            totalBack: '0.00',
-            totalOverall: '0.00',
-        },
+        // {
+        //     gradeType: 'Raw Robogrades',
+        //     totalFront: '0.00',
+        //     totalBack: '0.00',
+        //     totalOverall: '0.00',
+        // },
         {
             gradeType: 'Predicted Overall RoboGrade (no subgrades)',
             totalFront: values?.front_overall_predicted_grade,
@@ -515,9 +515,9 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                         </Collapse>
                     </Col>
                     <Col span={4}>
-                        <Collapse defaultActiveKey={['1']}>
+                        {/*<Collapse defaultActiveKey={['1']}>
                             <Panel header='Raw Robogrades' key='1'></Panel>
-                        </Collapse>
+                        </Collapse>*/}
                     </Col>
                     <Col span={4} style={{ display: 'flex' }}>
                         <div
