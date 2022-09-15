@@ -562,28 +562,28 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                         <div className='grades-form-info-typography'>
                                             <Typography.Text strong>Surface:&nbsp;</Typography.Text>
                                             <Typography.Text>
-                                                {value?.[`${frameOptions.orientation}_raw_surface_grade`]}
+                                                {values?.[`${frameOptions.orientation}_raw_surface_grade`]}
                                             </Typography.Text>
                                         </div>
 
                                         <div className='grades-form-info-typography'>
                                             <Typography.Text strong>Corner:&nbsp;</Typography.Text>
                                             <Typography.Text>
-                                                {value?.[`${frameOptions.orientation}_raw_corner_grade`]}
+                                                {values?.[`${frameOptions.orientation}_raw_corner_grade`]}
                                             </Typography.Text>
                                         </div>
 
                                         <div className='grades-form-info-typography'>
                                             <Typography.Text strong>Edges:&nbsp;</Typography.Text>
                                             <Typography.Text>
-                                                {value?.[`${frameOptions.orientation}_raw_edge_grade`]}
+                                                {values?.[`${frameOptions.orientation}_raw_edge_grade`]}
                                             </Typography.Text>
                                         </div>
 
                                         <div className='grades-form-info-typography'>
                                             <Typography.Text strong>Centering:&nbsp;</Typography.Text>
                                             <Typography.Text>
-                                                {value?.[`${frameOptions.orientation}_raw_centering_grade`]}
+                                                {values?.[`${frameOptions.orientation}_raw_centering_grade`]}
                                             </Typography.Text>
                                         </div>
                                     </div>
