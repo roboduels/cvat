@@ -21,6 +21,7 @@ import {
     gradesActions,
     loadingGradesAsync,
     submitAnnotationFrameToGradeAsync,
+    submitAnnotationFrameToRawGradeAsync,
     submitHumanGradesAsync,
     updateTaskMeta,
 } from '../../../actions/grades-actions';
@@ -53,6 +54,8 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const [computedHumanBackTotal, setComputedHumanBackTotal] = useState(0);
     const [computedRobogradesFrontTotal, setComputedRobogradesFrontTotal] = useState(0);
     const [computedRobogradesBackTotal, setComputedRobogradesBackTotal] = useState(0);
+    const [computedRawRobogradesFrontTotal, setComputedRawRobogradesFrontTotal] = useState(0);
+    const [computedRawRobogradesBackTotal, setComputedRawRobogradesBackTotal] = useState(0);
     const [computedLowestTotal, setComputedLowestTotal] = useState(0);
     const frameFilename = useSelector((state: CombinedState) => state.annotation.player.frame.filename);
     const frameOptions = useMemo(() => {
@@ -82,6 +85,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
 
     const handleRobogradesAndMasks = useCallback(async () => {
         dispatch(submitAnnotationFrameToGradeAsync({ ...frameOptions, withMasks: true }));
+        formRef.current?.setFieldsValue({});
+    }, [frameOptions]);
+
+    const handleRawRobogrades = useCallback(async () => {
+        dispatch(submitAnnotationFrameToRawGradeAsync(frameOptions));
         formRef.current?.setFieldsValue({});
     }, [frameOptions]);
 
@@ -154,6 +162,22 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 formRef.current?.getFieldValue('back_edges_laser_grade'),
                 formRef.current?.getFieldValue('back_corners_laser_grade'),
                 formRef.current?.getFieldValue('back_surface_laser_grade'),
+            ]),
+        );
+        setComputedRawRobogradesFrontTotal(
+            computeTotal([
+                formRef.current?.getFieldValue('front_raw_centering_grade'),
+                formRef.current?.getFieldValue('front_raw_edge_grade'),
+                formRef.current?.getFieldValue('front_raw_corner_grade'),
+                formRef.current?.getFieldValue('front_raw_surface_grade'),
+            ]),
+        );
+        setComputedRawRobogradesBackTotal(
+            computeTotal([
+                formRef.current?.getFieldValue('back_raw_centering_grade'),
+                formRef.current?.getFieldValue('back_raw_edge_grade'),
+                formRef.current?.getFieldValue('back_raw_corner_grade'),
+                formRef.current?.getFieldValue('back_raw_surface_grade'),
             ]),
         );
         setComputedLowestTotal(
@@ -234,6 +258,22 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 values?.back_surface_laser_grade,
             ]),
         );
+        setComputedRobogradesFrontTotal(
+            computeTotal([
+                values?.front_raw_centering_grade,
+                values?.front_raw_edge_grade,
+                values?.front_raw_corner_grade,
+                values?.front_raw_surface_grade,
+            ]),
+        );
+        setComputedRobogradesBackTotal(
+            computeTotal([
+                values?.back_raw_centering_grade,
+                values?.back_raw_edge_grade,
+                values?.back_raw_corner_grade,
+                values?.back_raw_surface_grade,
+            ]),
+        );
         setComputedLowestTotal(
             min([
                 parseFloat(
@@ -302,9 +342,9 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         },
         {
             gradeType: 'Raw Robogrades',
-            totalFront: '0.00',
-            totalBack: '0.00',
-            totalOverall: '0.00',
+            totalFront: computedRawRobogradesFrontTotal,
+            totalBack: computedRawRobogradesBackTotal,
+            totalOverall: computeTotalOverall(computedRawRobogradesFrontTotal, computedRawRobogradesBackTotal),
         },
         {
             gradeType: 'Predicted Overall RoboGrade (no subgrades)',
@@ -514,11 +554,43 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             </Panel>
                         </Collapse>
                     </Col>
-                    <Col span={4}>
-                        <Collapse defaultActiveKey={['1']}>
-                            <Panel header='Raw Robogrades' key='1'></Panel>
-                        </Collapse>
-                    </Col>
+                    {frameOptions.orientation ? (
+                        <Col span={4}>
+                            <Collapse defaultActiveKey={['1']}>
+                                <Panel header='Raw Robogrades' key='1'>
+                                    <div className='grades-form-info'>
+                                        <div className='grades-form-info-typography'>
+                                            <Typography.Text strong>Surface:&nbsp;</Typography.Text>
+                                            <Typography.Text>
+                                                {value?.[`${frameOptions.orientation}_raw_surface_grade`]}
+                                            </Typography.Text>
+                                        </div>
+
+                                        <div className='grades-form-info-typography'>
+                                            <Typography.Text strong>Corner:&nbsp;</Typography.Text>
+                                            <Typography.Text>
+                                                {value?.[`${frameOptions.orientation}_raw_corner_grade`]}
+                                            </Typography.Text>
+                                        </div>
+
+                                        <div className='grades-form-info-typography'>
+                                            <Typography.Text strong>Edges:&nbsp;</Typography.Text>
+                                            <Typography.Text>
+                                                {value?.[`${frameOptions.orientation}_raw_edge_grade`]}
+                                            </Typography.Text>
+                                        </div>
+
+                                        <div className='grades-form-info-typography'>
+                                            <Typography.Text strong>Centering:&nbsp;</Typography.Text>
+                                            <Typography.Text>
+                                                {value?.[`${frameOptions.orientation}_raw_centering_grade`]}
+                                            </Typography.Text>
+                                        </div>
+                                    </div>
+                                </Panel>
+                            </Collapse>
+                        </Col>
+                    ) : null}
                     <Col span={4} style={{ display: 'flex' }}>
                         <div
                             style={{
@@ -542,7 +614,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <Button type='primary' onClick={handleRobogrades} block>
                                     Generate Robogrades
                                 </Button>
-                                <GradesFormAdvancedControls onRobogradesAndMasks={handleRobogradesAndMasks} />
+                                <GradesFormAdvancedControls
+                                    onGenerateRobogradesAndMasks={handleRobogradesAndMasks}
+                                    onGenerateRawRobogrades={handleRawRobogrades}
+                                />
                             </Space>
                         </div>
                     </Col>
