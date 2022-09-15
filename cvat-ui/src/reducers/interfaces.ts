@@ -736,30 +736,6 @@ export interface GradesState {
         back_surface_laser_grade: number;
         front_overall_predicted_grade: number;
         back_overall_predicted_grade: number;
-        front_raw_surface_minor_defect: number[];
-        front_raw_surface_major_defect: number[];
-        front_raw_edge_minor_defect: number[];
-        front_raw_edge_major_defect: number[];
-        front_raw_corner_minor_defect: number[];
-        front_raw_corner_major_defect: number[];
-        front_raw_angle_dif: number[];
-        front_raw_center_dif: number[];
-        front_raw_surface_grade: number;
-        front_raw_edge_grade: number;
-        front_raw_corner_grade: number;
-        front_raw_centering_grade: number;
-        back_raw_surface_minor_defect: number[];
-        back_raw_surface_major_defect: number[];
-        back_raw_edge_minor_defect: number[];
-        back_raw_edge_major_defect: number[];
-        back_raw_corner_minor_defect: number[];
-        back_raw_corner_major_defect: number[];
-        back_raw_angle_dif: number[];
-        back_raw_center_dif: number[];
-        back_raw_surface_grade: number;
-        back_raw_edge_grade: number;
-        back_raw_corner_grade: number;
-        back_raw_centering_grade: number;
     };
 }
 
