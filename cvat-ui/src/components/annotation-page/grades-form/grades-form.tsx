@@ -258,7 +258,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 values?.back_surface_laser_grade,
             ]),
         );
-        setComputedRobogradesFrontTotal(
+        setComputedRawRobogradesFrontTotal(
             computeTotal([
                 values?.front_raw_centering_grade,
                 values?.front_raw_edge_grade,
@@ -266,7 +266,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 values?.front_raw_surface_grade,
             ]),
         );
-        setComputedRobogradesBackTotal(
+        setComputedRawRobogradesBackTotal(
             computeTotal([
                 values?.back_raw_centering_grade,
                 values?.back_raw_edge_grade,
