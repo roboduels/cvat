@@ -126,7 +126,10 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         });
     }, [task, setOrderId, setCertificateId]);
 
-    const computeRawGradePercentile = (grade: string | number): string => {
+    const computeRawGradePercentile = (grade: string | number | undefined): string => {
+        if (grade === undefined) {
+            return '-';
+        }
         const percentage = 100 - grade;
         return `${percentage}${nth(percentage)}%`;
     };
@@ -577,11 +580,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                                     {`(minor: ${computeRawGradePercentile(
                                                         values?.[
                                                             `${frameOptions.orientation}_raw_surface_minor_defect`
-                                                        ][1],
+                                                        ]?.[1],
                                                     )}, major: ${computeRawGradePercentile(
                                                         values?.[
                                                             `${frameOptions.orientation}_raw_surface_major_defect`
-                                                        ][1],
+                                                        ]?.[1],
                                                     )})`}
                                                 </Typography.Text>
                                             </div>
@@ -599,11 +602,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                                     {`(minor: ${computeRawGradePercentile(
                                                         values?.[
                                                             `${frameOptions.orientation}_raw_corner_minor_defect`
-                                                        ][1],
+                                                        ]?.[1],
                                                     )}, major: ${computeRawGradePercentile(
                                                         values?.[
                                                             `${frameOptions.orientation}_raw_corner_major_defect`
-                                                        ][1],
+                                                        ]?.[1],
                                                     )})`}
                                                 </Typography.Text>
                                             </div>
@@ -621,11 +624,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                                     {`(minor: ${computeRawGradePercentile(
                                                         values?.[
                                                             `${frameOptions.orientation}_raw_edge_minor_defect`
-                                                        ][1],
+                                                        ]?.[1],
                                                     )}, major: ${computeRawGradePercentile(
                                                         values?.[
                                                             `${frameOptions.orientation}_raw_edge_major_defect`
-                                                        ][1],
+                                                        ]?.[1],
                                                     )})`}
                                                 </Typography.Text>
                                             </div>
@@ -641,9 +644,9 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                             <div className='grades-form-raw-grades-info'>
                                                 <Typography.Text>
                                                     {`(angle: ${computeRawGradePercentile(
-                                                        values?.[`${frameOptions.orientation}_raw_angle_dif`][1],
+                                                        values?.[`${frameOptions.orientation}_raw_angle_dif`]?.[1],
                                                     )}, center: ${computeRawGradePercentile(
-                                                        values?.[`${frameOptions.orientation}_raw_center_dif`][1],
+                                                        values?.[`${frameOptions.orientation}_raw_center_dif`]?.[1],
                                                     )})`}
                                                 </Typography.Text>
                                             </div>
