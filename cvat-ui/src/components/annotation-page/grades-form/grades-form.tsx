@@ -27,6 +27,7 @@ import {
 } from '../../../actions/grades-actions';
 import { CombinedState } from '../../../reducers/interfaces';
 import { parseFilename } from '../../../utils/grades';
+import { nth } from '../../../utils/math';
 import GradesFormAdvancedControls from './grades-form-advanced-controls';
 import './styles.scss';
 
@@ -124,6 +125,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
             return orderValue;
         });
     }, [task, setOrderId, setCertificateId]);
+
+    const computeRawGradePercentile = (grade: string | number): string => {
+        const percentage = 100 - grade;
+        return `${percentage}${nth(percentage)}%`;
+    };
 
     const computeTotal = (list: string[] | number[]): number =>
         (sum(list.map((value) => parseFloat(`${value || 0}`))) / list.length).toFixed(2);
@@ -559,32 +565,88 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             <Collapse defaultActiveKey={['1']}>
                                 <Panel header='Raw Robogrades' key='1'>
                                     <div className='grades-form-info'>
-                                        <div className='grades-form-info-typography'>
-                                            <Typography.Text strong>Surface:&nbsp;</Typography.Text>
-                                            <Typography.Text>
-                                                {values?.[`${frameOptions.orientation}_raw_surface_grade`]}
-                                            </Typography.Text>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Surface:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_raw_surface_grade`]}
+                                                </Typography.Text>
+                                            </div>
+                                            <div className='grades-form-raw-grades-info'>
+                                                <Typography.Text>
+                                                    {`(minor: ${computeRawGradePercentile(
+                                                        values?.[
+                                                            `${frameOptions.orientation}_raw_surface_minor_defect`
+                                                        ][1],
+                                                    )}, major: ${computeRawGradePercentile(
+                                                        values?.[
+                                                            `${frameOptions.orientation}_raw_surface_major_defect`
+                                                        ][1],
+                                                    )})`}
+                                                </Typography.Text>
+                                            </div>
                                         </div>
 
-                                        <div className='grades-form-info-typography'>
-                                            <Typography.Text strong>Corner:&nbsp;</Typography.Text>
-                                            <Typography.Text>
-                                                {values?.[`${frameOptions.orientation}_raw_corner_grade`]}
-                                            </Typography.Text>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Corner:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_raw_corner_grade`]}
+                                                </Typography.Text>
+                                            </div>
+                                            <div className='grades-form-raw-grades-info'>
+                                                <Typography.Text>
+                                                    {`(minor: ${computeRawGradePercentile(
+                                                        values?.[
+                                                            `${frameOptions.orientation}_raw_corner_minor_defect`
+                                                        ][1],
+                                                    )}, major: ${computeRawGradePercentile(
+                                                        values?.[
+                                                            `${frameOptions.orientation}_raw_corner_major_defect`
+                                                        ][1],
+                                                    )})`}
+                                                </Typography.Text>
+                                            </div>
                                         </div>
 
-                                        <div className='grades-form-info-typography'>
-                                            <Typography.Text strong>Edges:&nbsp;</Typography.Text>
-                                            <Typography.Text>
-                                                {values?.[`${frameOptions.orientation}_raw_edge_grade`]}
-                                            </Typography.Text>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Edges:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_raw_edge_grade`]}
+                                                </Typography.Text>
+                                            </div>
+                                            <div className='grades-form-raw-grades-info'>
+                                                <Typography.Text>
+                                                    {`(minor: ${computeRawGradePercentile(
+                                                        values?.[
+                                                            `${frameOptions.orientation}_raw_edge_minor_defect`
+                                                        ][1],
+                                                    )}, major: ${computeRawGradePercentile(
+                                                        values?.[
+                                                            `${frameOptions.orientation}_raw_edge_major_defect`
+                                                        ][1],
+                                                    )})`}
+                                                </Typography.Text>
+                                            </div>
                                         </div>
 
-                                        <div className='grades-form-info-typography'>
-                                            <Typography.Text strong>Centering:&nbsp;</Typography.Text>
-                                            <Typography.Text>
-                                                {values?.[`${frameOptions.orientation}_raw_centering_grade`]}
-                                            </Typography.Text>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Centering:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_raw_centering_grade`]}
+                                                </Typography.Text>
+                                            </div>
+                                            <div className='grades-form-raw-grades-info'>
+                                                <Typography.Text>
+                                                    {`(angle: ${computeRawGradePercentile(
+                                                        values?.[`${frameOptions.orientation}_raw_angle_dif`][1],
+                                                    )}, center: ${computeRawGradePercentile(
+                                                        values?.[`${frameOptions.orientation}_raw_center_dif`][1],
+                                                    )})`}
+                                                </Typography.Text>
+                                            </div>
                                         </div>
                                     </div>
                                 </Panel>
