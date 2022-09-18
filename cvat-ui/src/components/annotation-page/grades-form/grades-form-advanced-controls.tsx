@@ -7,10 +7,11 @@ import Button from 'antd/lib/button';
 import Space from 'antd/lib/space';
 
 interface Props {
-    onRobogradesAndMasks(): void;
+    onGenerateRobogradesAndMasks(): void;
+    onGenerateRawRobogrades(): void;
 }
 
-function GradesFormAdvancedControls({ onRobogradesAndMasks }: Props): JSX.Element {
+function GradesFormAdvancedControls({ onGenerateRobogradesAndMasks, onGenerateRawRobogrades }: Props): JSX.Element {
     const [isExpanded, setIsExpanded] = React.useState(false);
 
     const handleToggle = useCallback((): void => {
@@ -26,10 +27,10 @@ function GradesFormAdvancedControls({ onRobogradesAndMasks }: Props): JSX.Elemen
             </div>
             {isExpanded && (
                 <Space direction='vertical' style={{ width: '100%' }}>
-                    <Button block onClick={onRobogradesAndMasks}>
+                    <Button block onClick={onGenerateRobogradesAndMasks}>
                         Generate Robogrades & Masks
                     </Button>
-                    <Button block onClick={() => {}}>
+                    <Button block onClick={onGenerateRawRobogrades}>
                         Generate Raw Robogrades
                     </Button>
                 </Space>

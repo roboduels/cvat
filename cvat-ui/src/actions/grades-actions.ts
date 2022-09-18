@@ -8,7 +8,7 @@ import { CombinedState, GradesState } from '../reducers/interfaces';
 import { calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue } from '../utils/grades';
 
 const certificateNotFound = (message: string): Error => new Error(`${message}, certificate number not found!`);
-const orientationNotFound = new Error('Cannot reload robo grades, orientation not found!');
+const orientationNotFound = new Error('Cannot reload RoboGrades, orientation not found!');
 
 export enum GradesActionsTypes {
     LOAD_VALUES = 'grades@LOAD_VALUES',
@@ -133,6 +133,30 @@ export const loadingGradesAsync =
                     front_surface_laser_grade: mapGradeValue(result?.laser_front_scan?.surface_result?.results?.grade),
                     front_overall_predicted_grade: mapGradeValue(result?.laser_front_scan?.overall_predicted_grade),
                     back_overall_predicted_grade: mapGradeValue(result?.laser_back_scan?.overall_predicted_grade),
+                    front_raw_surface_minor_defect: result?.front_raw_grades?.surface_minor_defect,
+                    front_raw_surface_major_defect: result?.front_raw_grades?.surface_major_defect,
+                    front_raw_edge_minor_defect: result?.front_raw_grades?.edge_minor_defect,
+                    front_raw_edge_major_defect: result?.front_raw_grades?.edge_major_defect,
+                    front_raw_corner_minor_defect: result?.front_raw_grades?.corner_minor_defect,
+                    front_raw_corner_major_defect: result?.front_raw_grades?.corner_major_defect,
+                    front_raw_angle_dif: result?.front_raw_grades?.angle_dif,
+                    front_raw_center_dif: result?.front_raw_grades?.center_dif,
+                    front_raw_surface_grade: mapGradeValue(result?.front_raw_grades?.surface_grade),
+                    front_raw_edge_grade: mapGradeValue(result?.front_raw_grades?.edge_grade),
+                    front_raw_corner_grade: mapGradeValue(result?.front_raw_grades?.corner_grade),
+                    front_raw_centering_grade: mapGradeValue(result?.front_raw_grades?.centering_grade),
+                    back_raw_surface_minor_defect: result?.back_raw_grades?.surface_minor_defect,
+                    back_raw_surface_major_defect: result?.back_raw_grades?.surface_major_defect,
+                    back_raw_edge_minor_defect: result?.back_raw_grades?.edge_minor_defect,
+                    back_raw_edge_major_defect: result?.back_raw_grades?.edge_major_defect,
+                    back_raw_corner_minor_defect: result?.back_raw_grades?.corner_minor_defect,
+                    back_raw_corner_major_defect: result?.back_raw_grades?.corner_major_defect,
+                    back_raw_angle_dif: result?.back_raw_grades?.angle_dif,
+                    back_raw_center_dif: result?.back_raw_grades?.center_dif,
+                    back_raw_surface_grade: mapGradeValue(result?.back_raw_grades?.surface_grade),
+                    back_raw_edge_grade: mapGradeValue(result?.back_raw_grades?.edge_grade),
+                    back_raw_corner_grade: mapGradeValue(result?.back_raw_grades?.corner_grade),
+                    back_raw_centering_grade: mapGradeValue(result?.back_raw_grades?.centering_grade),
                 }),
             );
         } catch (error) {
@@ -218,7 +242,7 @@ export const submitAnnotationFrameToGradeAsync =
             dispatch(gradesActions.setLoading(true));
             if (!input.noNotifications) {
                 notification.info({
-                    message: 'Updating Robo grades...',
+                    message: 'Updating RoboGrades...',
                 });
             }
             const { data } = await apiCall('/cvat-to-grade/', {
@@ -240,7 +264,7 @@ export const submitAnnotationFrameToGradeAsync =
 
             if (!input.noNotifications) {
                 notification.success({
-                    message: 'Robo grades has been updated successfully.',
+                    message: 'RoboGrades has been updated successfully.',
                 });
             }
             if (resolve) {
@@ -249,7 +273,115 @@ export const submitAnnotationFrameToGradeAsync =
         } catch (e) {
             if (!input.noNotifications) {
                 notification.error({
-                    message: "Robo grades couldn't be updated.",
+                    message: "RoboGrades couldn't be updated.",
+                });
+            }
+            dispatch(setErrorAsync(e));
+            if (reject) {
+                reject(e);
+            }
+        }
+        dispatch(gradesActions.setLoading(false));
+    };
+
+export const submitAnnotationFrameToRawGradeAsync =
+    (
+        input: SubmitAnnotationFrameInput & {
+            noNotifications?: boolean;
+            frame?: any;
+            annotation?: any;
+            job?: any;
+            resolve?: () => void;
+            reject?: (e: any) => void;
+        },
+    ): ThunkAction =>
+    async (dispatch, getState) => {
+        if (!input.orientation) {
+            dispatch(setWarningAsync(orientationNotFound));
+        }
+
+        const { resolve, reject } = input;
+        const state = getState() as CombinedState;
+        const states: any[] = input.annotation || state.annotation?.annotations?.states || [];
+        const { frame: annotationFrame } = state.annotation.player;
+        const formData = new FormData();
+
+        const theFrame = input.frame || annotationFrame;
+        const frameName = theFrame.filename;
+
+        const job = input.job || state.annotation.job.instance;
+        const image = await job.frames.frameData((theFrame || annotationFrame).number);
+        formData.append('image', image, frameName);
+
+        formData.append(
+            'payload',
+            JSON.stringify({
+                filename: frameName,
+                objects: states.map((item) => ({
+                    points: item.points,
+                    label: item.label.name,
+                    shape: item.shapeType,
+                })),
+                image: {
+                    width: theFrame.width ?? theFrame.data.width,
+                    height: theFrame.height ?? theFrame.data.height,
+                },
+            }),
+        );
+
+        if (input.orientation) {
+            formData.append('orientation', input.orientation);
+        }
+        if (input.imageType) {
+            formData.append('image_type', input.imageType);
+        }
+        if (input.certificateId) {
+            formData.append('certificate_id', input.certificateId);
+        }
+
+        try {
+            dispatch(gradesActions.setLoading(true));
+            if (!input.noNotifications) {
+                notification.info({
+                    message: 'Updating Raw RoboGrades...',
+                });
+            }
+            const { data } = await apiCall('/generate-raw-grades/', {
+                method: 'POST',
+                data: formData,
+            });
+
+            if (input.orientation) {
+                dispatch(
+                    gradesActions.assignGrades({
+                        [`${input.orientation}_raw_surface_minor_defect`]: data?.surface_minor_defect,
+                        [`${input.orientation}_raw_surface_major_defect`]: data?.surface_major_defect,
+                        [`${input.orientation}_raw_edge_minor_defect`]: data?.edge_minor_defect,
+                        [`${input.orientation}_raw_edge_major_defect`]: data?.edge_major_defect,
+                        [`${input.orientation}_raw_corner_minor_defect`]: data?.corner_minor_defect,
+                        [`${input.orientation}_raw_corner_major_defect`]: data?.corner_major_defect,
+                        [`${input.orientation}_raw_angle_dif`]: data?.angle_dif,
+                        [`${input.orientation}_raw_center_dif`]: data?.center_dif,
+                        [`${input.orientation}_raw_surface_grade`]: mapGradeValue(data?.surface_grade),
+                        [`${input.orientation}_raw_edge_grade`]: mapGradeValue(data?.edge_grade),
+                        [`${input.orientation}_raw_corner_grade`]: mapGradeValue(data?.corner_grade),
+                        [`${input.orientation}_raw_centering_grade`]: mapGradeValue(data?.centering_grade),
+                    }),
+                );
+            }
+
+            if (!input.noNotifications) {
+                notification.success({
+                    message: 'Raw RoboGrades has been updated successfully.',
+                });
+            }
+            if (resolve) {
+                resolve();
+            }
+        } catch (e) {
+            if (!input.noNotifications) {
+                notification.error({
+                    message: "Raw RoboGrades couldn't be updated.",
                 });
             }
             dispatch(setErrorAsync(e));
