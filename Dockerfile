@@ -46,7 +46,7 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 RUN python3 -m pip install --no-cache-dir -U pip==21.0.1 setuptools==53.0.0 wheel==0.36.2
 COPY cvat/requirements/ /tmp/requirements/
-RUN DATUMARO_HEADLESS=1 python3 -m pip install --no-cache-dir -r /tmp/requirements/${DJANGO_CONFIGURATION}.txt
+RUN DATUMARO_HEADLESS=1 python3 -m pip install --use-deprecated=legacy-resolver --no-cache-dir -r /tmp/requirements/${DJANGO_CONFIGURATION}.txt
 
 
 FROM ubuntu:20.04
