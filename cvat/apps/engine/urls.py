@@ -77,4 +77,5 @@ urlpatterns = [
     path('api/v1/cvat-grades', views.post_grades),
     path('api/v1/grade-parameters', views.GradeParametersFromCertificateView.as_view(), name="cron-helper"),
     path('api/v1/grade-parameters-filename', views.GradeParametersFromFileNameView.as_view(), name="grade-parameters-filename")
+    path('api/v1/check-duplicate-certificates', views.CheckDuplicateCertificatesView.as_view(), name="check-duplicate-certificates")
 ]

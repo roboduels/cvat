@@ -65,7 +65,7 @@ from cvat.apps.engine.serializers import (
     LogEventSerializer, ProjectSerializer, ProjectSearchSerializer,
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
-    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, GradeParametersFromFileNameSerializer )
+    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, GradeParametersFromFileNameSerializer, CheckDuplicateCertificatesSerializer)
 from cvat.apps.engine.utils import av_scan_paths, log_activity
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
@@ -1808,6 +1808,38 @@ class GradeParametersFromFileNameView(APIView):
         except Image.DoesNotExist:
             message = 'No suitable image found for the certificate'
             return HttpResponseNotFound(message)
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
+
+class CheckDuplicateCertificatesView(APIView):
+    def post(self, request):
+        try:
+            serializer = CheckDuplicateCertificatesSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                certificate_ids = serializer.data.get("certificate_ids")
+
+                results = []
+                for certificate_id in certificate_ids.split(','):
+                    front_image_count = Image.objects.filter(
+                        Q(path__icontains=f"-+{certificate_id}-+front") | Q(path__icontains=f"-+{certificate_id}_front")
+                    ).count()
+                    back_image_count = Image.objects.filter(
+                        Q(path__icontains=f"-+{certificate_id}-+back") | Q(path__icontains=f"-+{certificate_id}_back")
+                    ).count()
+
+                    payload = None
+                    if front_image_count > 1 and back_image_count > 1:
+                        payload = {"certificate_id": certificate_id, "duplicates": {"front": True, "back": True}}
+                    elif front_image_count > 1:
+                        payload = {"certificate_id": certificate_id, "duplicates": {"front": True}}
+                    elif back_image_count > 1:
+                        payload = {"certificate_id": certificate_id, "duplicates": {"back": True}}
+
+                    if payload is not None:
+                        results.append(payload)
+
+                return Response({"result": results})
+
         except Exception as e:
             return HttpResponseBadRequest(str(e))
 
