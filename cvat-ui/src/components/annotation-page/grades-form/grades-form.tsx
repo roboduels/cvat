@@ -12,6 +12,7 @@ import Typography from 'antd/lib/typography';
 import Divider from 'antd/lib/divider';
 import Card from 'antd/lib/card';
 import Table from 'antd/lib/table';
+import Switch from 'antd/lib/switch';
 import { sum, min } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -58,6 +59,9 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const [computedRawRobogradesFrontTotal, setComputedRawRobogradesFrontTotal] = useState(0);
     const [computedRawRobogradesBackTotal, setComputedRawRobogradesBackTotal] = useState(0);
     const [computedLowestTotal, setComputedLowestTotal] = useState(0);
+    const [enhancedRobogradesVisibility, setEnhancedRobogradesVisibility] = useState(true);
+    const [robogradesVisibility, setRobogradesVisibility] = useState(true);
+    const [rawRobogradesVisibility, setRawRobogradesVisibility] = useState(true);
     const frameFilename = useSelector((state: CombinedState) => state.annotation.player.frame.filename);
     const frameOptions = useMemo(() => {
         const options = parseFilename(frameFilename);
@@ -409,6 +413,18 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <Typography.Text>{frameOptions.imageType}</Typography.Text>
                             </div>
                         ) : null}
+                        <div className='grades-form-info-typography'>
+                            <Switch checked={enhancedRobogradesVisibility} onChange={setEnhancedRobogradesVisibility} />
+                            <Typography.Text>&nbsp;Enhanced Robogrades</Typography.Text>
+                        </div>
+                        <div className='grades-form-info-typography'>
+                            <Switch checked={robogradesVisibility} onChange={setRobogradesVisibility} />
+                            <Typography.Text>&nbsp;Robogrades</Typography.Text>
+                        </div>
+                        <div className='grades-form-info-typography'>
+                            <Switch checked={rawRobogradesVisibility} onChange={setRawRobogradesVisibility} />
+                            <Typography.Text>&nbsp;Raw Robogrades</Typography.Text>
+                        </div>
                     </div>
                 </Col>
                 <Col span={12} className='grades-form-overall-grades'>
@@ -449,121 +465,125 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 onFieldsChange={handleFieldsChange}
             >
                 <Row gutter={8} className='grades-form-section'>
-                    <Col span={8}>
-                        <Collapse defaultActiveKey={['1']}>
-                            <Panel header='Enhanced Robogrades' key='1'>
-                                <Typography.Text strong className='grades-form-inner-title'>
-                                    Front of Card
-                                </Typography.Text>
-                                <Row gutter={[8, 16]}>
-                                    <Col span={6}>
-                                        <Form.Item label='Centering' name='front_centering_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Surface' name='front_surface_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Edges' name='front_edges_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Corners' name='front_corners_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                                <Divider className='grades-form-separator' />
-                                <Typography.Text strong className='grades-form-inner-title'>
-                                    Back of Card
-                                </Typography.Text>
-                                <Row gutter={[8, 16]}>
-                                    <Col span={6}>
-                                        <Form.Item label='Centering' name='back_centering_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Surface' name='back_surface_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Edges' name='back_edges_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Corners' name='back_corners_human_grade'>
-                                            <Input type='number' max={10} min={0} step={0.5} />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                            </Panel>
-                        </Collapse>
-                    </Col>
-                    <Col span={7}>
-                        <Collapse defaultActiveKey={['1']}>
-                            <Panel header='Robogrades' key='1'>
-                                <Typography.Text strong className='grades-form-inner-title'>
-                                    Front of Card
-                                </Typography.Text>
-                                <Row gutter={[8, 16]}>
-                                    <Col span={6}>
-                                        <Form.Item label='Centering' name='front_centering_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Surface' name='front_surface_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Edges' name='front_edges_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Corners' name='front_corners_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                                <Divider className='grades-form-separator' />
-                                <Typography.Text strong className='grades-form-inner-title'>
-                                    Back of Card
-                                </Typography.Text>
-                                <Row gutter={[8, 16]}>
-                                    <Col span={6}>
-                                        <Form.Item label='Centering' name='back_centering_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Surface' name='back_surface_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Edges' name='back_edges_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={6}>
-                                        <Form.Item label='Corners' name='back_corners_laser_grade'>
-                                            <Input readOnly />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                            </Panel>
-                        </Collapse>
-                    </Col>
-                    {frameOptions.orientation ? (
+                    {enhancedRobogradesVisibility ? (
+                        <Col span={8}>
+                            <Collapse defaultActiveKey={['1']}>
+                                <Panel header='Enhanced Robogrades' key='1'>
+                                    <Typography.Text strong className='grades-form-inner-title'>
+                                        Front of Card
+                                    </Typography.Text>
+                                    <Row gutter={[8, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Centering' name='front_centering_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Surface' name='front_surface_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Edges' name='front_edges_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Corners' name='front_corners_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                    <Divider className='grades-form-separator' />
+                                    <Typography.Text strong className='grades-form-inner-title'>
+                                        Back of Card
+                                    </Typography.Text>
+                                    <Row gutter={[8, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Centering' name='back_centering_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Surface' name='back_surface_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Edges' name='back_edges_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Corners' name='back_corners_human_grade'>
+                                                <Input type='number' max={10} min={0} step={0.5} />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Panel>
+                            </Collapse>
+                        </Col>
+                    ) : null}
+                    {robogradesVisibility ? (
+                        <Col span={7}>
+                            <Collapse defaultActiveKey={['1']}>
+                                <Panel header='Robogrades' key='1'>
+                                    <Typography.Text strong className='grades-form-inner-title'>
+                                        Front of Card
+                                    </Typography.Text>
+                                    <Row gutter={[8, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Centering' name='front_centering_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Surface' name='front_surface_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Edges' name='front_edges_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Corners' name='front_corners_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                    <Divider className='grades-form-separator' />
+                                    <Typography.Text strong className='grades-form-inner-title'>
+                                        Back of Card
+                                    </Typography.Text>
+                                    <Row gutter={[8, 16]}>
+                                        <Col span={6}>
+                                            <Form.Item label='Centering' name='back_centering_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Surface' name='back_surface_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Edges' name='back_edges_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={6}>
+                                            <Form.Item label='Corners' name='back_corners_laser_grade'>
+                                                <Input readOnly />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                </Panel>
+                            </Collapse>
+                        </Col>
+                    ) : null}
+                    {frameOptions.orientation && rawRobogradesVisibility ? (
                         <Col span={4}>
                             <Collapse defaultActiveKey={['1']}>
                                 <Panel header='Raw Robogrades' key='1'>
