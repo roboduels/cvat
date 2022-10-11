@@ -12,7 +12,6 @@ import Typography from 'antd/lib/typography';
 import Divider from 'antd/lib/divider';
 import Card from 'antd/lib/card';
 import Table from 'antd/lib/table';
-import Switch from 'antd/lib/switch';
 import { sum, min } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -413,18 +412,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <Typography.Text>{frameOptions.imageType}</Typography.Text>
                             </div>
                         ) : null}
-                        <div className='grades-form-info-typography'>
-                            <Switch checked={enhancedRobogradesVisibility} onChange={setEnhancedRobogradesVisibility} />
-                            <Typography.Text>&nbsp;Enhanced Robogrades</Typography.Text>
-                        </div>
-                        <div className='grades-form-info-typography'>
-                            <Switch checked={robogradesVisibility} onChange={setRobogradesVisibility} />
-                            <Typography.Text>&nbsp;Robogrades</Typography.Text>
-                        </div>
-                        <div className='grades-form-info-typography'>
-                            <Switch checked={rawRobogradesVisibility} onChange={setRawRobogradesVisibility} />
-                            <Typography.Text>&nbsp;Raw Robogrades</Typography.Text>
-                        </div>
                     </div>
                 </Col>
                 <Col span={12} className='grades-form-overall-grades'>
@@ -702,6 +689,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                 <GradesFormAdvancedControls
                                     onGenerateRobogradesAndMasks={handleRobogradesAndMasks}
                                     onGenerateRawRobogrades={handleRawRobogrades}
+                                    enhancedRobogradesVisibility={enhancedRobogradesVisibility}
+                                    robogradesVisibility={robogradesVisibility}
+                                    rawRobogradesVisibility={rawRobogradesVisibility}
+                                    handleEnhancedRobogradesVisibility={setEnhancedRobogradesVisibility}
+                                    handleRobogradesVisibility={setRobogradesVisibility}
+                                    handleRawRobogradesVisibility={setRawRobogradesVisibility}
                                 />
                             </Space>
                         </div>
