@@ -245,28 +245,33 @@ export const submitAnnotationFrameToGradeAsync =
                     message: 'Updating RoboGrades...',
                 });
             }
-            const { data } = await apiCall('/cvat-to-grade/', {
+            // const { data } = await apiCall('/cvat-to-grade/', {
+            //     method: 'POST',
+            //     data: formData,
+            // });
+
+            await apiCall('/cvat-to-grade/', {
                 method: 'POST',
                 data: formData,
             });
 
-            if (input.orientation) {
-                dispatch(
-                    gradesActions.assignGrades({
-                        [`${input.orientation}_centering_laser_grade`]: mapGradeValue(data?.center),
-                        [`${input.orientation}_corners_laser_grade`]: mapGradeValue(data?.corner),
-                        [`${input.orientation}_edges_laser_grade`]: mapGradeValue(data?.edge),
-                        [`${input.orientation}_surface_laser_grade`]: mapGradeValue(data?.surface),
-                        [`${input.orientation}_overall_predicted_grade`]: mapGradeValue(data?.overall),
-                    }),
-                );
-            }
+            // if (input.orientation) {
+            //     dispatch(
+            //         gradesActions.assignGrades({
+            //             [`${input.orientation}_centering_laser_grade`]: mapGradeValue(data?.center),
+            //             [`${input.orientation}_corners_laser_grade`]: mapGradeValue(data?.corner),
+            //             [`${input.orientation}_edges_laser_grade`]: mapGradeValue(data?.edge),
+            //             [`${input.orientation}_surface_laser_grade`]: mapGradeValue(data?.surface),
+            //             [`${input.orientation}_overall_predicted_grade`]: mapGradeValue(data?.overall),
+            //         }),
+            //     );
+            // }
 
-            if (!input.noNotifications) {
-                notification.success({
-                    message: 'RoboGrades has been updated successfully.',
-                });
-            }
+            // if (!input.noNotifications) {
+            //     notification.success({
+            //         message: 'RoboGrades has been updated successfully.',
+            //     });
+            // }
             if (resolve) {
                 resolve();
             }
