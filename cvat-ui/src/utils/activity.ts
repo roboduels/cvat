@@ -85,7 +85,7 @@ export function computeActivity(activities: Activity[]): ComputedActivity {
     });
 
     const { user } = activities[0];
-    const label = `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim() || user.username || 'Unknown';
+    const label = `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || user?.username || 'Unknown';
     const totalScore = Object.values(scores).reduce((acc, val) => acc + val, 0);
     const avgScore = totalScore / Object.keys(scores).length;
 
