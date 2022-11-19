@@ -685,6 +685,6 @@ class Activities(Enum):
 class ActivityLog(models.Model):
     id = models.BigAutoField(primary_key=True)
     activity_type = SafeCharField(max_length=256)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
     options = models.JSONField()
     hash = SafeCharField(max_length=512)
