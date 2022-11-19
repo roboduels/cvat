@@ -1748,11 +1748,11 @@ class GradeParametersFromCertificateView(APIView):
                 image_type = serializer.data.get("image_type")
                 task_status = serializer.data.get("task_status")
 
-                image = Image.objects.get(
+                image = Image.objects.filter(
                     (Q(path__icontains=f"-+{certificate_id}-+") | Q(path__icontains=f"-+{certificate_id}_")) &
                     Q(path__icontains=f"{orientation}_") &
                     Q(path__icontains=f"_{image_type}")
-                )
+                ).latest('id')
                 data_id = image.data_id
                 order_id = image.path.split('-+')[0]
                 if task_status:
