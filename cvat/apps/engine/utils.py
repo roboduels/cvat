@@ -15,6 +15,7 @@ import subprocess
 import os
 from av import VideoFrame
 from PIL import Image
+import re
 
 from django.core.exceptions import ValidationError
 
