@@ -149,7 +149,7 @@ def log_annotation(user, job_id, action, shapes):
         data_id = segment.task.data_id
 
         for shape in shapes:
-            image = models.Image.objects.get(data_id=data_id, frame=shape.frame)
+            image = models.Image.objects.get(data_id=data_id, frame=shape.get('frame'))
             regex_match = re.match(r"^([^_+-]*)[_+-]*([^_+-]*)[_+-]*(front|back)[_-](laser|cam)\.(.*)$", image.path)
             order_id = regex_match[0]
             certificate_id = regex_match[1]
@@ -159,7 +159,7 @@ def log_annotation(user, job_id, action, shapes):
                 certificate_id=certificate_id,
                 user=user,
                 action=action,
-                label=shape.label
+                label=shape.get('label')
             )
     except Exception as err:
         raise err
