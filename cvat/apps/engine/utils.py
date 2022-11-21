@@ -18,6 +18,7 @@ from PIL import Image
 
 from django.core.exceptions import ValidationError
 
+from cvat.apps.engine.log import slogger
 from cvat.apps.engine import models
 
 Import = namedtuple("Import", ["module", "name", "alias"])
@@ -142,3 +143,24 @@ def parse_specific_attributes(specific_attributes):
         item.split('=')[0].strip(): item.split('=')[1].strip()
             for item in specific_attributes.split('&')
     } if specific_attributes else dict()
+
+def log_annotation(user, job_id, action, shapes):
+    try:
+        segment = models.Segment.objects.select_related('task').get(id=job_id)
+        data_id = segment.task.data_id
+
+        for shape in shapes:
+            image = models.Image.objects.get(data_id=data_id, frame=shape.frame)
+            regex_match = re.match(r"^([^_+-]*)[_+-]*([^_+-]*)[_+-]*(front|back)[_-](laser|cam)\.(.*)$", image.path)
+            order_id = regex_match[0]
+            certificate_id = regex_match[1]
+
+            models.AnnotationLog.objects.create(
+                order_id=order_id,
+                certificate_id=certificate_id,
+                user=user,
+                action=action,
+                label=shape.label
+            )
+    except Exception as err:
+        slogger.glob.warning("Failed with creating annotation log\n{}".format(str(ex)))

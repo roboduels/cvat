@@ -66,7 +66,7 @@ from cvat.apps.engine.serializers import (
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
     CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, GradeParametersFromFileNameSerializer, CheckDuplicateCertificatesSerializer)
-from cvat.apps.engine.utils import av_scan_paths, log_activity
+from cvat.apps.engine.utils import av_scan_paths, log_activity, log_annotation
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
 from .log import clogger, slogger
@@ -830,6 +830,7 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
                     'tags_no': len(request.data['tags']),
                     'tracks_no': len(request.data['tracks']),
                 })
+                log_annotation(user=self.request.user, job_id=job_id, action=action, shapes=request.data['shapes'])
                 return Response(data)
 
     @swagger_auto_schema(method='get', operation_summary='When task is being created the method returns information about a status of the creation process')
@@ -1002,6 +1003,7 @@ class JobViewSet(viewsets.GenericViewSet,
                     'tags_no': len(request.data['tags']),
                     'tracks_no': len(request.data['tracks']),
                 })
+                log_annotation(user=self.request.user, job_id=job_id, action=action, shapes=request.data['shapes'])
                 return Response(data)
 
     @swagger_auto_schema(method='get', operation_summary='Method returns list of reviews for the job',
