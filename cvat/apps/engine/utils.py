@@ -18,7 +18,6 @@ from PIL import Image
 
 from django.core.exceptions import ValidationError
 
-from cvat.apps.engine.log import slogger
 from cvat.apps.engine import models
 
 Import = namedtuple("Import", ["module", "name", "alias"])
@@ -163,4 +162,4 @@ def log_annotation(user, job_id, action, shapes):
                 label=shape.label
             )
     except Exception as err:
-        slogger.glob.warning("Failed with creating annotation log\n{}".format(str(ex)))
+        raise err

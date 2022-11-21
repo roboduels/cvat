@@ -830,7 +830,10 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
                     'tags_no': len(request.data['tags']),
                     'tracks_no': len(request.data['tracks']),
                 })
-                log_annotation(user=self.request.user, job_id=job_id, action=action, shapes=request.data['shapes'])
+                try:
+                    log_annotation(user=self.request.user, job_id=job_id, action=action, shapes=request.data['shapes'])
+                except Exception as err:
+                    slogger.glob.warning("Failed with creating annotation log\n{}".format(str(ex)))
                 return Response(data)
 
     @swagger_auto_schema(method='get', operation_summary='When task is being created the method returns information about a status of the creation process')
@@ -1003,7 +1006,10 @@ class JobViewSet(viewsets.GenericViewSet,
                     'tags_no': len(request.data['tags']),
                     'tracks_no': len(request.data['tracks']),
                 })
-                log_annotation(user=self.request.user, job_id=job_id, action=action, shapes=request.data['shapes'])
+                try:
+                    log_annotation(user=self.request.user, job_id=job_id, action=action, shapes=request.data['shapes'])
+                except Exception as err:
+                    slogger.glob.warning("Failed with creating annotation log\n{}".format(str(ex)))
                 return Response(data)
 
     @swagger_auto_schema(method='get', operation_summary='Method returns list of reviews for the job',
