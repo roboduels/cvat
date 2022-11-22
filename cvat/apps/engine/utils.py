@@ -154,11 +154,13 @@ def log_annotation(user, job_id, action, shapes):
             regex_match = re.match(r"^([^_+-]*)[_+-]*([^_+-]*)[_+-]*(front|back)[_-](laser|cam)\.(.*)$", image.path)
             order_id = regex_match[1]
             certificate_id = regex_match[2]
+            orientation = regex_match[3]
             label = models.Label.objects.get(id=shape.get('label_id'))
 
             models.AnnotationLog.objects.create(
                 order_id=order_id,
                 certificate_id=certificate_id,
+                orientation=orientation,
                 user=user,
                 action=action,
                 label=label

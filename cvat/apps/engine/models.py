@@ -693,6 +693,7 @@ class AnnotationLog(models.Model):
     id = models.BigAutoField(primary_key=True)
     order_id = models.CharField(max_length=64, blank=True, null=True)
     certificate_id = models.CharField(max_length=64, blank=True, null=True)
+    orientation = models.CharField(max_length=5, blank=True, null=True)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="annotation_log_owners")
     action = models.CharField(max_length=16, blank=True, null=True)
     label = models.ForeignKey(Label, on_delete=models.CASCADE)
