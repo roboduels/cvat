@@ -21,15 +21,18 @@ import BasicConfigurationForm, { BaseConfiguration } from './basic-configuration
 import ProjectSearchField from './project-search-field';
 import ProjectSubsetField from './project-subset-field';
 import AdvancedConfigurationForm, { AdvancedConfiguration } from './advanced-configuration-form';
+import AgsConfigurationForm, { AgsConfiguration } from './ags-configuration-form';
 
 export interface CreateTaskData {
     projectId: number | null;
     basic: BaseConfiguration;
+    ags: AgsConfiguration;
     subset: string;
     advanced: AdvancedConfiguration;
     labels: any[];
     files: Files;
     activeFileManagerTab: string;
+    cloudStorageId: number | null;
 }
 
 interface Props {
@@ -38,6 +41,7 @@ interface Props {
     taskId: number | null;
     projectId: number | null;
     installedGit: boolean;
+    dumpers:[]
 }
 
 type State = CreateTaskData;
@@ -46,6 +50,10 @@ const defaultState = {
     projectId: null,
     basic: {
         name: '',
+    },
+    ags: {
+        certificateId: '',
+        orderId: '',
     },
     subset: '',
     advanced: {
@@ -58,12 +66,15 @@ const defaultState = {
         local: [],
         share: [],
         remote: [],
+        cloudStorage: [],
     },
     activeFileManagerTab: 'local',
+    cloudStorageId: null,
 };
 
 class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps, State> {
     private basicConfigurationComponent: RefObject<BasicConfigurationForm>;
+    private agsConfigurationComponent: RefObject<AgsConfigurationForm>;
     private advancedConfigurationComponent: RefObject<AdvancedConfigurationForm>;
     private fileManagerContainer: any;
 
@@ -71,6 +82,7 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
         super(props);
         this.state = { ...defaultState };
         this.basicConfigurationComponent = React.createRef<BasicConfigurationForm>();
+        this.agsConfigurationComponent = React.createRef<AgsConfigurationForm>();
         this.advancedConfigurationComponent = React.createRef<AdvancedConfigurationForm>();
     }
 
@@ -94,12 +106,8 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                 className: 'cvat-notification-create-task-success',
             });
 
-            if (this.basicConfigurationComponent.current) {
-                this.basicConfigurationComponent.current.resetFields();
-            }
-            if (this.advancedConfigurationComponent.current) {
-                this.advancedConfigurationComponent.current.resetFields();
-            }
+            this.basicConfigurationComponent.current?.resetFields();
+            this.advancedConfigurationComponent.current?.resetFields();
 
             this.fileManagerContainer.reset();
 
@@ -116,10 +124,18 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
     };
 
     private validateFiles = (): boolean => {
+        const { activeFileManagerTab } = this.state;
         const files = this.fileManagerContainer.getFiles();
+
         this.setState({
             files,
         });
+
+        if (activeFileManagerTab === 'cloudStorage') {
+            this.setState({
+                cloudStorageId: this.fileManagerContainer.getCloudStorageId(),
+            });
+        }
         const totalLen = Object.keys(files).reduce((acc, key) => acc + files[key].length, 0);
 
         return !!totalLen;
@@ -138,6 +154,12 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
     private handleSubmitBasicConfiguration = (values: BaseConfiguration): void => {
         this.setState({
             basic: { ...values },
+        });
+    };
+
+    private handleSubmitAgsConfiguration = (values: AgsConfiguration): void => {
+        this.setState({
+            ags: { ...values },
         });
     };
 
@@ -189,6 +211,12 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                     }
                     return Promise.resolve();
                 })
+                .then(() => {
+                    if (this.agsConfigurationComponent.current) {
+                        return this.agsConfigurationComponent.current.submit();
+                    }
+                    return Promise.resolve();
+                })
                 .then((): void => {
                     const { onCreate } = this.props;
                     onCreate(this.state);
@@ -213,6 +241,17 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                 <BasicConfigurationForm
                     ref={this.basicConfigurationComponent}
                     onSubmit={this.handleSubmitBasicConfiguration}
+                />
+            </Col>
+        );
+    }
+
+    private renderAgsBlock(): JSX.Element {
+        return (
+            <Col span={24}>
+                <AgsConfigurationForm
+                    ref={this.agsConfigurationComponent}
+                    onSubmit={this.handleSubmitAgsConfiguration}
                 />
             </Col>
         );
@@ -298,20 +337,20 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                     ref={(container: any): void => {
                         this.fileManagerContainer = container;
                     }}
-                    withRemote
                 />
             </Col>
         );
     }
 
     private renderAdvancedBlock(): JSX.Element {
-        const { installedGit } = this.props;
+        const { installedGit, dumpers } = this.props;
         const { activeFileManagerTab } = this.state;
         return (
             <Col span={24}>
                 <Collapse>
                     <Collapse.Panel key='1' header={<Text className='cvat-title'>Advanced configuration</Text>}>
                         <AdvancedConfigurationForm
+                            dumpers={dumpers}
                             installedGit={installedGit}
                             activeFileManagerTab={activeFileManagerTab}
                             ref={this.advancedConfigurationComponent}
@@ -334,6 +373,7 @@ class CreateTaskContent extends React.PureComponent<Props & RouteComponentProps,
                 </Col>
 
                 {this.renderBasicBlock()}
+                {this.renderAgsBlock()}
                 {this.renderProjectBlock()}
                 {this.renderSubsetBlock()}
                 {this.renderLabelsBlock()}

@@ -1,0 +1,27 @@
+FROM ubuntu:latest
+
+RUN apt-get update && apt-get -y install \
+    cron \
+    python3 \
+    python3-pip
+RUN python3 -m pip install --no-cache-dir requests_toolbelt
+
+# Copy cronjob to 
+COPY cronjob.py /home/cronjob.py
+RUN chmod 0744 /home/cronjob.py
+
+# Copy cron file to the cron.d directory
+COPY cron /etc/cron.d/cron
+
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/cron
+
+# Apply cron job
+RUN crontab /etc/cron.d/cron
+
+# Create the log file to be able to run tail
+RUN touch /var/log/cron.log
+
+WORKDIR /home
+# Run the command on container startup
+CMD printenv > /etc/environment && cron && tail -f /var/log/cron.log

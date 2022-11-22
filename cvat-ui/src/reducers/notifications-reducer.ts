@@ -16,8 +16,13 @@ import { NotificationsActionType } from 'actions/notification-actions';
 import { BoundariesActionTypes } from 'actions/boundaries-actions';
 import { UserAgreementsActionTypes } from 'actions/useragreements-actions';
 import { ReviewActionTypes } from 'actions/review-actions';
+import { ExportActionTypes } from 'actions/export-actions';
+import { CloudStorageActionTypes } from 'actions/cloud-storage-actions';
 
+import getCore from 'cvat-core-wrapper';
 import { NotificationsState } from './interfaces';
+
+const core = getCore();
 
 const defaultState: NotificationsState = {
     errors: {
@@ -105,9 +110,16 @@ const defaultState: NotificationsState = {
             reopeningIssue: null,
             resolvingIssue: null,
             submittingReview: null,
+            deletingIssue: null,
         },
         predictor: {
             prediction: null,
+        },
+        cloudStorages: {
+            creating: null,
+            fetching: null,
+            updating: null,
+            deleting: null,
         },
     },
     messages: {
@@ -308,8 +320,9 @@ export default function (state = defaultState, action: AnyAction): Notifications
                 },
             };
         }
-        case TasksActionTypes.EXPORT_DATASET_FAILED: {
-            const taskID = action.payload.task.id;
+        case ExportActionTypes.EXPORT_DATASET_FAILED: {
+            const instanceID = action.payload.instance.id;
+            const instanceType = action.payload.instance instanceof core.classes.Project ? 'project' : 'task';
             return {
                 ...state,
                 errors: {
@@ -319,7 +332,8 @@ export default function (state = defaultState, action: AnyAction): Notifications
                         exportingAsDataset: {
                             message:
                                 'Could not export dataset for the ' +
-                                `<a href="/tasks/${taskID}" target="_blank">task ${taskID}</a>`,
+                                `<a href="/${instanceType}s/${instanceID}" target="_blank">` +
+                                `${instanceType} ${instanceID}</a>`,
                             reason: action.payload.error.toString(),
                         },
                     },
@@ -387,24 +401,6 @@ export default function (state = defaultState, action: AnyAction): Notifications
                             message: `Could not update <a href="/tasks/${taskID}" target="_blank">task ${taskID}</a>`,
                             reason: action.payload.error.toString(),
                             className: 'cvat-notification-notice-update-task-failed',
-                        },
-                    },
-                },
-            };
-        }
-        case TasksActionTypes.DUMP_ANNOTATIONS_FAILED: {
-            const taskID = action.payload.task.id;
-            return {
-                ...state,
-                errors: {
-                    ...state.errors,
-                    tasks: {
-                        ...state.errors.tasks,
-                        dumping: {
-                            message:
-                                'Could not dump annotations for the ' +
-                                `<a href="/tasks/${taskID}" target="_blank">task ${taskID}</a>`,
-                            reason: action.payload.error.toString(),
                         },
                     },
                 },
@@ -1141,6 +1137,21 @@ export default function (state = defaultState, action: AnyAction): Notifications
                 },
             };
         }
+        case ReviewActionTypes.REMOVE_ISSUE_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    review: {
+                        ...state.errors.review,
+                        deletingIssue: {
+                            message: 'Could not remove issue from the server',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
         case NotificationsActionType.RESET_ERRORS: {
             return {
                 ...state,
@@ -1167,6 +1178,7 @@ export default function (state = defaultState, action: AnyAction): Notifications
                         jobFetching: {
                             message: 'Could not fetch frame data from the server',
                             reason: action.payload.error,
+                            className: 'cvat-notification-notice-fetch-frame-data-from-the-server-failed',
                         },
                     },
                 },
@@ -1182,6 +1194,124 @@ export default function (state = defaultState, action: AnyAction): Notifications
                         prediction: {
                             message: 'Could not fetch prediction data',
                             reason: action.payload.error,
+                        },
+                    },
+                },
+            };
+        }
+        case CloudStorageActionTypes.GET_CLOUD_STORAGE_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    cloudStorages: {
+                        ...state.errors.cloudStorages,
+                        fetching: {
+                            message: 'Could not fetch cloud storage',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case CloudStorageActionTypes.CREATE_CLOUD_STORAGE_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    cloudStorages: {
+                        ...state.errors.cloudStorages,
+                        creating: {
+                            message: 'Could not create the cloud storage',
+                            reason: action.payload.error.toString(),
+                            className: 'cvat-notification-notice-create-cloud-storage-failed',
+                        },
+                    },
+                },
+            };
+        }
+        case CloudStorageActionTypes.UPDATE_CLOUD_STORAGE_FAILED: {
+            const { cloudStorage, error } = action.payload;
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    cloudStorages: {
+                        ...state.errors.cloudStorages,
+                        updating: {
+                            message: `Could not update cloud storage #${cloudStorage.id}`,
+                            reason: error.toString(),
+                            className: 'cvat-notification-notice-update-cloud-storage-failed',
+                        },
+                    },
+                },
+            };
+        }
+        case CloudStorageActionTypes.DELETE_CLOUD_STORAGE_FAILED: {
+            const { cloudStorageID } = action.payload;
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    cloudStorages: {
+                        ...state.errors.cloudStorages,
+                        deleting: {
+                            message:
+                                `Could not delete cloud storage ${cloudStorageID}`,
+                            reason: action.payload.error.toString(),
+                            className: 'cvat-notification-notice-delete-cloud-storage-failed',
+                        },
+                    },
+                },
+            };
+        }
+        case CloudStorageActionTypes.LOAD_CLOUD_STORAGE_CONTENT_FAILED: {
+            const { cloudStorageID } = action.payload;
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    cloudStorages: {
+                        ...state.errors.cloudStorages,
+                        fetching: {
+                            message: `Could not fetch content for cloud storage #${cloudStorageID}`,
+                            reason: action.payload.error.toString(),
+                            className: 'cvat-notification-notice-fetch-cloud-storage-content-failed',
+                        },
+                    },
+                },
+            };
+        }
+        case CloudStorageActionTypes.GET_CLOUD_STORAGE_STATUS_FAILED: {
+            const { cloudStorageID } = action.payload;
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    cloudStorages: {
+                        ...state.errors.cloudStorages,
+                        fetching: {
+                            message: `Could not fetch cloud storage #${cloudStorageID} status`,
+                            reason: action.payload.error.toString(),
+                            className: 'cvat-notification-notice-fetch-cloud-storage-status-failed',
+                        },
+                    },
+                },
+            };
+        }
+
+        case CloudStorageActionTypes.GET_CLOUD_STORAGE_PREVIEW_FAILED: {
+            const { cloudStorageID } = action.payload;
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    cloudStorages: {
+                        ...state.errors.cloudStorages,
+                        fetching: {
+                            message: `Could not fetch preview for cloud storage #${cloudStorageID}`,
+                            reason: action.payload.error.toString(),
+                            className: 'cvat-notification-notice-fetch-cloud-storage-preview-failed',
                         },
                     },
                 },

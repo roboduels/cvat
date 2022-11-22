@@ -9,10 +9,8 @@ services:
     container_name: cvat_db
     image: postgres:10-alpine
     restart: always
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_DB: cvat
-      POSTGRES_HOST_AUTH_METHOD: trust
+    env_file:
+      - ./.envs/.postgres
     volumes:
       - cvat_db:/var/lib/postgresql/data
     networks:
@@ -32,26 +30,39 @@ services:
     depends_on:
       - cvat_redis
       - cvat_db
-    environment:
-      DJANGO_MODWSGI_EXTRA_ARGS: ''
-      ALLOWED_HOSTS: '*'
-      CVAT_REDIS_HOST: 'cvat_redis'
-      CVAT_POSTGRES_HOST: 'cvat_db'
-      ADAPTIVE_AUTO_ANNOTATION: 'false'
+    env_file:
+      - ./.envs/.django
     labels:
       - traefik.enable=true
       - traefik.http.services.cvat.loadbalancer.server.port=8080
       - traefik.http.routers.cvat.rule=Host(`${CVAT_HOST:-localhost}`) &&
-          PathPrefix(`/api/`, `/git/`, `/opencv/`, `/analytics/`, `/static/`, `/admin`, `/documentation/`, `/django-rq`)
+        PathPrefix(`/api/`, `/git/`, `/opencv/`, `/analytics/`, `/static/`, `/admin`, `/documentation/`, `/django-rq`)
       - traefik.http.routers.cvat.entrypoints=web
     volumes:
       - cvat_data:/home/django/data
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
+      - './cvat:/home/django/cvat'
     networks:
       - cvat
+    build:
+      context: .
+      args:
+        http_proxy:
+        https_proxy:
+        socks_proxy:
+        CLAM_AV:
+        INSTALL_SOURCES:
 
   cvat_ui:
+    build:
+      context: .
+      args:
+        http_proxy:
+        https_proxy:
+        no_proxy:
+        socks_proxy:
+      dockerfile: Dockerfile.ui
     container_name: cvat_ui
     image: openvino/cvat_ui
     restart: always
@@ -68,10 +79,11 @@ services:
   traefik:
     image: traefik:v2.4
     container_name: traefik
+    restart: always
     command:
-      - "--providers.docker.exposedByDefault=false"
-      - "--providers.docker.network=cvat"
-      - "--entryPoints.web.address=:8080"
+      - '--providers.docker.exposedByDefault=false'
+      - '--providers.docker.network=cvat'
+      - '--entryPoints.web.address=:8080'
     # Uncomment to get Traefik dashboard
     #   - "--entryPoints.dashboard.address=:8090"
     #   - "--api.dashboard=true"
@@ -87,6 +99,19 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - cvat
+
+  cron:
+    container_name: cron
+    restart: always
+    env_file:
+      - ./.envs/.django
+    volumes:
+      - cvat_data:/root/data
+    build:
+      context: .
+      dockerfile: Dockerfile.cron
+    profiles:
+      - cron
 
 volumes:
   cvat_db:

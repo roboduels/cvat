@@ -1,8 +1,10 @@
 ---
 title: 'Objects sidebar'
 linkTitle: 'Objects sidebar'
-weight: 24
+weight: 9
+description: 'Overview of available functions on the objects sidebar of the annotation tool.'
 ---
+
 ## Hide objects sidebar
 
 `Hide` - the button hides the object's sidebar.
@@ -85,6 +87,10 @@ You can change the way an object is displayed on a frame (show or hide).
 
 ![](/images/image052.jpg)
 
+`Tracker switcher` - enable/disable [tracking](/docs/manual/advanced/ai-tools#trackers) for the object.
+
+![](/images/tracker_switcher.jpg)
+
 By clicking on the `Details` button you can collapse or expand the field with all the attributes of the object.
 
 ![](/images/image154.jpg)
@@ -110,10 +116,10 @@ To assign a number, click on the button placed at the right of a label name on t
 ![](/images/image210.jpg)
 
 After that you will be able to assign a corresponding label to an object
- by hovering your mouse cursor over it and pressing `Ctrl + Num(0..9)`.
+by hovering your mouse cursor over it and pressing `Ctrl + Num(0..9)`.
 
 In case you do not point the cursor to the object, pressing `Ctrl + Num(0..9)` will set a chosen label as default,
- so that the next object you create (use `N` key) will automatically have this label assigned.
+so that the next object you create (use `N` key) will automatically have this label assigned.
 
 ![](/images/image211.jpg)
 
@@ -148,7 +154,8 @@ Change the opacity of every shape in the annotation.
 
 **Selected Fill Opacity** slider
 
-Change the opacity of the selected object's fill.
+Change the opacity of the selected object's fill. It is possible to change opacity while drawing an object in the case
+of rectangles, polygons and cuboids.
 
 ![](/images/image089_detrac.jpg)
 

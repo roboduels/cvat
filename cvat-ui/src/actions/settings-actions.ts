@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import { AnyAction } from 'redux';
-import { GridColor, ColorBy, SettingsState } from 'reducers/interfaces';
+import {
+    GridColor, ColorBy, SettingsState, ToolsBlockerState,
+} from 'reducers/interfaces';
 
 export enum SettingsActionTypes {
     SWITCH_ROTATE_ALL = 'SWITCH_ROTATE_ALL',
@@ -20,6 +22,7 @@ export enum SettingsActionTypes {
     CHANGE_FRAME_STEP = 'CHANGE_FRAME_STEP',
     CHANGE_FRAME_SPEED = 'CHANGE_FRAME_SPEED',
     SWITCH_RESET_ZOOM = 'SWITCH_RESET_ZOOM',
+    SWITCH_SMOOTH_IMAGE = 'SWITCH_SMOOTH_IMAGE',
     CHANGE_BRIGHTNESS_LEVEL = 'CHANGE_BRIGHTNESS_LEVEL',
     CHANGE_CONTRAST_LEVEL = 'CHANGE_CONTRAST_LEVEL',
     CHANGE_SATURATION_LEVEL = 'CHANGE_SATURATION_LEVEL',
@@ -34,6 +37,7 @@ export enum SettingsActionTypes {
     CHANGE_CANVAS_BACKGROUND_COLOR = 'CHANGE_CANVAS_BACKGROUND_COLOR',
     SWITCH_SETTINGS_DIALOG = 'SWITCH_SETTINGS_DIALOG',
     SET_SETTINGS = 'SET_SETTINGS',
+    SWITCH_TOOLS_BLOCKER_STATE = 'SWITCH_TOOLS_BLOCKER_STATE',
 }
 
 export function changeShapesOpacity(opacity: number): AnyAction {
@@ -163,6 +167,15 @@ export function switchResetZoom(resetZoom: boolean): AnyAction {
     };
 }
 
+export function switchSmoothImage(enabled: boolean): AnyAction {
+    return {
+        type: SettingsActionTypes.SWITCH_SMOOTH_IMAGE,
+        payload: {
+            smoothImage: enabled,
+        },
+    };
+}
+
 export function changeBrightnessLevel(level: number): AnyAction {
     return {
         type: SettingsActionTypes.CHANGE_BRIGHTNESS_LEVEL,
@@ -276,6 +289,15 @@ export function changeDefaultApproxPolyAccuracy(approxPolyAccuracy: number): Any
         type: SettingsActionTypes.CHANGE_DEFAULT_APPROX_POLY_THRESHOLD,
         payload: {
             approxPolyAccuracy,
+        },
+    };
+}
+
+export function switchToolsBlockerState(toolsBlockerState: ToolsBlockerState): AnyAction {
+    return {
+        type: SettingsActionTypes.SWITCH_TOOLS_BLOCKER_STATE,
+        payload: {
+            toolsBlockerState,
         },
     };
 }

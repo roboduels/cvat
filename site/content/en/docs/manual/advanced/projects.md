@@ -1,8 +1,11 @@
 ---
 title: 'Projects'
 linkTitle: 'Projects'
-weight: 3
+weight: 1
+description: 'Creating and exporting projects in CVAT.'
 ---
+
+### Create project
 
 At CVAT, you can create a project containing tasks of the same type.
 All tasks related to the project will inherit a list of labels.
@@ -31,6 +34,21 @@ Here you can do the following:
    You can also change the color for different labels. By clicking `Copy` you can copy the labels to the clipboard.
 1. Assigned to — is used to assign a project to a person.
    Start typing an assignee's name and/or choose the right person out of the dropdown list.
-1. `Tasks` — is a list of all tasks for a particular project.
+1. `Tasks` — is a list of all tasks for a particular project, with the ability to search for tasks in the project.
+   [Read more about search](/docs/manual/advanced/search/).
+
+It is possible to choose a subset for tasks in the project. You can use the available options
+(`Train`, `Test`, `Validation`) or set your own.
 
 You can remove the project and all related tasks through the Action menu.
+
+### Export project
+
+It is possible to download an entire project instead of exporting individual tasks. In this case,
+annotations for all tasks in a project will be available in a single archive.
+To export a project, do the following on the `Project` page:
+- Open the `Actions` menu.
+- Press the `Export project dataset` button.
+
+Additional information about exporting tasks can be found in the
+[Downloading annotations](/docs/manual/advanced/downloading-annotations/) section.

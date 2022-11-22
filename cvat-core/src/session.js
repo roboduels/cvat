@@ -8,7 +8,7 @@
     const loggerStorage = require('./logger-storage');
     const serverProxy = require('./server-proxy');
     const {
-        getFrame, getRanges, getPreview, clear: clearFrames, getContextImage,
+        getFrame, getFrameData, getRanges, getPreview, clear: clearFrames, getContextImage,
     } = require('./frames');
     const { ArgumentError, DataError } = require('./exceptions');
     const { TaskStatus } = require('./enums');
@@ -37,17 +37,11 @@
                         return result;
                     },
 
-                    async clear(reload = false) {
-                        const result = await PluginRegistry.apiWrapper.call(this, prototype.annotations.clear, reload);
-                        return result;
-                    },
-
-                    async dump(dumper, name = null) {
+                    async clear(
+                        reload = false, startframe = undefined, endframe = undefined, delTrackKeyframesOnly = true,
+                    ) {
                         const result = await PluginRegistry.apiWrapper.call(
-                            this,
-                            prototype.annotations.dump,
-                            dumper,
-                            name,
+                            this, prototype.annotations.clear, reload, startframe, endframe, delTrackKeyframesOnly,
                         );
                         return result;
                     },
@@ -148,11 +142,13 @@
                         return result;
                     },
 
-                    async exportDataset(format) {
+                    async exportDataset(format, saveImages, customName = '') {
                         const result = await PluginRegistry.apiWrapper.call(
                             this,
                             prototype.annotations.exportDataset,
                             format,
+                            saveImages,
+                            customName,
                         );
                         return result;
                     },
@@ -182,6 +178,15 @@
                     },
                     async preview() {
                         const result = await PluginRegistry.apiWrapper.call(this, prototype.frames.preview);
+                        return result;
+                    },
+                    async frameData(frame, quality = 'original') {
+                        const result = await PluginRegistry.apiWrapper.call(
+                            this,
+                            prototype.frames.frameData,
+                            frame,
+                            quality,
+                        );
                         return result;
                     },
                     async contextImage(taskId, frameId) {
@@ -326,21 +331,6 @@
              * @throws {module:API.cvat.exceptions.PluginError}
              * @throws {module:API.cvat.exceptions.ArgumentError}
              * @throws {module:API.cvat.exceptions.ServerError}
-             * @instance
-             * @async
-             */
-            /**
-             * Dump of annotations to a file.
-             * Method always dumps annotations for a whole task.
-             * @method dump
-             * @memberof Session.annotations
-             * @param {module:API.cvat.classes.Dumper} dumper - a dumper
-             * @param {string} [name = null] - a name of a file with annotations
-             * which will be used to dump
-             * @returns {string} URL which can be used in order to get a dump file
-             * @throws {module:API.cvat.exceptions.PluginError}
-             * @throws {module:API.cvat.exceptions.ServerError}
-             * @throws {module:API.cvat.exceptions.ArgumentError}
              * @instance
              * @async
              */
@@ -877,7 +867,6 @@
                 get: Object.getPrototypeOf(this).annotations.get.bind(this),
                 put: Object.getPrototypeOf(this).annotations.put.bind(this),
                 save: Object.getPrototypeOf(this).annotations.save.bind(this),
-                dump: Object.getPrototypeOf(this).annotations.dump.bind(this),
                 merge: Object.getPrototypeOf(this).annotations.merge.bind(this),
                 split: Object.getPrototypeOf(this).annotations.split.bind(this),
                 group: Object.getPrototypeOf(this).annotations.group.bind(this),
@@ -904,6 +893,7 @@
                 get: Object.getPrototypeOf(this).frames.get.bind(this),
                 ranges: Object.getPrototypeOf(this).frames.ranges.bind(this),
                 preview: Object.getPrototypeOf(this).frames.preview.bind(this),
+                frameData: Object.getPrototypeOf(this).frames.frameData.bind(this),
                 contextImage: Object.getPrototypeOf(this).frames.contextImage.bind(this),
             };
 
@@ -1036,6 +1026,9 @@
                 use_cache: undefined,
                 copy_data: undefined,
                 dimension: undefined,
+                order_id: undefined,
+                certificate_id: undefined,
+                cloud_storage_id: undefined,
             };
 
             const updatedFields = new FieldUpdateTrigger({
@@ -1045,6 +1038,8 @@
                 subset: false,
                 labels: false,
                 project_id: false,
+                order_id: false,
+                certificate_id: false,
             });
 
             for (const property in data) {
@@ -1138,6 +1133,35 @@
                             data.project_id = projectId;
                         },
                     },
+
+                    /**
+                     * @name orderId
+                     * @type {integer|null}
+                     * @memberof module:API.cvat.classes.Task
+                     * @instance
+                     */
+                    orderId: {
+                        get: () => data.order_id,
+                        set: (orderId) => {
+                            updatedFields.order_id = true;
+                            data.order_id = orderId;
+                        },
+                    },
+
+                    /**
+                     * @name certificateId
+                     * @type {integer|null}
+                     * @memberof module:API.cvat.classes.Task
+                     * @instance
+                     */
+                    certificateId: {
+                        get: () => data.certificate_id,
+                        set: (certificateId) => {
+                            updatedFields.certificate_id = true;
+                            data.certificate_id = certificateId;
+                        },
+                    },
+
                     /**
                      * @name status
                      * @type {module:API.cvat.enums.TaskStatus}
@@ -1397,7 +1421,7 @@
                         get: () => [...data.jobs],
                     },
                     /**
-                     * List of files from shared resource
+                     * List of files from shared resource or list of cloud storage files
                      * @name serverFiles
                      * @type {string[]}
                      * @memberof module:API.cvat.classes.Task
@@ -1559,6 +1583,15 @@
                          */
                         get: () => data.dimension,
                     },
+                    /**
+                     * @name cloudStorageId
+                     * @type {integer|null}
+                     * @memberof module:API.cvat.classes.Task
+                     * @instance
+                     */
+                    cloudStorageId: {
+                        get: () => data.cloud_storage_id,
+                    },
                     _internalData: {
                         get: () => data,
                     },
@@ -1575,7 +1608,6 @@
                 get: Object.getPrototypeOf(this).annotations.get.bind(this),
                 put: Object.getPrototypeOf(this).annotations.put.bind(this),
                 save: Object.getPrototypeOf(this).annotations.save.bind(this),
-                dump: Object.getPrototypeOf(this).annotations.dump.bind(this),
                 merge: Object.getPrototypeOf(this).annotations.merge.bind(this),
                 split: Object.getPrototypeOf(this).annotations.split.bind(this),
                 group: Object.getPrototypeOf(this).annotations.group.bind(this),
@@ -1603,6 +1635,7 @@
                 get: Object.getPrototypeOf(this).frames.get.bind(this),
                 ranges: Object.getPrototypeOf(this).frames.ranges.bind(this),
                 preview: Object.getPrototypeOf(this).frames.preview.bind(this),
+                frameData: Object.getPrototypeOf(this).frames.frameData.bind(this),
                 contextImage: Object.getPrototypeOf(this).frames.contextImage.bind(this),
             };
 
@@ -1715,7 +1748,6 @@
         selectObject,
         annotationsStatistics,
         uploadAnnotations,
-        dumpAnnotations,
         importAnnotations,
         exportAnnotations,
         exportDataset,
@@ -1737,17 +1769,17 @@
             for (const [field, isUpdated] of Object.entries(this.__updatedFields)) {
                 if (isUpdated) {
                     switch (field) {
-                    case 'status':
-                        jobData.status = this.status;
-                        break;
-                    case 'assignee':
-                        jobData.assignee_id = this.assignee ? this.assignee.id : null;
-                        break;
-                    case 'reviewer':
-                        jobData.reviewer_id = this.reviewer ? this.reviewer.id : null;
-                        break;
-                    default:
-                        break;
+                        case 'status':
+                            jobData.status = this.status;
+                            break;
+                        case 'assignee':
+                            jobData.assignee_id = this.assignee ? this.assignee.id : null;
+                            break;
+                        case 'reviewer':
+                            jobData.reviewer_id = this.reviewer ? this.reviewer.id : null;
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -1829,6 +1861,10 @@
 
     Job.prototype.frames.preview.implementation = async function () {
         const frameData = await getPreview(this.task.id);
+        return frameData;
+    };
+    Job.prototype.frames.frameData.implementation = async function (frame, quality = 'original') {
+        const frameData = await getFrameData(this.task.id, frame, quality);
         return frameData;
     };
 
@@ -1913,8 +1949,10 @@
         return result;
     };
 
-    Job.prototype.annotations.clear.implementation = async function (reload) {
-        const result = await clearAnnotations(this, reload);
+    Job.prototype.annotations.clear.implementation = async function (
+        reload, startframe, endframe, delTrackKeyframesOnly,
+    ) {
+        const result = await clearAnnotations(this, reload, startframe, endframe, delTrackKeyframesOnly);
         return result;
     };
 
@@ -1948,13 +1986,8 @@
         return result;
     };
 
-    Job.prototype.annotations.dump.implementation = async function (dumper, name) {
-        const result = await dumpAnnotations(this, name, dumper);
-        return result;
-    };
-
-    Job.prototype.annotations.exportDataset.implementation = async function (format) {
-        const result = await exportDataset(this.task, format);
+    Job.prototype.annotations.exportDataset.implementation = async function (format, saveImages, customName) {
+        const result = await exportDataset(this.task, format, customName, saveImages);
         return result;
     };
 
@@ -2032,6 +2065,12 @@
                     case 'project_id':
                         taskData.project_id = this.projectId;
                         break;
+                    case 'order_id':
+                        taskData.order_id = this.orderId;
+                        break;
+                    case 'certificate_id':
+                        taskData.certificate_id = this.certificateId;
+                        break;
                     case 'labels':
                         taskData.labels = [...this._internalData.labels.map((el) => el.toJSON())];
                         break;
@@ -2065,6 +2104,12 @@
         if (typeof this.projectId !== 'undefined') {
             taskSpec.project_id = this.projectId;
         }
+        if (typeof this.orderId !== 'undefined') {
+            taskSpec.order_id = this.orderId;
+        }
+        if (typeof this.certificateId !== 'undefined') {
+            taskSpec.certificate_id = this.certificateId;
+        }
         if (typeof this.subset !== 'undefined') {
             taskSpec.subset = this.subset;
         }
@@ -2092,6 +2137,9 @@
         }
         if (typeof this.copyData !== 'undefined') {
             taskDataSpec.copy_data = this.copyData;
+        }
+        if (typeof this.cloudStorageId !== 'undefined') {
+            taskDataSpec.cloud_storage_id = this.cloudStorageId;
         }
 
         const task = await serverProxy.tasks.createTask(taskSpec, taskDataSpec, onUpdate);
@@ -2143,6 +2191,11 @@
 
     Task.prototype.frames.preview.implementation = async function () {
         const frameData = await getPreview(this.id);
+        return frameData;
+    };
+
+    Task.prototype.frames.frameData.implementation = async function (frame, quality = 'original') {
+        const frameData = await getFrameData(this.id, frame, quality);
         return frameData;
     };
 
@@ -2252,11 +2305,6 @@
         return result;
     };
 
-    Task.prototype.annotations.dump.implementation = async function (dumper, name) {
-        const result = await dumpAnnotations(this, name, dumper);
-        return result;
-    };
-
     Task.prototype.annotations.import.implementation = function (data) {
         const result = importAnnotations(this, data);
         return result;
@@ -2267,8 +2315,8 @@
         return result;
     };
 
-    Task.prototype.annotations.exportDataset.implementation = async function (format) {
-        const result = await exportDataset(this, format);
+    Task.prototype.annotations.exportDataset.implementation = async function (format, saveImages, customName) {
+        const result = await exportDataset(this, format, customName, saveImages);
         return result;
     };
 

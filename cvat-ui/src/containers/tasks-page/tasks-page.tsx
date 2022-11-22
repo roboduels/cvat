@@ -17,6 +17,7 @@ interface StateToProps {
     numberOfVisibleTasks: number;
     numberOfHiddenTasks: number;
     taskImporting: boolean;
+    checkedTasks: Record<string | number, Task>
 }
 
 interface DispatchToProps {
@@ -37,6 +38,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
             tasks.current.filter((task: Task): boolean => !task.instance.jobs.length).length :
             0,
         taskImporting: state.tasks.importing,
+        checkedTasks: state.tasks.checkedTasks,
     };
 }
 

@@ -4,28 +4,30 @@
 
 import React from 'react';
 import { useHistory } from 'react-router';
-import { Row, Col } from 'antd/lib/grid';
-import { PlusOutlined, UploadOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Col, Row } from 'antd/lib/grid';
+import { LoadingOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import Button from 'antd/lib/button';
-import Input from 'antd/lib/input';
 import Text from 'antd/lib/typography/Text';
 import Upload from 'antd/lib/upload';
 import Radio from 'antd/lib/radio';
 
-import SearchTooltip from 'components/search-tooltip/search-tooltip';
+import SearchField from 'components/search-field/search-field';
+import { Task, TasksQuery } from 'reducers/interfaces';
+import BulkActionsMenu from './bulk-actions-menu';
 
 interface VisibleTopBarProps {
-    onSearch: (value: string) => void;
     onFilterStatus: (value: string) => void;
+    onSearch: (query: TasksQuery) => void;
     onFileUpload(file: File): void;
-    searchValue: string;
+    query: TasksQuery;
     taskImporting: boolean;
-    filterStatus: string;
+    filterStatus: string | null;
+    checkedTasks: Record<string | number, Task>;
 }
 
 export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element {
     const {
-        searchValue, onSearch, onFileUpload, taskImporting, onFilterStatus, filterStatus,
+        query, onSearch, onFileUpload, taskImporting, onFilterStatus, filterStatus, checkedTasks,
     } = props;
 
     const history = useHistory();
@@ -76,33 +78,28 @@ export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element 
                         </Row>
                     </Col>
                 </Row>
-                <Row justify='space-between' align='middle'>
+                <Row justify='space-between' align='middle' style={{ marginTop: 14 }}>
                     <Col>
-                        <SearchTooltip instance='task'>
-                            <Input.Search
-                                className='cvat-task-page-search-task'
-                                defaultValue={searchValue}
-                                onSearch={onSearch}
-                                size='large'
-                                placeholder='Search'
-                            />
-                        </SearchTooltip>
+                        <SearchField instance='task' onSearch={onSearch} query={query} />
                     </Col>
                     <Col>
-                        <Row gutter={8}>
+                        <Row gutter={8} align='middle'>
+                            <Col style={{ marginRight: 14 }}>
+                                <BulkActionsMenu checkedTasks={checkedTasks} />
+                            </Col>
                             <Col>
                                 Filter:
                             </Col>
                             <Col>
-                                <Radio.Group 
+                                <Radio.Group
                                     defaultValue={filterStatus}
-                                    size="small" 
-                                    buttonStyle="solid" 
-                                    onChange={({target: { value }}) => onFilterStatus(value)}
+                                    size='small'
+                                    buttonStyle='solid'
+                                    onChange={({ target: { value } }) => onFilterStatus(value)}
                                 >
                                     <Radio.Button value={null}>All</Radio.Button>
-                                    <Radio.Button value="completed">Completed</Radio.Button>
-                                    <Radio.Button value="annotation">Pending</Radio.Button>
+                                    <Radio.Button value='completed'>Completed</Radio.Button>
+                                    <Radio.Button value='annotation'>Pending</Radio.Button>
                                 </Radio.Group>
                             </Col>
                         </Row>

@@ -8,12 +8,15 @@ import { TasksQuery, CombinedState, ActiveInference } from 'reducers/interfaces'
 
 import TaskItemComponent from 'components/tasks-page/task-item';
 
-import { getTasksAsync, updateTaskAsync, updateJobAsync } from 'actions/tasks-actions';
+import {
+    getTasksAsync, updateTaskAsync, updateJobAsync, markTaskChecked,
+} from 'actions/tasks-actions';
 import { cancelInferenceAsync } from 'actions/models-actions';
 
 interface StateToProps {
     deleted: boolean;
     hidden: boolean;
+    checked: boolean;
     previewImage: string;
     taskInstance: any;
     activeInference: ActiveInference | null;
@@ -24,6 +27,7 @@ interface DispatchToProps {
     cancelAutoAnnotation(): void;
     onTaskUpdate: (taskInstance: any) => void;
     onJobUpdate: (jobInstance: any) => void;
+    onCheck: (taskInstance: any) => void;
 }
 
 interface OwnProps {
@@ -38,10 +42,11 @@ function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
 
     return {
         hidden: state.tasks.hideEmpty && task.instance.jobs.length === 0,
-        deleted: id in deletes ? deletes[id] === true : false,
+        deleted: id in deletes ? deletes[id] : false,
         previewImage: task.preview,
         taskInstance: task.instance,
         activeInference: state.models.inferences[id] || null,
+        checked: !!state.tasks.checkedTasks[task.instance.id],
     };
 }
 
@@ -58,6 +63,9 @@ function mapDispatchToProps(dispatch: any, own: OwnProps): DispatchToProps {
         },
         onJobUpdate(jobInstance: any): void {
             dispatch(updateJobAsync(jobInstance));
+        },
+        onCheck(taskInstance: any): void {
+            dispatch(markTaskChecked(taskInstance));
         },
     };
 }

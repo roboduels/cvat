@@ -1349,6 +1349,7 @@ class ProjectUpdateLabelsAPITestCase(UpdateLabelsAPITestCase):
             }]
         }
         self._check_api_v1_project(data)
+
 class ProjectListOfTasksAPITestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
@@ -1394,6 +1395,79 @@ class ProjectListOfTasksAPITestCase(APITestCase):
         project = self.projects[1]
         response = self._run_api_v1_projects_id_tasks(None, project.id)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class ProjectExportAPITestCase(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    @classmethod
+    def setUpTestData(cls):
+        create_db_users(cls)
+        project_data = {
+            "name": "Project for check tasks in a xml",
+            "owner": cls.admin,
+            "labels": [{
+                "name": "car"
+            }]
+        }
+
+        db_project = create_db_project(project_data)
+        create_dummy_db_tasks(cls, db_project)
+        cls.project = db_project
+
+    def _run_api_v1_project_id_export(self, pid, user, annotation_format=""):
+        with ForceLogin(user, self.client):
+            response = self.client.get(
+                '/api/v1/projects/{}/annotations?format={}'.format(pid, annotation_format),
+                format="json")
+        return response
+
+    def _run_api_v1_tasks_id_delete(self, tid, user):
+        with ForceLogin(user, self.client):
+            response = self.client.delete('/api/v1/tasks/{}'.format(tid), format="json")
+        return response
+
+    def _check_tasks_count(self, project, expected_result):
+        tasks_id = [task.id for task in project.tasks.all()]
+        self.assertEqual(len(tasks_id), expected_result)
+
+    def _check_xml(self, pid, user, expected_result):
+        annotation_format = "CVAT for images 1.1"
+        response = self._run_api_v1_project_id_export(pid, user, annotation_format)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        response = self._run_api_v1_project_id_export(pid, user, annotation_format)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        annotation_format = "CVAT for images 1.1&action=download"
+        response = self._run_api_v1_project_id_export(pid, user, annotation_format)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        content = io.BytesIO(b"".join(response.streaming_content))
+        content.seek(0)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            zipfile.ZipFile(content).extractall(tmp_dir)
+            xml = osp.join(tmp_dir, 'annotations.xml')
+            self.assertTrue(xml)
+            root = ET.parse(xml).getroot()
+            tasks = root.findall('meta/project/tasks/task/name')
+            self.assertEqual(len(tasks), expected_result)
+
+    def test_api_v1_projects_remove_task_export(self):
+        project = self.project
+        pid = project.id
+        user = self.admin
+
+        self._check_tasks_count(project, 4)
+        self._check_xml(pid, user, 4)
+
+        tasks_id = [task.id for task in project.tasks.all()]
+        response = self._run_api_v1_tasks_id_delete(tasks_id[0], self.admin)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self._check_tasks_count(project, 3)
+        self._check_xml(pid, user, 3)
 
 
 class TaskListAPITestCase(APITestCase):
@@ -2512,11 +2586,11 @@ def generate_manifest_file(data_type, manifest_path, sources):
     }
 
     if data_type == 'video':
-        manifest = VideoManifestManager(manifest_path)
+        manifest = VideoManifestManager(manifest_path, create_index=False)
     else:
-        manifest = ImageManifestManager(manifest_path)
-    prepared_meta = manifest.prepare_meta(**kwargs[data_type])
-    manifest.create(prepared_meta)
+        manifest = ImageManifestManager(manifest_path, create_index=False)
+    manifest.link(**kwargs[data_type])
+    manifest.create()
 
 class TaskDataAPITestCase(APITestCase):
     _image_sizes = {}
@@ -4488,7 +4562,8 @@ class TaskAnnotationAPITestCase(JobAnnotationAPITestCase):
         def _get_initial_annotation(annotation_format):
             if annotation_format not in ["Market-1501 1.0", "ICDAR Recognition 1.0",
                                          "ICDAR Localization 1.0", "ICDAR Segmentation 1.0",
-                                         'Kitti Raw Format 1.0', 'Sly Point Cloud Format 1.0']:
+                                         'Kitti Raw Format 1.0', 'Sly Point Cloud Format 1.0',
+                                         'Datumaro 3D 1.0']:
                 rectangle_tracks_with_attrs = [{
                     "frame": 0,
                     "label_id": task["labels"][0]["id"],
@@ -4809,6 +4884,21 @@ class TaskAnnotationAPITestCase(JobAnnotationAPITestCase):
                 annotations["tags"] = tags_wo_attrs
                 annotations["shapes"] = points_wo_attrs \
                                       + rectangle_shapes_wo_attrs
+            elif annotation_format == "Cityscapes 1.0":
+                annotations["shapes"] = points_wo_attrs \
+                                      + rectangle_shapes_wo_attrs
+            elif annotation_format == "Open Images V6 1.0":
+                annotations["tags"] = tags_wo_attrs
+                annotations["shapes"] = rectangle_shapes_wo_attrs \
+                                      + polygon_shapes_wo_attrs
+
+            elif annotation_format == "LFW 1.0":
+                annotations["shapes"] = points_wo_attrs \
+                                      + tags_wo_attrs
+
+            elif annotation_format == "KITTI 1.0":
+                annotations["shapes"] = rectangle_shapes_wo_attrs \
+                                            + polygon_shapes_wo_attrs
 
             elif annotation_format == "Market-1501 1.0":
                 tags_with_attrs = [{
@@ -4832,7 +4922,8 @@ class TaskAnnotationAPITestCase(JobAnnotationAPITestCase):
                     ],
                 }]
                 annotations["tags"] = tags_with_attrs
-            elif annotation_format in ['Kitti Raw Format 1.0','Sly Point Cloud Format 1.0']:
+            elif annotation_format in ['Kitti Raw Format 1.0',
+                    'Sly Point Cloud Format 1.0', 'Datumaro 3D 1.0']:
                 velodyne_wo_attrs = [{
                     "frame": 0,
                     "label_id": task["labels"][0]["id"],

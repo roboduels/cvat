@@ -15,7 +15,8 @@ services:
         socks_proxy:
         CLAM_AV:
         INSTALL_SOURCES:
-
+    volumes:
+      - './cvat:/home/django/cvat'
   cvat_ui:
     build:
       context: .

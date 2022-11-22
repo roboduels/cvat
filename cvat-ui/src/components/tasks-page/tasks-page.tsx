@@ -11,7 +11,7 @@ import Button from 'antd/lib/button';
 import message from 'antd/lib/message';
 import Text from 'antd/lib/typography/Text';
 
-import { TasksQuery } from 'reducers/interfaces';
+import { Task, TasksQuery } from 'reducers/interfaces';
 import FeedbackComponent from 'components/feedback/feedback';
 import TaskListContainer from 'containers/tasks-page/tasks-list';
 import TopBar from './top-bar';
@@ -27,27 +27,7 @@ interface TasksPageProps {
     hideEmptyTasks: (hideEmpty: boolean) => void;
     onImportTask: (file: File) => void;
     taskImporting: boolean;
-}
-
-function getSearchField(gettingQuery: TasksQuery): string {
-    let searchString = '';
-    for (const field of Object.keys(gettingQuery)) {
-        if (gettingQuery[field] !== null && field !== 'page') {
-            if (field === 'search') {
-                return (gettingQuery[field] as any) as string;
-            }
-
-            // not constant condition
-            // eslint-disable-next-line
-            if (typeof (gettingQuery[field] === 'number')) {
-                searchString += `${field}:${gettingQuery[field]} AND `;
-            } else {
-                searchString += `${field}:"${gettingQuery[field]}" AND `;
-            }
-        }
-    }
-
-    return searchString.slice(0, -5);
+    checkedTasks: Record<string | number, Task>;
 }
 
 function updateQuery(previousQuery: TasksQuery, searchString: string): TasksQuery {
@@ -95,7 +75,7 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
 
         if (
             prevProps.location.search !== location.search ||
-            (prevProps.taskImporting === true && taskImporting === false)
+            (prevProps.taskImporting && !taskImporting)
         ) {
             // get new tasks if any query changes
             const query = updateQuery(gettingQuery, location.search);
@@ -126,47 +106,6 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
         }
     }
 
-    private handleSearch = (value: string): void => {
-        const { gettingQuery } = this.props;
-
-        const query = { ...gettingQuery };
-        const search = value
-            .replace(/\s+/g, ' ')
-            .replace(/\s*:+\s*/g, ':')
-            .trim();
-
-        const fields = ['name', 'mode', 'owner', 'assignee', 'status', 'id'];
-        for (const field of fields) {
-            query[field] = null;
-        }
-        query.search = null;
-
-        let specificRequest = false;
-        for (const param of search.split(/[\s]+and[\s]+|[\s]+AND[\s]+/)) {
-            if (param.includes(':')) {
-                const [field, fieldValue] = param.split(':');
-                if (fields.includes(field) && !!fieldValue) {
-                    specificRequest = true;
-                    if (field === 'id') {
-                        if (Number.isInteger(+fieldValue)) {
-                            query[field] = +fieldValue;
-                        }
-                    } else {
-                        query[field] = fieldValue;
-                    }
-                }
-            }
-        }
-
-        query.page = 1;
-        if (!specificRequest && value) {
-            // only id
-            query.search = value;
-        }
-
-        this.updateURL(query);
-    };
-
     private handlePagination = (page: number): void => {
         const { gettingQuery } = this.props;
 
@@ -189,7 +128,7 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
         this.updateURL(query);
     };
 
-    private updateURL(gettingQuery: TasksQuery): void {
+    private updateURL = (gettingQuery: TasksQuery): void => {
         const { history } = this.props;
         let queryString = '?';
         for (const field of Object.keys(gettingQuery)) {
@@ -207,11 +146,11 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
             // force update if any changes
             this.forceUpdate();
         }
-    }
+    };
 
     public render(): JSX.Element {
         const {
-            tasksFetching, gettingQuery, numberOfVisibleTasks, onImportTask, taskImporting,
+            tasksFetching, gettingQuery, numberOfVisibleTasks, onImportTask, taskImporting, checkedTasks,
         } = this.props;
 
         if (tasksFetching) {
@@ -221,12 +160,13 @@ class TasksPageComponent extends React.PureComponent<TasksPageProps & RouteCompo
         return (
             <div className='cvat-tasks-page'>
                 <TopBar
-                    onSearch={this.handleSearch}
-                    searchValue={getSearchField(gettingQuery)}
+                    onSearch={this.updateURL}
+                    query={gettingQuery}
                     onFileUpload={onImportTask}
                     taskImporting={taskImporting}
                     onFilterStatus={this.filterByStatus}
-                    filterStatus={gettingQuery['status']}
+                    filterStatus={gettingQuery.status}
+                    checkedTasks={checkedTasks}
                 />
                 {numberOfVisibleTasks ? (
                     <TaskListContainer onSwitchPage={this.handlePagination} />

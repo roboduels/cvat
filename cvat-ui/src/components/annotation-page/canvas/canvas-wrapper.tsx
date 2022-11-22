@@ -20,6 +20,7 @@ import consts from 'consts';
 import CVATTooltip from 'components/common/cvat-tooltip';
 import ImageSetupsContent from './image-setups-content';
 import ContextImage from '../standard-workspace/context-image/context-image';
+import { GradesForm } from '../grades-form/grades-form';
 
 const cvat = getCore();
 
@@ -27,11 +28,10 @@ const MAX_DISTANCE_TO_OPEN_SHAPE = 50;
 
 interface Props {
     sidebarCollapsed: boolean;
-    canvasInstance: Canvas | Canvas3d;
+    canvasInstance: Canvas | Canvas3d | null;
     jobInstance: any;
     activatedStateID: number | null;
     activatedAttributeID: number | null;
-    selectedStatesID: number[];
     annotations: any[];
     frameIssues: any[] | null;
     frameData: any;
@@ -58,6 +58,7 @@ interface Props {
     contrastLevel: number;
     saturationLevel: number;
     resetZoom: boolean;
+    smoothImage: boolean;
     aamZoomMargin: number;
     showObjectsTextAlways: boolean;
     showAllInterpolationTracks: boolean;
@@ -82,7 +83,6 @@ interface Props {
     onGroupAnnotations(sessionInstance: any, frame: number, states: any[]): void;
     onSplitAnnotations(sessionInstance: any, frame: number, state: any): void;
     onActivateObject(activatedStateID: number | null): void;
-    onSelectObjects(selectedStatesID: number[]): void;
     onUpdateContextMenu(visible: boolean, left: number, top: number, type: ContextMenuType, pointID?: number): void;
     onAddZLayer(): void;
     onSwitchZLayer(cur: number): void;
@@ -106,6 +106,8 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             showObjectsTextAlways,
             workspace,
             showProjections,
+            selectedOpacity,
+            smoothImage,
         } = this.props;
         const { canvasInstance } = this.props as { canvasInstance: Canvas };
 
@@ -115,12 +117,14 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
         wrapper.appendChild(canvasInstance.html());
 
         canvasInstance.configure({
+            smoothImage,
             autoborders: automaticBordering,
             undefinedAttrValue: consts.UNDEFINED_ATTRIBUTE_VALUE,
             displayAllText: showObjectsTextAlways,
             forceDisableEditing: workspace === Workspace.REVIEW_WORKSPACE,
             intelligentPolygonCrop,
             showProjections,
+            creationOpacity: selectedOpacity,
         });
 
         this.initialSetup();
@@ -144,6 +148,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             activatedStateID,
             curZLayer,
             resetZoom,
+            smoothImage,
             grid,
             gridSize,
             gridOpacity,
@@ -166,7 +171,9 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             prevProps.showObjectsTextAlways !== showObjectsTextAlways ||
             prevProps.automaticBordering !== automaticBordering ||
             prevProps.showProjections !== showProjections ||
-            prevProps.intelligentPolygonCrop !== intelligentPolygonCrop
+            prevProps.intelligentPolygonCrop !== intelligentPolygonCrop ||
+            prevProps.selectedOpacity !== selectedOpacity ||
+            prevProps.smoothImage !== smoothImage
         ) {
             canvasInstance.configure({
                 undefinedAttrValue: consts.UNDEFINED_ATTRIBUTE_VALUE,
@@ -174,6 +181,8 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
                 autoborders: automaticBordering,
                 showProjections,
                 intelligentPolygonCrop,
+                creationOpacity: selectedOpacity,
+                smoothImage,
             });
         }
 
@@ -198,7 +207,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             canvasInstance.activate(null);
             const el = window.document.getElementById(`cvat_canvas_shape_${prevProps.activatedStateID}`);
             if (el) {
-                (el as any).instance.fill({ opacity: opacity / 100 });
+                (el as any).instance.fill({ opacity });
             }
         }
 
@@ -214,7 +223,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             }
             if (gridPattern) {
                 gridPattern.style.stroke = gridColor.toLowerCase();
-                gridPattern.style.opacity = `${gridOpacity / 100}`;
+                gridPattern.style.opacity = `${gridOpacity}`;
             }
         }
 
@@ -225,10 +234,8 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
         ) {
             const backgroundElement = window.document.getElementById('cvat_canvas_background');
             if (backgroundElement) {
-                backgroundElement.style.filter =
-                    `brightness(${brightnessLevel / 100})` +
-                    `contrast(${contrastLevel / 100})` +
-                    `saturate(${saturationLevel / 100})`;
+                const filter = `brightness(${brightnessLevel}) contrast(${contrastLevel}) saturate(${saturationLevel})`;
+                backgroundElement.style.filter = filter;
             }
         }
 
@@ -418,7 +425,9 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
 
     private fitCanvas = (): void => {
         const { canvasInstance } = this.props;
-        canvasInstance.fitCanvas();
+        if (canvasInstance) {
+            canvasInstance.fitCanvas();
+        }
     };
 
     private onCanvasMouseDown = (e: MouseEvent): void => {
@@ -525,8 +534,9 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
 
         onEditShape(false);
 
-        const { state, points } = event.detail;
+        const { state, points, rotation } = event.detail;
         state.points = points;
+        state.rotation = rotation;
         onUpdateAnnotations([state]);
     };
 
@@ -619,7 +629,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             }
             const el = window.document.getElementById(`cvat_canvas_shape_${activatedStateID}`);
             if (el) {
-                ((el as any) as SVGElement).setAttribute('fill-opacity', `${selectedOpacity / 100}`);
+                ((el as any) as SVGElement).setAttribute('fill-opacity', `${selectedOpacity}`);
             }
         }
     }
@@ -648,7 +658,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
                     handler.nested.fill({ color: shapeColor });
                 }
 
-                (shapeView as any).instance.fill({ color: shapeColor, opacity: opacity / 100 });
+                (shapeView as any).instance.fill({ color: shapeColor, opacity });
                 (shapeView as any).instance.stroke({ color: outlined ? outlineColor : shapeColor });
             }
         }
@@ -676,7 +686,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             curZLayer, annotations, frameData, canvasInstance,
         } = this.props;
 
-        if (frameData !== null) {
+        if (frameData !== null && canvasInstance) {
             canvasInstance.setup(
                 frameData,
                 annotations.filter((e) => e.objectType !== ObjectType.TAG),
@@ -710,17 +720,15 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
         }
         if (gridPattern) {
             gridPattern.style.stroke = gridColor.toLowerCase();
-            gridPattern.style.opacity = `${gridOpacity / 100}`;
+            gridPattern.style.opacity = `${gridOpacity}`;
         }
         canvasInstance.grid(gridSize, gridSize);
 
         // Filters
         const backgroundElement = window.document.getElementById('cvat_canvas_background');
         if (backgroundElement) {
-            backgroundElement.style.filter =
-                `brightness(${brightnessLevel / 100})` +
-                `contrast(${contrastLevel / 100})` +
-                `saturate(${saturationLevel / 100})`;
+            const filter = `brightness(${brightnessLevel}) contrast(${contrastLevel}) saturate(${saturationLevel})`;
+            backgroundElement.style.filter = filter;
         }
 
         const canvasWrapperElement = window.document
@@ -780,6 +788,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
             keyMap,
             switchableAutomaticBordering,
             automaticBordering,
+            jobInstance,
             onSwitchAutomaticBordering,
             onSwitchZLayer,
             onAddZLayer,
@@ -807,6 +816,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
         return (
             <Layout.Content style={{ position: 'relative' }}>
                 <GlobalHotKeys keyMap={subKeyMap} handlers={handlers} />
+                <GradesForm task={jobInstance.task} />
                 {/*
                     This element doesn't have any props
                     So, React isn't going to rerender it
@@ -823,7 +833,7 @@ export default class CanvasWrapperComponent extends React.PureComponent<Props> {
 
                 <ContextImage />
 
-                <Dropdown trigger='click' placement='topCenter' overlay={<ImageSetupsContent />}>
+                <Dropdown trigger={['click']} placement='topCenter' overlay={<ImageSetupsContent />}>
                     <UpOutlined className='cvat-canvas-image-setups-trigger' />
                 </Dropdown>
 

@@ -45,6 +45,20 @@
         return new ServerError(message, 0);
     }
 
+    function prepareData(details) {
+        const data = new FormData();
+        for (const [key, value] of Object.entries(details)) {
+            if (Array.isArray(value)) {
+                value.forEach((element, idx) => {
+                    data.append(`${key}[${idx}]`, element);
+                });
+            } else {
+                data.set(key, value);
+            }
+        }
+        return data;
+    }
+
     class WorkerWrappedAxios {
         constructor() {
             const worker = new DownloadWorker();
@@ -57,7 +71,6 @@
                         requests[e.data.id].resolve(e.data.responseData);
                     } else {
                         requests[e.data.id].reject({
-                            error: e.data.error,
                             response: {
                                 status: e.data.status,
                                 data: e.data.responseData,
@@ -135,9 +148,9 @@
                 return response.data;
             }
 
-            async function share(directory) {
+            async function share(directoryArg) {
                 const { backendAPI } = config;
-                directory = encodeURIComponent(directory);
+                const directory = encodeURIComponent(directoryArg);
 
                 let response = null;
                 try {
@@ -465,29 +478,39 @@
                 }
             }
 
-            async function exportDataset(id, format) {
-                const { backendAPI } = config;
-                let url = `${backendAPI}/tasks/${id}/dataset?format=${format}`;
-
-                return new Promise((resolve, reject) => {
-                    async function request() {
-                        try {
-                            const response = await Axios.get(`${url}`, {
-                                proxy: config.proxy,
-                            });
-                            if (response.status === 202) {
-                                setTimeout(request, 3000);
-                            } else {
-                                url = `${url}&action=download`;
-                                resolve(url);
-                            }
-                        } catch (errorData) {
-                            reject(generateError(errorData));
-                        }
+            function exportDataset(instanceType) {
+                return async function (id, format, name, saveImages) {
+                    const { backendAPI } = config;
+                    const baseURL = `${backendAPI}/${instanceType}/${id}/${saveImages ? 'dataset' : 'annotations'}`;
+                    let query = `format=${encodeURIComponent(format)}`;
+                    if (name) {
+                        const filename = name.replace(/\//g, '_');
+                        query += `&filename=${encodeURIComponent(filename)}`;
                     }
+                    let url = `${baseURL}?${query}`;
 
-                    setTimeout(request);
-                });
+                    return new Promise((resolve, reject) => {
+                        async function request() {
+                            Axios.get(`${url}`, {
+                                proxy: config.proxy,
+                            })
+                                .then((response) => {
+                                    if (response.status === 202) {
+                                        setTimeout(request, 3000);
+                                    } else {
+                                        query = `${query}&action=download`;
+                                        url = `${baseURL}?${query}`;
+                                        resolve(url);
+                                    }
+                                })
+                                .catch((errorData) => {
+                                    reject(generateError(errorData));
+                                });
+                        }
+
+                        setTimeout(request);
+                    });
+                };
             }
 
             async function exportTask(id) {
@@ -734,6 +757,16 @@
                 return response.data;
             }
 
+            async function deleteIssue(issueID) {
+                const { backendAPI } = config;
+
+                try {
+                    await Axios.delete(`${backendAPI}/issues/${issueID}`);
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+            }
+
             async function saveJob(id, jobData) {
                 const { backendAPI } = config;
 
@@ -796,6 +829,29 @@
                 return response.data;
             }
 
+            async function getFrameData(tid, frame, quality = 'original') {
+                const { backendAPI } = config;
+
+                let response = null;
+                try {
+                    response = await Axios.get(
+                        `${backendAPI}/tasks/${tid}/data?type=frame&quality=${quality}&number=${frame}`,
+                        {
+                            proxy: config.proxy,
+                            responseType: 'blob',
+                        },
+                    );
+                    const mimeType = response.data.type.replace(/^\('/, '').replace(/'$/, '');
+                    const { data } = response;
+                    response.data = new Blob([data.slice(0)], { type: mimeType });
+                } catch (errorData) {
+                    const code = errorData.response ? errorData.response.status : errorData.code;
+                    throw new ServerError(`Could not get preview frame for the task ${tid} from the server`, code);
+                }
+
+                return response.data;
+            }
+
             async function getImageContext(tid, frame) {
                 const { backendAPI } = config;
 
@@ -829,7 +885,6 @@
                     );
                 } catch (errorData) {
                     throw generateError({
-                        ...errorData,
                         message: '',
                         response: {
                             ...errorData.response,
@@ -1135,7 +1190,8 @@
 
                     const closureId = Date.now();
                     predictAnnotations.latestRequest.id = closureId;
-                    const predicate = () => !predictAnnotations.latestRequest.fetching || predictAnnotations.latestRequest.id !== closureId;
+                    const predicate = () => !predictAnnotations.latestRequest.fetching ||
+                        predictAnnotations.latestRequest.id !== closureId;
                     if (predictAnnotations.latestRequest.fetching) {
                         waitFor(5, predicate).then(() => {
                             if (predictAnnotations.latestRequest.id !== closureId) {
@@ -1164,6 +1220,116 @@
                         proxy: config.proxy,
                     });
                     return response.data;
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+            }
+
+            async function createCloudStorage(storageDetail) {
+                const { backendAPI } = config;
+
+                const storageDetailData = prepareData(storageDetail);
+                try {
+                    const response = await Axios.post(`${backendAPI}/cloudstorages`, storageDetailData, {
+                        proxy: config.proxy,
+                    });
+                    return response.data;
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+            }
+
+            async function updateCloudStorage(id, storageDetail) {
+                const { backendAPI } = config;
+
+                const storageDetailData = prepareData(storageDetail);
+                try {
+                    await Axios.patch(`${backendAPI}/cloudstorages/${id}`, storageDetailData, {
+                        proxy: config.proxy,
+                    });
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+            }
+
+            async function getCloudStorages(filter = '') {
+                const { backendAPI } = config;
+
+                let response = null;
+                try {
+                    response = await Axios.get(`${backendAPI}/cloudstorages?page_size=12&${filter}`, {
+                        proxy: config.proxy,
+                    });
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+
+                response.data.results.count = response.data.count;
+                return response.data.results;
+            }
+
+            async function getCloudStorageContent(id, manifestPath) {
+                const { backendAPI } = config;
+
+                let response = null;
+                try {
+                    const url = `${backendAPI}/cloudstorages/${id}/content${
+                        manifestPath ? `?manifest_path=${manifestPath}` : ''
+                    }`;
+                    response = await Axios.get(url, {
+                        proxy: config.proxy,
+                    });
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+
+                return response.data;
+            }
+
+            async function getCloudStoragePreview(id) {
+                const { backendAPI } = config;
+
+                let response = null;
+                try {
+                    const url = `${backendAPI}/cloudstorages/${id}/preview`;
+                    response = await workerAxios.get(url, {
+                        proxy: config.proxy,
+                        responseType: 'arraybuffer',
+                    });
+                } catch (errorData) {
+                    throw generateError({
+                        message: '',
+                        response: {
+                            ...errorData.response,
+                            data: String.fromCharCode.apply(null, new Uint8Array(errorData.response.data)),
+                        },
+                    });
+                }
+
+                return new Blob([new Uint8Array(response)]);
+            }
+
+            async function getCloudStorageStatus(id) {
+                const { backendAPI } = config;
+
+                let response = null;
+                try {
+                    const url = `${backendAPI}/cloudstorages/${id}/status`;
+                    response = await Axios.get(url, {
+                        proxy: config.proxy,
+                    });
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+
+                return response.data;
+            }
+
+            async function deleteCloudStorage(id) {
+                const { backendAPI } = config;
+
+                try {
+                    await Axios.delete(`${backendAPI}/cloudstorages/${id}`);
                 } catch (errorData) {
                     throw generateError(errorData);
                 }
@@ -1199,6 +1365,7 @@
                             save: saveProject,
                             create: createProject,
                             delete: deleteProject,
+                            exportDataset: exportDataset('projects'),
                         }),
                         writable: false,
                     },
@@ -1209,7 +1376,7 @@
                             saveTask,
                             createTask,
                             deleteTask,
-                            exportDataset,
+                            exportDataset: exportDataset('tasks'),
                             exportTask,
                             importTask,
                         }),
@@ -1242,6 +1409,7 @@
                             getData,
                             getMeta,
                             getPreview,
+                            getFrameData,
                             getImageContext,
                         }),
                         writable: false,
@@ -1279,6 +1447,7 @@
                     issues: {
                         value: Object.freeze({
                             update: updateIssue,
+                            delete: deleteIssue,
                         }),
                         writable: false,
                     },
@@ -1294,6 +1463,19 @@
                         value: Object.freeze({
                             status: predictorStatus,
                             predict: predictAnnotations,
+                        }),
+                        writable: false,
+                    },
+
+                    cloudStorages: {
+                        value: Object.freeze({
+                            get: getCloudStorages,
+                            getContent: getCloudStorageContent,
+                            getPreview: getCloudStoragePreview,
+                            getStatus: getCloudStorageStatus,
+                            create: createCloudStorage,
+                            delete: deleteCloudStorage,
+                            update: updateCloudStorage,
                         }),
                         writable: false,
                     },

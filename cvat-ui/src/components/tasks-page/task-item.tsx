@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Intel Corporation
+// Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
 
@@ -16,21 +16,66 @@ import moment from 'moment';
 import ActionsMenuContainer from 'containers/actions-menu/actions-menu';
 import { ActiveInference } from 'reducers/interfaces';
 import { MenuIcon } from 'icons';
-import AutomaticAnnotationProgress from './automatic-annotation-progress';
 import UserSelector, { User } from 'components/task-page/user-selector';
+import Checkbox from 'antd/lib/checkbox';
+import AutomaticAnnotationProgress from './automatic-annotation-progress';
+import { fetchActivitiesOfTask } from '../../utils/activity';
 
 export interface TaskItemProps {
     taskInstance: any;
     previewImage: string;
     deleted: boolean;
     hidden: boolean;
+    checked?: boolean;
     activeInference: ActiveInference | null;
+
     cancelAutoAnnotation(): void;
+
     onTaskUpdate: (taskInstance: any) => void;
     onJobUpdate: (jobInstance: any) => void;
+    onCheck: (taskInstance: any) => void;
 }
 
-class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteComponentProps> {
+interface State {
+    lastActivity: any | null,
+    loadedActivity: boolean
+}
+
+class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteComponentProps, State> {
+    constructor(props: TaskItemProps & RouteComponentProps) {
+        super(props);
+        this.state = {
+            lastActivity: null,
+            loadedActivity: false,
+        };
+    }
+
+    public componentDidMount(): void {
+        const { loadedActivity } = this.state;
+        const { taskInstance } = this.props;
+        const { id } = taskInstance || {};
+        if (id && !loadedActivity) {
+            this.setState({ loadedActivity: true });
+
+            fetchActivitiesOfTask(id)
+                .then((data) => {
+                    const list = data.sort((a, b) => b.id - a.id);
+                    this.setState({
+                        lastActivity: list[0],
+                    });
+                }).catch(() => {
+                    this.setState({
+                        lastActivity: null,
+                    });
+                });
+        }
+    }
+
+    private stopPropagation(e: any): void {
+        e?.preventDefault();
+        e?.stopPropagation();
+    }
+
     private renderPreview(): JSX.Element {
         const { previewImage } = this.props;
         return (
@@ -39,6 +84,22 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     <img alt='Preview' className='cvat-task-item-preview' src={previewImage} />
                 </div>
             </Col>
+        );
+    }
+
+    private renderCheckbox(): JSX.Element | null {
+        const { checked, onCheck, taskInstance } = this.props;
+        if (!onCheck) {
+            return null;
+        }
+
+        return (
+            <div className='cvat-task-item-checkbox'>
+                <Checkbox
+                    checked={!!checked}
+                    onChange={() => onCheck(taskInstance)}
+                />
+            </div>
         );
     }
 
@@ -53,26 +114,37 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         // Get and truncate a task name
         const name = `${taskInstance.name.substring(0, 70)}${taskInstance.name.length > 70 ? '...' : ''}`;
 
+        const { lastActivity } = this.state;
+        let lastUpdatedBy = null;
+        if (lastActivity) {
+            lastUpdatedBy = `${lastActivity.user.first_name ?? ''} ${lastActivity.user.last_name ?? ''}`.trim() || lastActivity.user.username;
+        }
+
         return (
             <Col span={8} className='cvat-task-item-description'>
-                <Text strong type='secondary' className='cvat-item-task-id'>{`#${id}: `}</Text>
+                <Text strong type='secondary' className='cvat-item-task-id'>{ `#${id}: ` }</Text>
                 <Text strong className='cvat-item-task-name'>
-                    {name}
+                    { name }
                 </Text>
                 <br />
-                {owner && (
+                { owner && (
                     <>
-                        <Text type='secondary'>{`Created ${owner ? `by ${owner}` : ''} on ${created}`}</Text>
+                        <Text type='secondary'>{ `Created ${owner ? `by ${owner}` : ''} on ${created}` }</Text>
                         <br />
                     </>
-                )}
-                <Text type='secondary'>{`Last updated ${updated}`}</Text>
+                ) }
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text type='secondary'>{ `Last updated ${updated}` }</Text>
+                    { lastUpdatedBy && <Text type='secondary'>{ `By ${lastUpdatedBy}` }</Text> }
+                </div>
             </Col>
         );
     }
 
     private renderProgress(): JSX.Element {
-        const { taskInstance, activeInference, cancelAutoAnnotation, onTaskUpdate, onJobUpdate } = this.props;
+        const {
+            taskInstance, activeInference, cancelAutoAnnotation, onTaskUpdate, onJobUpdate,
+        } = this.props;
         const assignee = taskInstance.assignee ? taskInstance.assignee : null;
         const jobInstance = taskInstance?.jobs?.[0];
         const reviewer = jobInstance?.reviewer;
@@ -115,10 +187,10 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                         <svg height='8' width='8' className={progressColor}>
                             <circle cx='4' cy='4' r='4' strokeWidth='0' />
                         </svg>
-                        {progressText}
+                        { progressText }
                     </Col>
                     <Col>
-                        <Text type='secondary'>{`${numOfCompleted} of ${numOfJobs} jobs`}</Text>
+                        <Text type='secondary'>{ `${numOfCompleted} of ${numOfJobs} jobs` }</Text>
                     </Col>
                 </Row>
                 <Row>
@@ -137,7 +209,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     activeInference={activeInference}
                     cancelAutoAnnotation={cancelAutoAnnotation}
                 />
-                <Row 
+                <Row
                     gutter={8}
                     onClick={(e: React.MouseEvent) => {
                         e.preventDefault();
@@ -145,7 +217,9 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     }}
                 >
                     <Col span={12}>
-                        <Text type='secondary' style={{fontSize: 12}}>Assigned to</Text>
+                        <Text type='secondary' style={{ fontSize: 12 }}>
+                            Assigned to
+                        </Text>
                         <UserSelector
                             value={assignee}
                             onSelect={(value: User | null): void => {
@@ -155,7 +229,9 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                         />
                     </Col>
                     <Col span={12}>
-                        <Text type='secondary' style={{fontSize: 12}}>Reviewer</Text>
+                        <Text type='secondary' style={{ fontSize: 12 }}>
+                            Reviewer
+                        </Text>
                         <UserSelector
                             value={reviewer}
                             onSelect={(value: User | null): void => {
@@ -194,21 +270,19 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                 </Row>
                 <Row justify='end'>
                     <Col className='cvat-item-open-task-actions'>
-                        <Text 
-                            className='cvat-text-color' 
-                            onClick={(e: React.MouseEvent) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
+                        <Text
+                            className='cvat-text-color'
+                            onClick={(e) => this.stopPropagation(e)}
                         >
                             Actions
                         </Text>
-                        <Dropdown 
-                            overlay={<ActionsMenuContainer taskInstance={taskInstance} />}
-                            onClick={(e: React.MouseEvent) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
+                        <Dropdown
+                            overlay={(
+                                <ActionsMenuContainer
+                                    taskInstance={taskInstance}
+                                />
+                            )}
+                            {...({ onClick: (e: any) => this.stopPropagation(e) } as any)}
                         >
                             <Icon className='cvat-menu-icon' component={MenuIcon} />
                         </Dropdown>
@@ -219,10 +293,10 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
     }
 
     public render(): JSX.Element {
-        const { deleted, hidden, taskInstance, history } = this.props;
-        const { id } = taskInstance;
-        const jobId = taskInstance?.jobs?.[0]?.id;
-        
+        const {
+            deleted, hidden,
+        } = this.props;
+
         const style = {};
         if (deleted) {
             (style as any).pointerEvents = 'none';
@@ -232,23 +306,19 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         if (hidden) {
             (style as any).display = 'none';
         }
-        (style as any).cursor = 'pointer';
 
         return (
-            <Row 
-                className='cvat-tasks-list-item' 
-                justify='center' 
-                align='top' 
+            <Row
+                className='cvat-tasks-list-item'
+                justify='center'
+                align='top'
                 style={{ ...style }}
-                onClick={(e: React.MouseEvent): void => {
-                    e.preventDefault();
-                    history.push(`/tasks/${id}/jobs/${jobId}`);
-                }}
             >
-                {this.renderPreview()}
-                {this.renderDescription()}
-                {this.renderProgress()}
-                {this.renderNavigation()}
+                { this.renderCheckbox() }
+                { this.renderPreview() }
+                { this.renderDescription() }
+                { this.renderProgress() }
+                { this.renderNavigation() }
             </Row>
         );
     }

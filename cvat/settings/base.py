@@ -238,7 +238,9 @@ AUTHENTICATION_BACKENDS = [
 # https://github.com/pennersr/django-allauth
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 # set UI url to redirect after a successful e-mail confirmation
-ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/auth/login'
+#changed from '/auth/login' to '/auth/email-confirmation' for email confirmation message
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/auth/email-confirmation'
+
 OLD_PASSWORD_FIELD_ENABLED = True
 
 # Django-RQ
@@ -260,10 +262,10 @@ RQ_QUEUES = {
 }
 
 NUCLIO = {
-    'SCHEME': 'http',
-    'HOST': 'localhost',
-    'PORT': 8070,
-    'DEFAULT_TIMEOUT': 120
+    'SCHEME': os.getenv('CVAT_NUCLIO_SCHEME', 'http'),
+    'HOST': os.getenv('CVAT_NUCLIO_HOST', 'localhost'),
+    'PORT': os.getenv('CVAT_NUCLIO_PORT', 8070),
+    'DEFAULT_TIMEOUT': os.getenv('CVAT_NUCLIO_DEFAULT_TIMEOUT', 120)
 }
 
 RQ_SHOW_ADMIN_LINK = True
@@ -480,3 +482,4 @@ CACHES = {
 
 USE_CACHE = True
 
+REVIEWER_SPECIAL_LABELS = os.getenv("REVIEWER_SPECIAL_LABELS", "reviewer,grader-minor,grader-major").split(",")
