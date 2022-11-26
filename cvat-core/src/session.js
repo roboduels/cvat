@@ -1950,9 +1950,9 @@
     };
 
     Job.prototype.annotations.clear.implementation = async function (
-        reload, startframe, endframe, delTrackKeyframesOnly,
+        reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders
     ) {
-        const result = await clearAnnotations(this, reload, startframe, endframe, delTrackKeyframesOnly);
+        const result = await clearAnnotations(this, reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders);
         return result;
     };
 
