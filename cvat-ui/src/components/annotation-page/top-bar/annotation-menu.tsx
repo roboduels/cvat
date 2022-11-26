@@ -26,7 +26,7 @@ interface Props {
     onClickMenu(params: MenuInfo): void;
     onUploadAnnotations(format: string, file: File): void;
     stopFrame: number;
-    removeAnnotations(startnumber: number, endnumber: number, delTrackKeyframesOnly:boolean): void;
+    removeAnnotations(startnumber: number, endnumber: number, delTrackKeyframesOnly: boolean, exceptBorders?: boolean): void;
     setForceExitAnnotationFlag(forceExit: boolean): void;
     saveAnnotations(jobInstance: any, afterSave?: () => void): void;
 }
@@ -35,6 +35,7 @@ export enum Actions {
     LOAD_JOB_ANNO = 'load_job_anno',
     EXPORT_TASK_DATASET = 'export_task_dataset',
     REMOVE_ANNO = 'remove_anno',
+    REMOVE_ANNO_EXCEPT_BORDERS = 'remove_anno_except_borders',
     OPEN_TASK = 'open_task',
     REQUEST_REVIEW = 'request_review',
     SUBMIT_REVIEW = 'submit_review',
@@ -142,6 +143,61 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 },
                 okText: 'Delete',
             });
+        } else if (params.key === Actions.REMOVE_ANNO_EXCEPT_BORDERS) {
+            let removeFrom: number;
+            let removeUpTo: number;
+            let removeOnlyKeyframes = false;
+            const exceptBorders = true;
+            const { Panel } = Collapse;
+            Modal.confirm({
+                title: 'Remove Annotations Except Borders',
+                content: (
+                    <div>
+                        <Text>You are going to remove the all annotations except borders from the client. </Text>
+                        <Text>It will stay on the server till you save the job. Continue?</Text>
+                        <br />
+                        <br />
+                        <Collapse bordered={false}>
+                            <Panel header={<Text>Select Range</Text>} key={1}>
+                                <Text>From: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeFrom = value;
+                                    }}
+                                />
+                                <Text>  To: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => { removeUpTo = value; }}
+                                />
+                                <Tooltip title='Applicable only for annotations in range'>
+                                    <br />
+                                    <br />
+                                    <Checkbox
+                                        onChange={(check) => {
+                                            removeOnlyKeyframes = check.target.checked;
+                                        }}
+                                    >
+                                        Delete only keyframes for tracks
+                                    </Checkbox>
+                                </Tooltip>
+                            </Panel>
+                        </Collapse>
+                    </div>
+                ),
+                className: 'cvat-modal-confirm-remove-annotation',
+                onOk: () => {
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders);
+                },
+                okButtonProps: {
+                    type: 'primary',
+                    danger: true,
+                },
+                okText: 'Delete',
+            });
         } else if (params.key === Actions.REQUEST_REVIEW) {
             checkUnsavedChanges(params);
         } else if (params.key === Actions.FINISH_JOB) {
@@ -200,6 +256,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             })}
             <Menu.Item key={Actions.EXPORT_TASK_DATASET}>Export task dataset</Menu.Item>
             <Menu.Item key={Actions.REMOVE_ANNO}>Remove annotations</Menu.Item>
+            <Menu.Item key={Actions.REMOVE_ANNO_EXCEPT_BORDERS}>Remove annotations except borders</Menu.Item>
             <Menu.Item key={Actions.OPEN_TASK}>
                 <a href={`/tasks/${taskID}`} onClick={(e: React.MouseEvent) => e.preventDefault()}>
                     Open the task

@@ -560,11 +560,11 @@
             return groupIdx;
         }
 
-        clear(startframe, endframe, delTrackKeyframesOnly) {
+        clear(startframe, endframe, delTrackKeyframesOnly, exceptBorders) {
             if (startframe !== undefined && endframe !== undefined) {
                 // If only a range of annotations need to be cleared
                 for (let frame = startframe; frame <= endframe; frame++) {
-                    this.shapes[frame] = [];
+                    this.shapes[frame] = exceptBorders ? this.shapes[frame].filter((shape) => shape.label.name === 'inner-border' || shape.label.name === 'outer-border') : [];
                     this.tags[frame] = [];
                 }
                 const { tracks } = this;
@@ -582,7 +582,11 @@
                 });
             } else if (startframe === undefined && endframe === undefined) {
                 // If all annotations need to be cleared
-                this.shapes = {};
+                if (exceptBorders) {
+                    Object.keys(this.shapes).forEach(frame => this.shapes[frame] = this.shapes[frame].filter((shape) => shape.label.name === 'inner-border' || shape.label.name === 'outer-border'))
+                } else {
+                    this.shapes = {};
+                }
                 this.tags = {};
                 this.tracks = [];
                 this.objects = {}; // by id
