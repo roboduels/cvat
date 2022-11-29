@@ -7,6 +7,7 @@ import Collapse from 'antd/lib/collapse';
 import Col from 'antd/lib/col';
 import Form, { FormInstance } from 'antd/lib/form';
 import Input from 'antd/lib/input';
+import InputNumber from 'antd/lib/input-number';
 import Row from 'antd/lib/row';
 import Typography from 'antd/lib/typography';
 import Divider from 'antd/lib/divider';
@@ -523,22 +524,22 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                     <Row gutter={[8, 16]}>
                                         <Col span={6}>
                                             <Form.Item label='Centering' name='front_centering_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                         <Col span={6}>
                                             <Form.Item label='Surface' name='front_surface_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                         <Col span={6}>
                                             <Form.Item label='Edges' name='front_edges_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                         <Col span={6}>
                                             <Form.Item label='Corners' name='front_corners_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                     </Row>
@@ -549,22 +550,22 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                     <Row gutter={[8, 16]}>
                                         <Col span={6}>
                                             <Form.Item label='Centering' name='back_centering_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                         <Col span={6}>
                                             <Form.Item label='Surface' name='back_surface_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                         <Col span={6}>
                                             <Form.Item label='Edges' name='back_edges_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                         <Col span={6}>
                                             <Form.Item label='Corners' name='back_corners_laser_grade'>
-                                                <Input type='number' controls={false} formatter={roundBy25} readOnly />
+                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
                                             </Form.Item>
                                         </Col>
                                     </Row>
