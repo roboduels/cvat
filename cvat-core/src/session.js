@@ -38,10 +38,10 @@
                     },
 
                     async clear(
-                        reload = false, startframe = undefined, endframe = undefined, delTrackKeyframesOnly = true,
+                        reload = false, startframe = undefined, endframe = undefined, delTrackKeyframesOnly = true, exceptBorders = false
                     ) {
                         const result = await PluginRegistry.apiWrapper.call(
-                            this, prototype.annotations.clear, reload, startframe, endframe, delTrackKeyframesOnly,
+                            this, prototype.annotations.clear, reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders
                         );
                         return result;
                     },
