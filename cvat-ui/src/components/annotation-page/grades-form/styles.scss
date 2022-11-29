@@ -30,6 +30,12 @@
         padding: 64px;
     }
 
+    &-robogrades {
+        .ant-input-number {
+            width: 100% !important;
+        }
+    }
+
     &-info {
         display: block;
 

@@ -517,7 +517,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                     {robogradesVisibility ? (
                         <Col span={7}>
                             <Collapse defaultActiveKey={['1']}>
-                                <Panel header='Robogrades' key='1'>
+                                <Panel header='Robogrades' key='1' className='grades-form-robogrades'>
                                     <Typography.Text strong className='grades-form-inner-title'>
                                         Front of Card
                                     </Typography.Text>
