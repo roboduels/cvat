@@ -589,7 +589,7 @@
                 }
                 this.tags = {};
                 this.tracks = [];
-                this.objects = {}; // by id
+                this.objects = exceptBorders ? Object.fromEntries(Object.entries(this.objects).filter(([key, value]) => value.label.name === 'inner-border' || value.label.name === 'outer-border')) : {};
                 this.count = 0;
 
                 this.flush = true;
