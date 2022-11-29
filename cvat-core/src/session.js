@@ -38,10 +38,10 @@
                     },
 
                     async clear(
-                        reload = false, startframe = undefined, endframe = undefined, delTrackKeyframesOnly = true,
+                        reload = false, startframe = undefined, endframe = undefined, delTrackKeyframesOnly = true, exceptBorders = false
                     ) {
                         const result = await PluginRegistry.apiWrapper.call(
-                            this, prototype.annotations.clear, reload, startframe, endframe, delTrackKeyframesOnly,
+                            this, prototype.annotations.clear, reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders
                         );
                         return result;
                     },
@@ -1950,9 +1950,9 @@
     };
 
     Job.prototype.annotations.clear.implementation = async function (
-        reload, startframe, endframe, delTrackKeyframesOnly,
+        reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders
     ) {
-        const result = await clearAnnotations(this, reload, startframe, endframe, delTrackKeyframesOnly);
+        const result = await clearAnnotations(this, reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders);
         return result;
     };
 

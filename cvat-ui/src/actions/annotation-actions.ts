@@ -308,14 +308,14 @@ export function updateCanvasContextMenu(
 }
 
 export function removeAnnotationsAsync(
-    startFrame: number, endFrame: number, delTrackKeyframesOnly: boolean,
+    startFrame: number, endFrame: number, delTrackKeyframesOnly: boolean, exceptBorders?: boolean
 ): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         try {
             const {
                 filters, frame, showAllInterpolationTracks, jobInstance,
             } = receiveAnnotationsParameters();
-            await jobInstance.annotations.clear(false, startFrame, endFrame, delTrackKeyframesOnly);
+            await jobInstance.annotations.clear(false, startFrame, endFrame, delTrackKeyframesOnly, exceptBorders);
             await jobInstance.actions.clear();
             const history = await jobInstance.actions.get();
             const states = await jobInstance.annotations.get(frame, showAllInterpolationTracks, filters);
