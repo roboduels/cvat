@@ -9,6 +9,8 @@ import Row from 'antd/lib/row';
 import Timeline from 'antd/lib/timeline';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import CVATTooltip from 'components/common/cvat-tooltip';
 import {
     Activities,
     Activity,
@@ -43,17 +45,18 @@ function ActivityShowPage(): JSX.Element {
         load();
     }, []);
 
-    function mapDescription(item: Activity):JSX.Element | null {
+    function mapDescription(item: Activity): JSX.Element | null {
         if (item.activity_type === Activities.TASK_ANNOTATION_CHANGED) {
-            const mapVal = (value: string, one: string, more: string): string => (
-                `${value} ${Number(value) === 1 ? one : more}`
-            );
+            const mapVal = (value: string, one: string, more: string): string =>
+                `${value} ${Number(value) === 1 ? one : more}`;
 
             const line = [
                 item.options?.shapes_no ? mapVal(item.options?.shapes_no, 'shape', 'shapes') : '',
                 item.options?.tags_no ? mapVal(item.options?.tags_no, 'tag', 'tags') : '',
                 item.options?.tracks_no ? mapVal(item.options?.tracks_no, 'track', 'tracks') : '',
-            ].filter(Boolean).join(', ');
+            ]
+                .filter(Boolean)
+                .join(', ');
 
             let href = '';
             if (item.options?.task_id) {
@@ -63,13 +66,19 @@ function ActivityShowPage(): JSX.Element {
                 }
             }
 
+            const labelsRenderer = (value: string[]) => (
+                <CVATTooltip title={value.join(', ')}>
+                    <InfoCircleOutlined />
+                    Labels
+                </CVATTooltip>
+            );
+
             return (
                 <>
                     Changed&nbsp;
-                    { href ? (
-                        <Link to={href}>{`Task #${item.options?.task_id}`}</Link>
-                    ) : 'Task' }
+                    {href ? <Link to={href}>{`Task #${item.options?.task_id}`}</Link> : 'Task'}
                     {line ? `, (${line})` : ''}
+                    {item.options?.labels?.length ? labelsRenderer(item.options?.labels) : ''}
                 </>
             );
         }
@@ -108,39 +117,43 @@ function ActivityShowPage(): JSX.Element {
     return (
         <div
             style={{
-                width: '100%', maxWidth: 1140, padding: '30px 24px', margin: '0 auto',
+                width: '100%',
+                maxWidth: 1140,
+                padding: '30px 24px',
+                margin: '0 auto',
             }}
         >
             <div
                 style={{
-                    width: '100%', display: 'flex', flexDirection: 'column', marginBottom: 32,
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    marginBottom: 32,
                 }}
             >
                 <Typography.Title style={{ marginBottom: 0 }}>Activity Log</Typography.Title>
                 <Typography.Text>
                     <b style={{ marginRight: 6 }}>Name:</b>
-                    { data.label }
+                    {data.label}
                 </Typography.Text>
                 <Typography.Text>
                     <b style={{ marginRight: 6 }}>Email:</b>
-                    { data.email ?? '-' }
+                    {data.email ?? '-'}
                 </Typography.Text>
             </div>
             <Timeline>
-                { data.activities.map((item) => (
+                {data.activities.map((item) => (
                     <Timeline.Item key={item.hash}>
                         <Row>
-                            <b>{ `${mapActivityType(item.activity_type)}:` }</b>
-                                    &nbsp;
-                            <span>{ moment(item.options?.time).format('lll') }</span>
+                            <b>{`${mapActivityType(item.activity_type)}:`}</b>
+                            &nbsp;
+                            <span>{moment(item.options?.time).format('lll')}</span>
                         </Row>
                         <Row>
-                            <Typography.Text>
-                                {mapDescription(item)}
-                            </Typography.Text>
+                            <Typography.Text>{mapDescription(item)}</Typography.Text>
                         </Row>
                     </Timeline.Item>
-                )) }
+                ))}
             </Timeline>
         </div>
     );
