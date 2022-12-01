@@ -68,8 +68,8 @@ function ActivityShowPage(): JSX.Element {
 
             const labelsRenderer = (value: string[]) => (
                 <CVATTooltip title={value.join(', ')}>
+                    {`, Shape breakdown `}
                     <InfoCircleOutlined />
-                    Labels
                 </CVATTooltip>
             );
 
