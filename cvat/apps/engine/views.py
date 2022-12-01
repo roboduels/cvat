@@ -829,6 +829,7 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
                     'shapes_no': len(request.data['shapes']),
                     'tags_no': len(request.data['tags']),
                     'tracks_no': len(request.data['tracks']),
+                    'labels': list(models.Label.objects.filter(id__in=list(set([shape.get('label_id') for shape in request.data['shapes']]))).values_list("name", flat=True)),
                 })
                 try:
                     log_annotation(user=self.request.user, job_id=pk, action=action, shapes=request.data['shapes'])
@@ -1005,6 +1006,7 @@ class JobViewSet(viewsets.GenericViewSet,
                     'shapes_no': len(request.data['shapes']),
                     'tags_no': len(request.data['tags']),
                     'tracks_no': len(request.data['tracks']),
+                    'labels': list(models.Label.objects.filter(id__in=list(set([shape.get('label_id') for shape in request.data['shapes']]))).values_list("name", flat=True)),
                 })
                 try:
                     log_annotation(user=self.request.user, job_id=pk, action=action, shapes=request.data['shapes'])
