@@ -1799,21 +1799,28 @@ class GradeParametersFromFileNameView(APIView):
             if serializer.is_valid(raise_exception=True):
                 filename = serializer.data.get("filename")
 
-                image = Image.objects.get(path__icontains=filename)
-                data_id = image.data_id
-                job = Job.objects.get(segment__task__data_id=data_id)
-                filename = image.path
-                image_path = f"data/data/{data_id}/raw/{filename}"
-                width = image.width
-                height = image.height
-                orientation = filename.split('_')[1]
-                image_url = f"https://pokemon-statics.s3.amazonaws.com/media/corners/{filename}"
-                labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
-                objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
-                payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
-                result = {"payload": payload, "orientation": orientation, "image_type": "cam", "image_path": image_path, "image_url": image_url}
-
-                return Response({"result": result})
+                images = Image.objects.filter(path__icontains=filename)
+                results = []
+                for image in images:
+                    data_id = image.data_id
+                    job = Job.objects.get(segment__task__data_id=data_id)
+                    filename = image.path
+                    image_path = f"data/data/{data_id}/raw/{filename}"
+                    width = image.width
+                    height = image.height
+                    regex_match = re.match(r"^([^_+-]*)[_+-]*([^_+-]*)[_+-]*(front|back)[_-](laser|cam)\.(.*)$", filename)
+                    order_id = regex_match[1]
+                    certificate_id = regex_match[2]
+                    orientation = regex_match[3]
+                    image_type = regex_match[4]
+                    image_url = f"https://pokemon-statics.s3.amazonaws.com/media/{orientation}/{certificate_id}_{orientation}.jpg"
+                    labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                    objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+                    payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
+                    result = {"payload": payload, "order_id": order_id, "certificate_id": certificate_id, "orientation": orientation, "image_type": image_type, "image_path": image_path, "image_url": image_url}
+                    results.append(result)
+                
+                return Response(results)
 
         except Image.DoesNotExist:
             message = 'No suitable image found for the certificate'
