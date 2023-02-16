@@ -110,6 +110,8 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         const owner = taskInstance.owner ? taskInstance.owner.username : null;
         const updated = moment(taskInstance.updatedDate).fromNow();
         const created = moment(taskInstance.createdDate).format('MMMM Do YYYY');
+        const chunkSize = taskInstance.data_chunk_size;
+        const frameSize = taskInstance.size;
 
         // Get and truncate a task name
         const name = `${taskInstance.name.substring(0, 70)}${taskInstance.name.length > 70 ? '...' : ''}`;
@@ -136,6 +138,9 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Text type='secondary'>{ `Last updated ${updated}` }</Text>
                     { lastUpdatedBy && <Text type='secondary'>{ `By ${lastUpdatedBy}` }</Text> }
+                </div>
+                <div>
+                    <Text type='secondary' style={{ fontSize: 12 }}>{ `Chunk size: ${chunkSize}, Frame size: ${frameSize}` }</Text>
                 </div>
             </Col>
         );
