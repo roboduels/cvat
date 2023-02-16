@@ -110,7 +110,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
         const owner = taskInstance.owner ? taskInstance.owner.username : null;
         const updated = moment(taskInstance.updatedDate).fromNow();
         const created = moment(taskInstance.createdDate).format('MMMM Do YYYY');
-        const chunkSize = taskInstance.data_chunk_size;
+        const chunkSize = taskInstance.dataChunkSize;
         const frameSize = taskInstance.size;
 
         // Get and truncate a task name
