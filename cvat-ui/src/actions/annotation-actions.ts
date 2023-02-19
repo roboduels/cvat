@@ -1080,6 +1080,14 @@ export function getJobAsync(tid: number, jid: number, initialFrame: number, init
             }
 
             dispatch(changeFrameAsync(frameNumber, false));
+
+
+            // Fetch all chunk data after first chunk load
+            let iterateChunk = frameNumber;
+            while ((++iterateChunk) * job.chunkSize <= job.stopFrame) {
+                const nextFrameData = await job.frames.get(iterateChunk * job.chunkSize);
+                await nextFrameData.data();
+            }
         } catch (error) {
             dispatch({
                 type: AnnotationActionTypes.GET_JOB_FAILED,
