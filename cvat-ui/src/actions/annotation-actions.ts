@@ -1084,8 +1084,8 @@ export function getJobAsync(tid: number, jid: number, initialFrame: number, init
 
             // Fetch all chunk data after first chunk load
             let iterateChunk = frameNumber;
-            while ((++iterateChunk) * job.chunkSize <= job.stopFrame) {
-                const nextFrameData = await job.frames.get(iterateChunk * job.chunkSize);
+            while ((++iterateChunk) * task.dataChunkSize <= job.stopFrame) {
+                const nextFrameData = await job.frames.get(iterateChunk * task.dataChunkSize);
                 await nextFrameData.data();
             }
         } catch (error) {
