@@ -28,8 +28,8 @@ class FrameProvider {
         dimension = DimensionType.DIM_2D,
     ) {
         this._frames = {};
-        this._cachedBlockCount = 11; // number of stored blocks
-        this._decodedBlocksCacheSize = 11;
+        this._cachedBlockCount = 19; // number of stored blocks
+        this._decodedBlocksCacheSize = 19;
         this._blocksRanges = [];
         this._blocks = {};
         this._running = false;
