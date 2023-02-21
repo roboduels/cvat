@@ -23,7 +23,7 @@ class FrameProvider {
         blockType,
         blockSize,
         cachedBlockCount,
-        decodedBlocksCacheSize = 5,
+        decodedBlocksCacheSize = 9,
         maxWorkerThreadCount = 2,
         dimension = DimensionType.DIM_2D,
     ) {
