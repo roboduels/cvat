@@ -1090,13 +1090,13 @@ export function getJobAsync(tid: number, jid: number, initialFrame: number, init
             // Fetch all chunk data after first chunk load
             let iterateChunk = frameNumber;
             let chunkProgress = (100 * (task.dataChunkSize * (iterateChunk + 1))) / (job.stopFrame + 1);
-            updateChunkProgress(chunkProgress);
+            dispatch(updateChunkProgress(chunkProgress));
 
             while (++iterateChunk * task.dataChunkSize <= job.stopFrame) {
                 const nextFrameData = await job.frames.get(iterateChunk * task.dataChunkSize);
                 await nextFrameData.data();
                 chunkProgress = (100 * (task.dataChunkSize * (iterateChunk + 1))) / (job.stopFrame + 1);
-                updateChunkProgress(chunkProgress);
+                dispatch(updateChunkProgress(chunkProgress));
             }
         } catch (error) {
             dispatch({
