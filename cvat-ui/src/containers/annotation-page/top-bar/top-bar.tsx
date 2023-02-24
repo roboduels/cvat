@@ -68,6 +68,7 @@ interface StateToProps {
     activeControl: ActiveControl;
     isTrainingActive: boolean;
     gradeFormsOpen: boolean;
+    chunkProgress: number;
 }
 
 interface DispatchToProps {
@@ -98,7 +99,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
                 saving: { uploading: saving, statuses: savingStatuses, forceExit },
                 history,
             },
-            job: { instance: jobInstance },
+            job: { instance: jobInstance, chunkProgress },
             canvas: { ready: canvasIsReady, instance: canvasInstance, activeControl },
             workspace,
             predictor,
@@ -137,6 +138,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         activeControl,
         isTrainingActive: list.PREDICT,
         gradeFormsOpen: gradesFrom.open,
+        chunkProgress,
     };
 }
 
@@ -581,6 +583,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             gradeFormsOpen,
             onToggleGradeForms,
             toolsBlockerState,
+            chunkProgress,
         } = this.props;
 
         const preventDefault = (event: KeyboardEvent | undefined): void => {
@@ -727,6 +730,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
                     activeControl={activeControl}
                     gradeFormsOpen={gradeFormsOpen}
                     onToggleGradeForms={onToggleGradeForms}
+                    chunkProgress={chunkProgress}
                 />
             </>
         );

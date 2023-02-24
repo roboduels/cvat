@@ -169,6 +169,18 @@ button.cvat-predictor-button {
     }
 }
 
+.cvat-player-chunk-progress {
+    > .ant-progress-line {
+        position: absolute;
+        display: inline-flex;
+        height: 2px;
+
+        > .ant-progress-outer {
+            display: inline-flex;
+        }
+    }
+}
+
 .cvat-player-slider {
     width: 350px;
     margin: 0;

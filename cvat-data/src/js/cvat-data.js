@@ -23,13 +23,13 @@ class FrameProvider {
         blockType,
         blockSize,
         cachedBlockCount,
-        decodedBlocksCacheSize = 5,
+        decodedBlocksCacheSize = 9,
         maxWorkerThreadCount = 2,
         dimension = DimensionType.DIM_2D,
     ) {
         this._frames = {};
-        this._cachedBlockCount = Math.max(1, cachedBlockCount); // number of stored blocks
-        this._decodedBlocksCacheSize = decodedBlocksCacheSize;
+        this._cachedBlockCount = 19; // number of stored blocks
+        this._decodedBlocksCacheSize = 19;
         this._blocksRanges = [];
         this._blocks = {};
         this._running = false;
