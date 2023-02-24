@@ -10,6 +10,7 @@ import Slider from 'antd/lib/slider';
 import InputNumber from 'antd/lib/input-number';
 import Input from 'antd/lib/input';
 import Text from 'antd/lib/typography/Text';
+import Progress from 'antd/lib/progress';
 
 import CVATTooltip from 'components/common/cvat-tooltip';
 import { clamp } from 'utils/math';
@@ -37,6 +38,7 @@ function PlayerNavigation(props: Props): JSX.Element {
         onSliderChange,
         onInputChange,
         onURLIconClick,
+        chunkProgress,
     } = props;
 
     const [frameInputValue, setFrameInputValue] = useState<number>(frameNumber);
@@ -50,6 +52,14 @@ function PlayerNavigation(props: Props): JSX.Element {
     return (
         <>
             <Col className='cvat-player-controls'>
+                <span className='cvat-player-chunk-progress'>
+                    <Progress
+                        percent={chunkProgress}
+                        size='small'
+                        status={chunkProgress < 100 && 'active'}
+                        strokeWidth={2}
+                    />
+                </span>
                 <Row align='bottom'>
                     <Col>
                         <Slider

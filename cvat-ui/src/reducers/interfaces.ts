@@ -529,6 +529,7 @@ export interface AnnotationState {
         attributes: Record<number, any[]>;
         fetching: boolean;
         saving: boolean;
+        chunkProgress: number;
     };
     player: {
         frame: {

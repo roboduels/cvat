@@ -50,6 +50,7 @@ const defaultState: AnnotationState = {
         attributes: {},
         fetching: false,
         saving: false,
+        chunkProgress: 0,
     },
     player: {
         frame: {
@@ -142,6 +143,16 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
                     instance: null,
                     requestedId: action.payload.requestedId,
                     fetching: true,
+                    chunkProgress: 0,
+                },
+            };
+        }
+        case AnnotationActionTypes.UPDATE_CHUNK_PROGRESS: {
+            return {
+                ...state,
+                job: {
+                    ...state.job,
+                    chunkProgress: action.payload.chunkProgress
                 },
             };
         }

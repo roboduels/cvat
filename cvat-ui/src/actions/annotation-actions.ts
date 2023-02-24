@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import {
-    ActionCreator, AnyAction, Dispatch, Store,
-} from 'redux';
+import { ActionCreator, AnyAction, Dispatch, Store } from 'redux';
 import { ThunkAction } from 'utils/redux';
 import { RectDrawingMethod, CuboidDrawingMethod, Canvas } from 'cvat-canvas-wrapper';
 import getCore from 'cvat-core-wrapper';
@@ -196,6 +194,7 @@ export enum AnnotationActionTypes {
     GET_CONTEXT_IMAGE_FAILED = 'GET_CONTEXT_IMAGE_FAILED',
     SET_GRADES_FORM_STATE = 'SET_GRADES_FORM_STATE',
     SWITCH_NAVIGATION_BLOCKED = 'SWITCH_NAVIGATION_BLOCKED',
+    UPDATE_CHUNK_PROGRESS = 'UPDATE_CHUNK_PROGRESS',
 }
 
 export function saveLogsAsync(): ThunkAction {
@@ -254,9 +253,7 @@ export function switchZLayer(cur: number): AnyAction {
 export function fetchAnnotationsAsync(): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         try {
-            const {
-                filters, frame, showAllInterpolationTracks, jobInstance,
-            } = receiveAnnotationsParameters();
+            const { filters, frame, showAllInterpolationTracks, jobInstance } = receiveAnnotationsParameters();
             const states = await jobInstance.annotations.get(frame, showAllInterpolationTracks, filters);
             const history = await jobInstance.actions.get();
             const [minZ, maxZ] = computeZRange(states);
@@ -308,13 +305,14 @@ export function updateCanvasContextMenu(
 }
 
 export function removeAnnotationsAsync(
-    startFrame: number, endFrame: number, delTrackKeyframesOnly: boolean, exceptBorders?: boolean
+    startFrame: number,
+    endFrame: number,
+    delTrackKeyframesOnly: boolean,
+    exceptBorders?: boolean,
 ): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         try {
-            const {
-                filters, frame, showAllInterpolationTracks, jobInstance,
-            } = receiveAnnotationsParameters();
+            const { filters, frame, showAllInterpolationTracks, jobInstance } = receiveAnnotationsParameters();
             await jobInstance.annotations.clear(false, startFrame, endFrame, delTrackKeyframesOnly, exceptBorders);
             await jobInstance.actions.clear();
             const history = await jobInstance.actions.get();
@@ -617,9 +615,7 @@ export function getPredictionsAsync(): ThunkAction {
             predictor: { enabled, annotatedFrames },
         } = getStore().getState().annotation;
 
-        const {
-            filters, frame, showAllInterpolationTracks, jobInstance: job,
-        } = receiveAnnotationsParameters();
+        const { filters, frame, showAllInterpolationTracks, jobInstance: job } = receiveAnnotationsParameters();
         if (!enabled || currentStates.length || annotatedFrames.includes(frame)) return;
 
         dispatch({
@@ -638,17 +634,18 @@ export function getPredictionsAsync(): ThunkAction {
                 return;
             }
             annotations = annotations.map(
-                (data: any): any => new cvat.classes.ObjectState({
-                    shapeType: data.type,
-                    label: job.task.labels.filter((label: any): boolean => label.id === data.label)[0],
-                    points: data.points,
-                    objectType: ObjectType.SHAPE,
-                    frame,
-                    occluded: false,
-                    source: 'auto',
-                    attributes: {},
-                    zOrder: curZOrder,
-                }),
+                (data: any): any =>
+                    new cvat.classes.ObjectState({
+                        shapeType: data.type,
+                        label: job.task.labels.filter((label: any): boolean => label.id === data.label)[0],
+                        points: data.points,
+                        objectType: ObjectType.SHAPE,
+                        frame,
+                        occluded: false,
+                        source: 'auto',
+                        attributes: {},
+                        zOrder: curZOrder,
+                    }),
             );
 
             dispatch({
@@ -960,6 +957,15 @@ export function closeJob(): ThunkAction {
     };
 }
 
+export function updateChunkProgress(chunkProgress: number): AnyAction {
+    return {
+        type: AnnotationActionTypes.UPDATE_CHUNK_PROGRESS,
+        payload: {
+            chunkProgress,
+        },
+    };
+}
+
 export function getJobAsync(tid: number, jid: number, initialFrame: number, initialFilters: object[]): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         try {
@@ -1081,12 +1087,16 @@ export function getJobAsync(tid: number, jid: number, initialFrame: number, init
 
             dispatch(changeFrameAsync(frameNumber, false));
 
-
             // Fetch all chunk data after first chunk load
             let iterateChunk = frameNumber;
-            while ((++iterateChunk) * task.dataChunkSize <= job.stopFrame) {
+            let chunkProgress = (100 * (task.dataChunkSize * (iterateChunk + 1))) / (job.stopFrame + 1);
+            updateChunkProgress(chunkProgress);
+
+            while (++iterateChunk * task.dataChunkSize <= job.stopFrame) {
                 const nextFrameData = await job.frames.get(iterateChunk * task.dataChunkSize);
                 await nextFrameData.data();
+                chunkProgress = (100 * (task.dataChunkSize * (iterateChunk + 1))) / (job.stopFrame + 1);
+                updateChunkProgress(chunkProgress);
             }
         } catch (error) {
             dispatch({
@@ -1206,9 +1216,7 @@ export function splitTrack(enabled: boolean): AnyAction {
 
 export function updateAnnotationsAsync(statesToUpdate: any[]): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
-        const {
-            jobInstance, filters, frame, showAllInterpolationTracks,
-        } = receiveAnnotationsParameters();
+        const { jobInstance, filters, frame, showAllInterpolationTracks } = receiveAnnotationsParameters();
 
         try {
             if (statesToUpdate.some((state: any): boolean => state.updateFlags.zOrder)) {

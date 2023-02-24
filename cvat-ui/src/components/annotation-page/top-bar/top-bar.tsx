@@ -68,6 +68,7 @@ interface Props {
     onToggleGradeForms(): void;
     onSwitchToolsBlockerState(): void;
     jobInstance: any;
+    chunkProgress: number;
 }
 
 export default function AnnotationTopBarComponent(props: Props): JSX.Element {
@@ -124,6 +125,7 @@ export default function AnnotationTopBarComponent(props: Props): JSX.Element {
         isTrainingActive,
         onToggleGradeForms,
         gradeFormsOpen,
+        chunkProgress,
     } = props;
 
     return (
@@ -177,6 +179,7 @@ export default function AnnotationTopBarComponent(props: Props): JSX.Element {
                         onSliderChange={onSliderChange}
                         onInputChange={onInputChange}
                         onURLIconClick={onURLIconClick}
+                        chunkProgress={chunkProgress}
                     />
                     <GradesFormToggle onClick={onToggleGradeForms} open={gradeFormsOpen} />
                 </Row>
