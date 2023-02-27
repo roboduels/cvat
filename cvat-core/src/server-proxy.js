@@ -881,13 +881,6 @@
                         {
                             proxy: config.proxy,
                             responseType: 'arraybuffer',
-                            onDownloadProgress: progressEvent => {
-                              console.log('loaded', progressEvent.loaded);
-                              console.log('total', progressEvent.total);
-                              console.log('responseHeaders', progressEvent.currentTarget.responseHeaders);
-                              let percentCompleted = Math.floor(progressEvent.loaded / progressEvent.total * 100)
-                              console.log('completed: ', percentCompleted)
-                            }
                         },
                     );
                 } catch (errorData) {
