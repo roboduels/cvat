@@ -210,7 +210,7 @@ export default function BulkActionsMenu(props: Props): JSX.Element | null {
                     { extended ? (
                         <div className='cvat-jobs-manager-progress'>
                             <Tooltip title={tooltipText}>
-                                <Progress percent={progress} success={{ percent: doneProgress }} />
+                                <Progress percent={parseInt(progress, 10)} success={{ percent: doneProgress }} />
                             </Tooltip>
                         </div>
                     ) :
