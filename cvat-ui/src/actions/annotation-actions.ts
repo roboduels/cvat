@@ -309,11 +309,19 @@ export function removeAnnotationsAsync(
     endFrame: number,
     delTrackKeyframesOnly: boolean,
     exceptBorders?: boolean,
+    orientation?: 'back' | 'front',
 ): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         try {
             const { filters, frame, showAllInterpolationTracks, jobInstance } = receiveAnnotationsParameters();
-            await jobInstance.annotations.clear(false, startFrame, endFrame, delTrackKeyframesOnly, exceptBorders);
+            await jobInstance.annotations.clear(
+                false,
+                startFrame,
+                endFrame,
+                delTrackKeyframesOnly,
+                exceptBorders,
+                orientation,
+            );
             await jobInstance.actions.clear();
             const history = await jobInstance.actions.get();
             const states = await jobInstance.annotations.get(frame, showAllInterpolationTracks, filters);

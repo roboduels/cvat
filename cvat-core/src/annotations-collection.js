@@ -25,9 +25,7 @@
     const { Label } = require('./labels');
     const { DataError, ArgumentError, ScriptingError } = require('./exceptions');
 
-    const {
-        HistoryActions, ObjectShape, ObjectType, colors,
-    } = require('./enums');
+    const { HistoryActions, ObjectShape, ObjectType, colors } = require('./enums');
     const ObjectState = require('./object-state');
 
     function shapeFactory(shapeData, clientID, injection) {
@@ -338,14 +336,16 @@
                             occluded: shape.occluded,
                             outside: shape.outside,
                             zOrder: shape.zOrder,
-                            attributes: updatedAttributes ? Object.keys(attributes).reduce((accumulator, attrID) => {
-                                accumulator.push({
-                                    spec_id: +attrID,
-                                    value: attributes[attrID],
-                                });
+                            attributes: updatedAttributes
+                                ? Object.keys(attributes).reduce((accumulator, attrID) => {
+                                      accumulator.push({
+                                          spec_id: +attrID,
+                                          value: attributes[attrID],
+                                      });
 
-                                return accumulator;
-                            }, []) : [],
+                                      return accumulator;
+                                  }, [])
+                                : [],
                         };
                     }
                 } else {
@@ -560,11 +560,27 @@
             return groupIdx;
         }
 
-        clear(startframe, endframe, delTrackKeyframesOnly, exceptBorders) {
+        clear(startframe, endframe, delTrackKeyframesOnly, exceptBorders, orientation) {
             if (startframe !== undefined && endframe !== undefined) {
                 // If only a range of annotations need to be cleared
                 for (let frame = startframe; frame <= endframe; frame++) {
-                    this.shapes[frame] = exceptBorders ? this.shapes[frame].filter((shape) => shape.label.name === 'inner-border' || shape.label.name === 'outer-border') : [];
+                    if (orientation) {
+                        this.shapes[frame] = exceptBorders
+                            ? this.shapes[frame].filter(
+                                  ({ label, frameMeta }) =>
+                                      !frameMeta[frame].filename.includes(`-+${orientation}`) &&
+                                      (label.name === 'inner-border' || label.name === 'outer-border'),
+                              )
+                            : this.shapes[frame].filter(
+                                  ({ frameMeta }) => !frameMeta[frame].filename.includes(`-+${orientation}`),
+                              );
+                    } else {
+                        this.shapes[frame] = exceptBorders
+                            ? this.shapes[frame].filter(
+                                  ({ label }) => label.name === 'inner-border' || label.name === 'outer-border',
+                              )
+                            : [];
+                    }
                     this.tags[frame] = [];
                 }
                 const { tracks } = this;
@@ -572,31 +588,85 @@
                     if (track.frame <= endframe) {
                         if (delTrackKeyframesOnly) {
                             for (const keyframe in track.shapes) {
-                                if (keyframe >= startframe && keyframe <= endframe) { delete track.shapes[keyframe]; }
+                                if (keyframe >= startframe && keyframe <= endframe) {
+                                    delete track.shapes[keyframe];
+                                }
                             }
                         } else if (track.frame >= startframe) {
                             const index = tracks.indexOf(track);
-                            if (index > -1) { tracks.splice(index, 1); }
+                            if (index > -1) {
+                                tracks.splice(index, 1);
+                            }
                         }
                     }
                 });
             } else if (startframe === undefined && endframe === undefined) {
                 // If all annotations need to be cleared
                 if (exceptBorders) {
-                    Object.keys(this.shapes).forEach(frame => this.shapes[frame] = this.shapes[frame].filter((shape) => shape.label.name === 'inner-border' || shape.label.name === 'outer-border'))
+                    if (orientation) {
+                        Object.keys(this.shapes).forEach(
+                            (frame) =>
+                                (this.shapes[frame] = this.shapes[frame].filter(
+                                    ({ label, frameMeta }) =>
+                                        !frameMeta[frame].filename.includes(`-+${orientation}`) &&
+                                        (label.name === 'inner-border' || label.name === 'outer-border'),
+                                )),
+                        );
+                    } else {
+                        Object.keys(this.shapes).forEach(
+                            (frame) =>
+                                (this.shapes[frame] = this.shapes[frame].filter(
+                                    ({ label }) => label.name === 'inner-border' || label.name === 'outer-border',
+                                )),
+                        );
+                    }
                 } else {
-                    this.shapes = {};
+                    if (orientation) {
+                        Object.keys(this.shapes).forEach(
+                            (frame) =>
+                                (this.shapes[frame] = this.shapes[frame].filter(
+                                    ({ frameMeta }) => !frameMeta[frame].filename.includes(`-+${orientation}`),
+                                )),
+                        );
+                    } else {
+                        this.shapes = {};
+                    }
                 }
                 this.tags = {};
                 this.tracks = [];
-                this.objects = exceptBorders ? Object.fromEntries(Object.entries(this.objects).filter(([key, value]) => value.label.name === 'inner-border' || value.label.name === 'outer-border')) : {};
+                if (orientation) {
+                    this.objects = exceptBorders
+                        ? Object.fromEntries(
+                              Object.entries(this.objects).filter(
+                                  ([key, value]) =>
+                                      !value.frameMeta[value.frame].filename.includes(`-+${orientation}`) &&
+                                      (value.label.name === 'inner-border' || value.label.name === 'outer-border'),
+                              ),
+                          )
+                        : Object.fromEntries(
+                              Object.entries(this.objects).filter(
+                                  ([key, value]) => !value.frameMeta[value.frame].filename.includes(`-+${orientation}`),
+                              ),
+                          );
+                } else {
+                    this.objects = exceptBorders
+                        ? Object.fromEntries(
+                              Object.entries(this.objects).filter(
+                                  ([key, value]) =>
+                                      value.label.name === 'inner-border' || value.label.name === 'outer-border',
+                              ),
+                          )
+                        : {};
+                }
                 this.count = 0;
 
                 this.flush = true;
             } else {
                 // If inputs provided were wrong
-                throw Error('Could not remove the annotations, please provide both inputs or' +
-                    ' leave the inputs below empty to remove all the annotations from this job');
+                throw Error(
+                    'Could not remove the annotations, please provide both inputs or' +
+                        ' leave the inputs below empty to remove all the annotations from this job',
+                );
             }
         }
 

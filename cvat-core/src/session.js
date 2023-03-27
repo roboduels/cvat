@@ -7,9 +7,7 @@
     const PluginRegistry = require('./plugins');
     const loggerStorage = require('./logger-storage');
     const serverProxy = require('./server-proxy');
-    const {
-        getFrame, getFrameData, getRanges, getPreview, clear: clearFrames, getContextImage,
-    } = require('./frames');
+    const { getFrame, getFrameData, getRanges, getPreview, clear: clearFrames, getContextImage } = require('./frames');
     const { ArgumentError, DataError } = require('./exceptions');
     const { TaskStatus } = require('./enums');
     const { Label } = require('./labels');
@@ -38,10 +36,22 @@
                     },
 
                     async clear(
-                        reload = false, startframe = undefined, endframe = undefined, delTrackKeyframesOnly = true, exceptBorders = false
+                        reload = false,
+                        startframe = undefined,
+                        endframe = undefined,
+                        delTrackKeyframesOnly = true,
+                        exceptBorders = false,
+                        orientation = undefined,
                     ) {
                         const result = await PluginRegistry.apiWrapper.call(
-                            this, prototype.annotations.clear, reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders
+                            this,
+                            prototype.annotations.clear,
+                            reload,
+                            startframe,
+                            endframe,
+                            delTrackKeyframesOnly,
+                            exceptBorders,
+                            orientation,
                         );
                         return result;
                     },
@@ -1950,9 +1960,22 @@
     };
 
     Job.prototype.annotations.clear.implementation = async function (
-        reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders
+        reload,
+        startframe,
+        endframe,
+        delTrackKeyframesOnly,
+        exceptBorders,
+        orientation,
     ) {
-        const result = await clearAnnotations(this, reload, startframe, endframe, delTrackKeyframesOnly, exceptBorders);
+        const result = await clearAnnotations(
+            this,
+            reload,
+            startframe,
+            endframe,
+            delTrackKeyframesOnly,
+            exceptBorders,
+            orientation,
+        );
         return result;
     };
 
@@ -2050,32 +2073,32 @@
             for (const [field, isUpdated] of Object.entries(this.__updatedFields)) {
                 if (isUpdated) {
                     switch (field) {
-                    case 'assignee':
-                        taskData.assignee_id = this.assignee ? this.assignee.id : null;
-                        break;
-                    case 'name':
-                        taskData.name = this.name;
-                        break;
-                    case 'bug_tracker':
-                        taskData.bug_tracker = this.bugTracker;
-                        break;
-                    case 'subset':
-                        taskData.subset = this.subset;
-                        break;
-                    case 'project_id':
-                        taskData.project_id = this.projectId;
-                        break;
-                    case 'order_id':
-                        taskData.order_id = this.orderId;
-                        break;
-                    case 'certificate_id':
-                        taskData.certificate_id = this.certificateId;
-                        break;
-                    case 'labels':
-                        taskData.labels = [...this._internalData.labels.map((el) => el.toJSON())];
-                        break;
-                    default:
-                        break;
+                        case 'assignee':
+                            taskData.assignee_id = this.assignee ? this.assignee.id : null;
+                            break;
+                        case 'name':
+                            taskData.name = this.name;
+                            break;
+                        case 'bug_tracker':
+                            taskData.bug_tracker = this.bugTracker;
+                            break;
+                        case 'subset':
+                            taskData.subset = this.subset;
+                            break;
+                        case 'project_id':
+                            taskData.project_id = this.projectId;
+                            break;
+                        case 'order_id':
+                            taskData.order_id = this.orderId;
+                            break;
+                        case 'certificate_id':
+                            taskData.certificate_id = this.certificateId;
+                            break;
+                        case 'labels':
+                            taskData.labels = [...this._internalData.labels.map((el) => el.toJSON())];
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
