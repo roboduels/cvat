@@ -560,27 +560,41 @@
             return groupIdx;
         }
 
-        clear(startframe, endframe, delTrackKeyframesOnly, exceptBorders, orientation) {
+        clear(startframe, endframe, delTrackKeyframesOnly, exceptBorders, majorDefectsOnly, orientation) {
             if (startframe !== undefined && endframe !== undefined) {
                 // If only a range of annotations need to be cleared
                 for (let frame = startframe; frame <= endframe; frame++) {
                     if (orientation) {
-                        this.shapes[frame] = exceptBorders
-                            ? this.shapes[frame].filter(
-                                  ({ label, frameMeta }) =>
-                                      label.name === 'inner-border' ||
-                                      label.name === 'outer-border' ||
-                                      !frameMeta[frame].filename.includes(`-+${orientation}`),
-                              )
-                            : this.shapes[frame].filter(
-                                  ({ frameMeta }) => !frameMeta[frame].filename.includes(`-+${orientation}`),
-                              );
+                        if (exceptBorders) {
+                            this.shapes[frame] = this.shapes[frame].filter(
+                                ({ label, frameMeta }) =>
+                                    label.name === 'inner-border' ||
+                                    label.name === 'outer-border' ||
+                                    !frameMeta[frame].filename.includes(`-+${orientation}`),
+                            );
+                        } else if (majorDefectsOnly) {
+                            this.shapes[frame] = this.shapes[frame].filter(
+                                ({ label, frameMeta }) =>
+                                    label.name !== 'major defect' ||
+                                    !frameMeta[frame].filename.includes(`-+${orientation}`),
+                            );
+                        } else {
+                            this.shapes[frame] = this.shapes[frame].filter(
+                                ({ frameMeta }) => !frameMeta[frame].filename.includes(`-+${orientation}`),
+                            );
+                        }
                     } else {
-                        this.shapes[frame] = exceptBorders
-                            ? this.shapes[frame].filter(
-                                  ({ label }) => label.name === 'inner-border' || label.name === 'outer-border',
-                              )
-                            : [];
+                        if (exceptBorders) {
+                            this.shapes[frame] = this.shapes[frame].filter(
+                                ({ label }) => label.name === 'inner-border' || label.name === 'outer-border',
+                            );
+                        } else if (majorDefectsOnly) {
+                            this.shapes[frame] = this.shapes[frame].filter(
+                                ({ label }) => label.name !== 'major defect',
+                            );
+                        } else {
+                            this.shapes[frame] = [];
+                        }
                     }
                     this.tags[frame] = [];
                 }
@@ -622,6 +636,24 @@
                                 )),
                         );
                     }
+                } else if (majorDefectsOnly) {
+                    if (orientation) {
+                        Object.keys(this.shapes).forEach(
+                            (frame) =>
+                                (this.shapes[frame] = this.shapes[frame].filter(
+                                    ({ label, frameMeta }) =>
+                                        label.name !== 'major defect' ||
+                                        !frameMeta[frame].filename.includes(`-+${orientation}`),
+                                )),
+                        );
+                    } else {
+                        Object.keys(this.shapes).forEach(
+                            (frame) =>
+                                (this.shapes[frame] = this.shapes[frame].filter(
+                                    ({ label }) => label.name !== 'major defect',
+                                )),
+                        );
+                    }
                 } else {
                     if (orientation) {
                         Object.keys(this.shapes).forEach(
@@ -637,29 +669,45 @@
                 this.tags = {};
                 this.tracks = [];
                 if (orientation) {
-                    this.objects = exceptBorders
-                        ? Object.fromEntries(
-                              Object.entries(this.objects).filter(
-                                  ([key, value]) =>
-                                      value.label.name === 'inner-border' ||
-                                      value.label.name === 'outer-border' ||
-                                      !value.frameMeta[value.frame].filename.includes(`-+${orientation}`),
-                              ),
-                          )
-                        : Object.fromEntries(
-                              Object.entries(this.objects).filter(
-                                  ([key, value]) => !value.frameMeta[value.frame].filename.includes(`-+${orientation}`),
-                              ),
-                          );
+                    if (exceptBorders) {
+                        this.objects = Object.fromEntries(
+                            Object.entries(this.objects).filter(
+                                ([key, value]) =>
+                                    value.label.name === 'inner-border' ||
+                                    value.label.name === 'outer-border' ||
+                                    !value.frameMeta[value.frame].filename.includes(`-+${orientation}`),
+                            ),
+                        );
+                    } else if (majorDefectsOnly) {
+                        this.objects = Object.fromEntries(
+                            Object.entries(this.objects).filter(
+                                ([key, value]) =>
+                                    value.label.name !== 'major defect' ||
+                                    !value.frameMeta[value.frame].filename.includes(`-+${orientation}`),
+                            ),
+                        );
+                    } else {
+                        this.objects = Object.fromEntries(
+                            Object.entries(this.objects).filter(
+                                ([key, value]) => !value.frameMeta[value.frame].filename.includes(`-+${orientation}`),
+                            ),
+                        );
+                    }
                 } else {
-                    this.objects = exceptBorders
-                        ? Object.fromEntries(
-                              Object.entries(this.objects).filter(
-                                  ([key, value]) =>
-                                      value.label.name === 'inner-border' || value.label.name === 'outer-border',
-                              ),
-                          )
-                        : {};
+                    if (exceptBorders) {
+                        this.objects = Object.fromEntries(
+                            Object.entries(this.objects).filter(
+                                ([key, value]) =>
+                                    value.label.name === 'inner-border' || value.label.name === 'outer-border',
+                            ),
+                        );
+                    } else if (majorDefectsOnly) {
+                        this.objects = Object.fromEntries(
+                            Object.entries(this.objects).filter(([key, value]) => value.label.name !== 'major defect'),
+                        );
+                    } else {
+                        this.objects = {};
+                    }
                 }
                 this.count = 0;
 

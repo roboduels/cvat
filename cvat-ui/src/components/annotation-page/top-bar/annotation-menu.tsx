@@ -29,6 +29,7 @@ interface Props {
         endnumber: number,
         delTrackKeyframesOnly: boolean,
         exceptBorders?: boolean,
+        majorDefectsOnly?: boolean,
         orientation?: 'front' | 'back',
     ): void;
     setForceExitAnnotationFlag(forceExit: boolean): void;
@@ -42,6 +43,8 @@ export enum Actions {
     REMOVE_ANNO_BACK = 'remove_anno_back',
     REMOVE_ANNO_EXCEPT_BORDERS_FRONT = 'remove_anno_except_borders_front',
     REMOVE_ANNO_EXCEPT_BORDERS_BACK = 'remove_anno_except_borders_back',
+    REMOVE_MAJOR_DEFECTS_ONLY_FRONT = 'remove_major_defects_only_front',
+    REMOVE_MAJOR_DEFECTS_ONLY_BACK = 'remove_major_defects_only_back',
     OPEN_TASK = 'open_task',
     REQUEST_REVIEW = 'request_review',
     SUBMIT_REVIEW = 'submit_review',
@@ -100,6 +103,8 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             let removeUpTo: number;
             let removeOnlyKeyframes = false;
             let orientation = 'front';
+            const exceptBorders = false;
+            const majorDefectsOnly = false;
             const { Panel } = Collapse;
             Modal.confirm({
                 title: 'Remove Annotations From Front of the Card',
@@ -144,7 +149,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 ),
                 className: 'cvat-modal-confirm-remove-annotation',
                 onOk: () => {
-                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, false, orientation);
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, majorDefectsOnly, orientation);
                 },
                 okButtonProps: {
                     type: 'primary',
@@ -157,6 +162,8 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             let removeUpTo: number;
             let removeOnlyKeyframes = false;
             let orientation = 'back';
+            const exceptBorders = false;
+            const majorDefectsOnly = false;
             const { Panel } = Collapse;
             Modal.confirm({
                 title: 'Remove Annotations From Back of the Card',
@@ -201,7 +208,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 ),
                 className: 'cvat-modal-confirm-remove-annotation',
                 onOk: () => {
-                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, false, orientation);
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, majorDefectsOnly, orientation);
                 },
                 okButtonProps: {
                     type: 'primary',
@@ -215,6 +222,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             let removeOnlyKeyframes = false;
             let orientation = 'front';
             const exceptBorders = true;
+            const majorDefectsOnly = false;
             const { Panel } = Collapse;
             Modal.confirm({
                 title: 'Remove Annotations Except Borders From Front of the Card',
@@ -259,7 +267,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 ),
                 className: 'cvat-modal-confirm-remove-annotation',
                 onOk: () => {
-                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, orientation);
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, majorDefectsOnly, orientation);
                 },
                 okButtonProps: {
                     type: 'primary',
@@ -273,6 +281,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             let removeOnlyKeyframes = false;
             let orientation = 'back';
             const exceptBorders = true;
+            const majorDefectsOnly = false;
             const { Panel } = Collapse;
             Modal.confirm({
                 title: 'Remove Annotations Except Borders From Back of the Card',
@@ -317,7 +326,125 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 ),
                 className: 'cvat-modal-confirm-remove-annotation',
                 onOk: () => {
-                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, orientation);
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, majorDefectsOnly, orientation);
+                },
+                okButtonProps: {
+                    type: 'primary',
+                    danger: true,
+                },
+                okText: 'Delete',
+            });
+        } else if (params.key === Actions.REMOVE_MAJOR_DEFECTS_ONLY_FRONT) {
+            let removeFrom: number;
+            let removeUpTo: number;
+            let removeOnlyKeyframes = false;
+            let orientation = 'front';
+            const majorDefectsOnly = true;
+            const exceptBorders = false;
+            const { Panel } = Collapse;
+            Modal.confirm({
+                title: 'Remove Major Defects Only From Front of the Card',
+                content: (
+                    <div>
+                        <Text>You are going to remove the all major defect annotations from front of the card. </Text>
+                        <Text>It will stay on the server till you save the job. Continue?</Text>
+                        <br />
+                        <br />
+                        <Collapse bordered={false}>
+                            <Panel header={<Text>Select Range</Text>} key={1}>
+                                <Text>From: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeFrom = value;
+                                    }}
+                                />
+                                <Text> To: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeUpTo = value;
+                                    }}
+                                />
+                                <Tooltip title='Applicable only for annotations in range'>
+                                    <br />
+                                    <br />
+                                    <Checkbox
+                                        onChange={(check) => {
+                                            removeOnlyKeyframes = check.target.checked;
+                                        }}
+                                    >
+                                        Delete only keyframes for tracks
+                                    </Checkbox>
+                                </Tooltip>
+                            </Panel>
+                        </Collapse>
+                    </div>
+                ),
+                className: 'cvat-modal-confirm-remove-annotation',
+                onOk: () => {
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, majorDefectsOnly, orientation);
+                },
+                okButtonProps: {
+                    type: 'primary',
+                    danger: true,
+                },
+                okText: 'Delete',
+            });
+        } else if (params.key === Actions.REMOVE_MAJOR_DEFECTS_ONLY_BACK) {
+            let removeFrom: number;
+            let removeUpTo: number;
+            let removeOnlyKeyframes = false;
+            let orientation = 'back';
+            const majorDefectsOnly = true;
+            const exceptBorders = false;
+            const { Panel } = Collapse;
+            Modal.confirm({
+                title: 'Remove Major Defects Only From Back of the Card',
+                content: (
+                    <div>
+                        <Text>You are going to remove the all major defect annotations from back of the card. </Text>
+                        <Text>It will stay on the server till you save the job. Continue?</Text>
+                        <br />
+                        <br />
+                        <Collapse bordered={false}>
+                            <Panel header={<Text>Select Range</Text>} key={1}>
+                                <Text>From: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeFrom = value;
+                                    }}
+                                />
+                                <Text> To: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeUpTo = value;
+                                    }}
+                                />
+                                <Tooltip title='Applicable only for annotations in range'>
+                                    <br />
+                                    <br />
+                                    <Checkbox
+                                        onChange={(check) => {
+                                            removeOnlyKeyframes = check.target.checked;
+                                        }}
+                                    >
+                                        Delete only keyframes for tracks
+                                    </Checkbox>
+                                </Tooltip>
+                            </Panel>
+                        </Collapse>
+                    </div>
+                ),
+                className: 'cvat-modal-confirm-remove-annotation',
+                onOk: () => {
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, majorDefectsOnly, orientation);
                 },
                 okButtonProps: {
                     type: 'primary',

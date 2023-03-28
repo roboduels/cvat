@@ -41,6 +41,7 @@
                         endframe = undefined,
                         delTrackKeyframesOnly = true,
                         exceptBorders = false,
+                        majorDefectsOnly = false,
                         orientation = undefined,
                     ) {
                         const result = await PluginRegistry.apiWrapper.call(
@@ -51,6 +52,7 @@
                             endframe,
                             delTrackKeyframesOnly,
                             exceptBorders,
+                            majorDefectsOnly,
                             orientation,
                         );
                         return result;
@@ -1965,6 +1967,7 @@
         endframe,
         delTrackKeyframesOnly,
         exceptBorders,
+        majorDefectsOnly,
         orientation,
     ) {
         const result = await clearAnnotations(
@@ -1974,6 +1977,7 @@
             endframe,
             delTrackKeyframesOnly,
             exceptBorders,
+            majorDefectsOnly,
             orientation,
         );
         return result;

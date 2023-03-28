@@ -179,6 +179,7 @@
         endframe,
         delTrackKeyframesOnly,
         exceptBorders,
+        majorDefectsOnly,
         orientation,
     ) {
         checkObjectType('reload', reload, 'boolean', null);
@@ -188,7 +189,7 @@
         if (cache.has(session)) {
             cache
                 .get(session)
-                .collection.clear(startframe, endframe, delTrackKeyframesOnly, exceptBorders, orientation);
+                .collection.clear(startframe, endframe, delTrackKeyframesOnly, exceptBorders, majorDefectsOnly, orientation);
         }
 
         if (reload) {
