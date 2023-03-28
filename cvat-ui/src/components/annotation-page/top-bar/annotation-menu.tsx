@@ -521,6 +521,12 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             <Menu.Item key={Actions.REMOVE_ANNO_EXCEPT_BORDERS_BACK}>
                 Remove annotations except borders from back of the card
             </Menu.Item>
+            <Menu.Item key={Actions.REMOVE_MAJOR_DEFECTS_ONLY_FRONT}>
+                Remove major defect annotations from front of the card
+            </Menu.Item>
+            <Menu.Item key={Actions.REMOVE_MAJOR_DEFECTS_ONLY_BACK}>
+                Remove major defect annotations from back of the card
+            </Menu.Item>
             <Menu.Item key={Actions.OPEN_TASK}>
                 <a href={`/tasks/${taskID}`} onClick={(e: React.MouseEvent) => e.preventDefault()}>
                     Open the task
