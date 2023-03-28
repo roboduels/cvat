@@ -32,7 +32,13 @@ interface StateToProps {
 interface DispatchToProps {
     loadAnnotations(job: any, loader: any, file: File): void;
     showExportModal(task: any): void;
-    removeAnnotations(startnumber: number, endnumber: number, delTrackKeyframesOnly: boolean, exceptBorders?: boolean): void;
+    removeAnnotations(
+        startnumber: number,
+        endnumber: number,
+        delTrackKeyframesOnly: boolean,
+        exceptBorders?: boolean,
+        orientation?: 'back' | 'front',
+    ): void;
     switchRequestReviewDialog(visible: boolean): void;
     switchSubmitReviewDialog(visible: boolean): void;
     setForceExitAnnotationFlag(forceExit: boolean): void;
@@ -76,8 +82,16 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         showExportModal(task: any): void {
             dispatch(exportActions.openExportModal(task));
         },
-        removeAnnotations(startnumber: number, endnumber: number, delTrackKeyframesOnly: boolean, exceptBorders?: boolean) {
-            dispatch(removeAnnotationsAsyncAction(startnumber, endnumber, delTrackKeyframesOnly, exceptBorders));
+        removeAnnotations(
+            startnumber: number,
+            endnumber: number,
+            delTrackKeyframesOnly: boolean,
+            exceptBorders?: boolean,
+            orientation?: 'back' | 'front',
+        ) {
+            dispatch(
+                removeAnnotationsAsyncAction(startnumber, endnumber, delTrackKeyframesOnly, exceptBorders, orientation),
+            );
         },
         switchRequestReviewDialog(visible: boolean): void {
             dispatch(switchRequestReviewDialogAction(visible));

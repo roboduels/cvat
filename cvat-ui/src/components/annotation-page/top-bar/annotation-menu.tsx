@@ -7,9 +7,7 @@ import React from 'react';
 import Menu from 'antd/lib/menu';
 import Modal from 'antd/lib/modal';
 import Text from 'antd/lib/typography/Text';
-import {
-    InputNumber, Tooltip, Checkbox, Collapse,
-} from 'antd';
+import { InputNumber, Tooltip, Checkbox, Collapse } from 'antd';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { MenuInfo } from 'rc-menu/lib/interface';
 
@@ -26,7 +24,13 @@ interface Props {
     onClickMenu(params: MenuInfo): void;
     onUploadAnnotations(format: string, file: File): void;
     stopFrame: number;
-    removeAnnotations(startnumber: number, endnumber: number, delTrackKeyframesOnly: boolean, exceptBorders?: boolean): void;
+    removeAnnotations(
+        startnumber: number,
+        endnumber: number,
+        delTrackKeyframesOnly: boolean,
+        exceptBorders?: boolean,
+        orientation?: 'front' | 'back',
+    ): void;
     setForceExitAnnotationFlag(forceExit: boolean): void;
     saveAnnotations(jobInstance: any, afterSave?: () => void): void;
 }
@@ -34,8 +38,10 @@ interface Props {
 export enum Actions {
     LOAD_JOB_ANNO = 'load_job_anno',
     EXPORT_TASK_DATASET = 'export_task_dataset',
-    REMOVE_ANNO = 'remove_anno',
-    REMOVE_ANNO_EXCEPT_BORDERS = 'remove_anno_except_borders',
+    REMOVE_ANNO_FRONT = 'remove_anno_front',
+    REMOVE_ANNO_BACK = 'remove_anno_back',
+    REMOVE_ANNO_EXCEPT_BORDERS_FRONT = 'remove_anno_except_borders_front',
+    REMOVE_ANNO_EXCEPT_BORDERS_BACK = 'remove_anno_except_borders_back',
     OPEN_TASK = 'open_task',
     REQUEST_REVIEW = 'request_review',
     SUBMIT_REVIEW = 'submit_review',
@@ -89,16 +95,17 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             }
         }
 
-        if (params.key === Actions.REMOVE_ANNO) {
+        if (params.key === Actions.REMOVE_ANNO_FRONT) {
             let removeFrom: number;
             let removeUpTo: number;
             let removeOnlyKeyframes = false;
+            let orientation = 'front';
             const { Panel } = Collapse;
             Modal.confirm({
-                title: 'Remove Annotations',
+                title: 'Remove Annotations From Front of the Card',
                 content: (
                     <div>
-                        <Text>You are going to remove the annotations from the client. </Text>
+                        <Text>You are going to remove the all annotations from front of the card. </Text>
                         <Text>It will stay on the server till you save the job. Continue?</Text>
                         <br />
                         <br />
@@ -112,11 +119,13 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                                         removeFrom = value;
                                     }}
                                 />
-                                <Text>  To: </Text>
+                                <Text> To: </Text>
                                 <InputNumber
                                     min={0}
                                     max={stopFrame}
-                                    onChange={(value) => { removeUpTo = value; }}
+                                    onChange={(value) => {
+                                        removeUpTo = value;
+                                    }}
                                 />
                                 <Tooltip title='Applicable only for annotations in range'>
                                     <br />
@@ -135,7 +144,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 ),
                 className: 'cvat-modal-confirm-remove-annotation',
                 onOk: () => {
-                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes);
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, false, orientation);
                 },
                 okButtonProps: {
                     type: 'primary',
@@ -143,17 +152,17 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 },
                 okText: 'Delete',
             });
-        } else if (params.key === Actions.REMOVE_ANNO_EXCEPT_BORDERS) {
+        } else if (params.key === Actions.REMOVE_ANNO_BACK) {
             let removeFrom: number;
             let removeUpTo: number;
             let removeOnlyKeyframes = false;
-            const exceptBorders = true;
+            let orientation = 'back';
             const { Panel } = Collapse;
             Modal.confirm({
-                title: 'Remove Annotations Except Borders',
+                title: 'Remove Annotations From Back of the Card',
                 content: (
                     <div>
-                        <Text>You are going to remove the all annotations except borders from the client. </Text>
+                        <Text>You are going to remove the all annotations from back of the card. </Text>
                         <Text>It will stay on the server till you save the job. Continue?</Text>
                         <br />
                         <br />
@@ -167,11 +176,13 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                                         removeFrom = value;
                                     }}
                                 />
-                                <Text>  To: </Text>
+                                <Text> To: </Text>
                                 <InputNumber
                                     min={0}
                                     max={stopFrame}
-                                    onChange={(value) => { removeUpTo = value; }}
+                                    onChange={(value) => {
+                                        removeUpTo = value;
+                                    }}
                                 />
                                 <Tooltip title='Applicable only for annotations in range'>
                                     <br />
@@ -190,7 +201,123 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 ),
                 className: 'cvat-modal-confirm-remove-annotation',
                 onOk: () => {
-                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders);
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, false, orientation);
+                },
+                okButtonProps: {
+                    type: 'primary',
+                    danger: true,
+                },
+                okText: 'Delete',
+            });
+        } else if (params.key === Actions.REMOVE_ANNO_EXCEPT_BORDERS_FRONT) {
+            let removeFrom: number;
+            let removeUpTo: number;
+            let removeOnlyKeyframes = false;
+            let orientation = 'front';
+            const exceptBorders = true;
+            const { Panel } = Collapse;
+            Modal.confirm({
+                title: 'Remove Annotations Except Borders From Front of the Card',
+                content: (
+                    <div>
+                        <Text>You are going to remove the all annotations except borders from front of the card. </Text>
+                        <Text>It will stay on the server till you save the job. Continue?</Text>
+                        <br />
+                        <br />
+                        <Collapse bordered={false}>
+                            <Panel header={<Text>Select Range</Text>} key={1}>
+                                <Text>From: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeFrom = value;
+                                    }}
+                                />
+                                <Text> To: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeUpTo = value;
+                                    }}
+                                />
+                                <Tooltip title='Applicable only for annotations in range'>
+                                    <br />
+                                    <br />
+                                    <Checkbox
+                                        onChange={(check) => {
+                                            removeOnlyKeyframes = check.target.checked;
+                                        }}
+                                    >
+                                        Delete only keyframes for tracks
+                                    </Checkbox>
+                                </Tooltip>
+                            </Panel>
+                        </Collapse>
+                    </div>
+                ),
+                className: 'cvat-modal-confirm-remove-annotation',
+                onOk: () => {
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, orientation);
+                },
+                okButtonProps: {
+                    type: 'primary',
+                    danger: true,
+                },
+                okText: 'Delete',
+            });
+        } else if (params.key === Actions.REMOVE_ANNO_EXCEPT_BORDERS_BACK) {
+            let removeFrom: number;
+            let removeUpTo: number;
+            let removeOnlyKeyframes = false;
+            let orientation = 'back';
+            const exceptBorders = true;
+            const { Panel } = Collapse;
+            Modal.confirm({
+                title: 'Remove Annotations Except Borders From Back of the Card',
+                content: (
+                    <div>
+                        <Text>You are going to remove the all annotations except borders from back of the card. </Text>
+                        <Text>It will stay on the server till you save the job. Continue?</Text>
+                        <br />
+                        <br />
+                        <Collapse bordered={false}>
+                            <Panel header={<Text>Select Range</Text>} key={1}>
+                                <Text>From: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeFrom = value;
+                                    }}
+                                />
+                                <Text> To: </Text>
+                                <InputNumber
+                                    min={0}
+                                    max={stopFrame}
+                                    onChange={(value) => {
+                                        removeUpTo = value;
+                                    }}
+                                />
+                                <Tooltip title='Applicable only for annotations in range'>
+                                    <br />
+                                    <br />
+                                    <Checkbox
+                                        onChange={(check) => {
+                                            removeOnlyKeyframes = check.target.checked;
+                                        }}
+                                    >
+                                        Delete only keyframes for tracks
+                                    </Checkbox>
+                                </Tooltip>
+                            </Panel>
+                        </Collapse>
+                    </div>
+                ),
+                className: 'cvat-modal-confirm-remove-annotation',
+                onOk: () => {
+                    removeAnnotations(removeFrom, removeUpTo, removeOnlyKeyframes, exceptBorders, orientation);
                 },
                 okButtonProps: {
                     type: 'primary',
@@ -230,7 +357,11 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
     const is2d = jobInstance.task.dimension === DimensionType.DIM_2D;
 
     return (
-        <Menu onClick={(params: MenuInfo) => onClickMenuWrapper(params)} className='cvat-annotation-menu' selectable={false}>
+        <Menu
+            onClick={(params: MenuInfo) => onClickMenuWrapper(params)}
+            className='cvat-annotation-menu'
+            selectable={false}
+        >
             {LoadSubmenu({
                 loaders,
                 loadActivity,
@@ -255,8 +386,14 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 taskDimension: jobInstance.task.dimension,
             })}
             <Menu.Item key={Actions.EXPORT_TASK_DATASET}>Export task dataset</Menu.Item>
-            <Menu.Item key={Actions.REMOVE_ANNO}>Remove annotations</Menu.Item>
-            <Menu.Item key={Actions.REMOVE_ANNO_EXCEPT_BORDERS}>Remove annotations except borders</Menu.Item>
+            <Menu.Item key={Actions.REMOVE_ANNO_FRONT}>Remove annotations from front of the card</Menu.Item>
+            <Menu.Item key={Actions.REMOVE_ANNO_BACK}>Remove annotations from back of the card</Menu.Item>
+            <Menu.Item key={Actions.REMOVE_ANNO_EXCEPT_BORDERS_FRONT}>
+                Remove annotations except borders from front of the card
+            </Menu.Item>
+            <Menu.Item key={Actions.REMOVE_ANNO_EXCEPT_BORDERS_BACK}>
+                Remove annotations except borders from back of the card
+            </Menu.Item>
             <Menu.Item key={Actions.OPEN_TASK}>
                 <a href={`/tasks/${taskID}`} onClick={(e: React.MouseEvent) => e.preventDefault()}>
                     Open the task
