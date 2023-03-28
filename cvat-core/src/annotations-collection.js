@@ -568,8 +568,9 @@
                         this.shapes[frame] = exceptBorders
                             ? this.shapes[frame].filter(
                                   ({ label, frameMeta }) =>
-                                      !frameMeta[frame].filename.includes(`-+${orientation}`) &&
-                                      (label.name === 'inner-border' || label.name === 'outer-border'),
+                                      label.name === 'inner-border' ||
+                                      label.name === 'outer-border' ||
+                                      !frameMeta[frame].filename.includes(`-+${orientation}`),
                               )
                             : this.shapes[frame].filter(
                                   ({ frameMeta }) => !frameMeta[frame].filename.includes(`-+${orientation}`),
@@ -608,8 +609,9 @@
                             (frame) =>
                                 (this.shapes[frame] = this.shapes[frame].filter(
                                     ({ label, frameMeta }) =>
-                                        !frameMeta[frame].filename.includes(`-+${orientation}`) &&
-                                        (label.name === 'inner-border' || label.name === 'outer-border'),
+                                        label.name === 'inner-border' ||
+                                        label.name === 'outer-border' ||
+                                        !frameMeta[frame].filename.includes(`-+${orientation}`),
                                 )),
                         );
                     } else {
@@ -639,8 +641,9 @@
                         ? Object.fromEntries(
                               Object.entries(this.objects).filter(
                                   ([key, value]) =>
-                                      !value.frameMeta[value.frame].filename.includes(`-+${orientation}`) &&
-                                      (value.label.name === 'inner-border' || value.label.name === 'outer-border'),
+                                      value.label.name === 'inner-border' ||
+                                      value.label.name === 'outer-border' ||
+                                      !value.frameMeta[value.frame].filename.includes(`-+${orientation}`),
                               ),
                           )
                         : Object.fromEntries(
