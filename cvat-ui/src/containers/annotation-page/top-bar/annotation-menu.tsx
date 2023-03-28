@@ -37,6 +37,7 @@ interface DispatchToProps {
         endnumber: number,
         delTrackKeyframesOnly: boolean,
         exceptBorders?: boolean,
+        majorDefectsOnly?: boolean,
         orientation?: 'back' | 'front',
     ): void;
     switchRequestReviewDialog(visible: boolean): void;
@@ -87,10 +88,11 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
             endnumber: number,
             delTrackKeyframesOnly: boolean,
             exceptBorders?: boolean,
+            majorDefectsOnly?: boolean,
             orientation?: 'back' | 'front',
         ) {
             dispatch(
-                removeAnnotationsAsyncAction(startnumber, endnumber, delTrackKeyframesOnly, exceptBorders, orientation),
+                removeAnnotationsAsyncAction(startnumber, endnumber, delTrackKeyframesOnly, exceptBorders, majorDefectsOnly, orientation),
             );
         },
         switchRequestReviewDialog(visible: boolean): void {

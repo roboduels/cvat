@@ -309,6 +309,7 @@ export function removeAnnotationsAsync(
     endFrame: number,
     delTrackKeyframesOnly: boolean,
     exceptBorders?: boolean,
+    majorDefectsOnly?: boolean,
     orientation?: 'back' | 'front',
 ): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
@@ -320,6 +321,7 @@ export function removeAnnotationsAsync(
                 endFrame,
                 delTrackKeyframesOnly,
                 exceptBorders,
+                majorDefectsOnly,
                 orientation,
             );
             await jobInstance.actions.clear();
