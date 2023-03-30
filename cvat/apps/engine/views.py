@@ -1808,7 +1808,7 @@ class GradeParametersFromFileNameView(APIView):
                     image_path = f"data/data/{data_id}/raw/{filename}"
                     width = image.width
                     height = image.height
-                    regex_match = re.match(r"^([^_+-]*)[_+-]*([^_+-]*)[_+-]*(front|back)[_-](laser|cam)\.(.*)$", filename)
+                    regex_match = re.match(r"^(.*?)[_+-]*([^_+-]*)[_+-]*(front|back)[_-](laser|cam)\.(.*)$", filename)
                     order_id = regex_match[1]
                     certificate_id = regex_match[2]
                     orientation = regex_match[3]
