@@ -1778,11 +1778,12 @@ class GradeParametersFromCertificateView(APIView):
                 filename_regex = re.match(r"^((.*)[_-])?(front|back)[_-](laser|cam)\.(.*)$", filename.split('-+')[-1])
                 orientation = filename_regex[3]
                 image_type = filename_regex[4]
-                image_url = f"https://pokemon-statics.s3.amazonaws.com/media/{orientation}/{certificate_id}_{orientation}.jpg"
+                image_url = f"https://ags-cvat-storage.s3.us-west-2.amazonaws.com/{order_id}-%2B{certificate_id}-%2B{orientation}_laser.png"
+                image_url_legacy = f"https://pokemon-statics.s3.amazonaws.com/media/{orientation}/{certificate_id}_{orientation}.jpg"
                 labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
                 objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
                 payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
-                result = {"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type, "image_path": image_path, "image_url": image_url}
+                result = {"payload": payload, "orientation": orientation, "certificate_id": certificate_id, "image_type": image_type, "image_path": image_path, "image_url": image_url, "image_url_legacy": image_url_legacy}
 
                 return Response({"order_id": order_id, "certificate_id": certificate_id, "result": result})
 
