@@ -3,9 +3,9 @@ version: '3.3'
 services:
   cvat:
     environment:
-      CVAT_SHARE_URL: 'Mounted from /s3-share host directory'
+      CVAT_SHARE_URL: 'Mounted from /s3-bucket host directory'
     volumes:
-      - /s3-share:/home/django/share:ro
+      - /s3-bucket:/home/django/share:ro
 
 #volumes:
 #  cvat_share:
