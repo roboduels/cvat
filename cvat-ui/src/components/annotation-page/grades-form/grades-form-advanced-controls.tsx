@@ -14,9 +14,11 @@ interface Props {
     enhancedRobogradesVisibility: boolean;
     robogradesVisibility: boolean;
     rawRobogradesVisibility: boolean;
+    centeringAnglesVisibility: boolean;
     handleEnhancedRobogradesVisibility(): void;
     handleRobogradesVisibility(): void;
     handleRawRobogradesVisibility(): void;
+    handleCenteringAnglesVisibility(): void;
 }
 
 function GradesFormAdvancedControls({
@@ -25,9 +27,11 @@ function GradesFormAdvancedControls({
     enhancedRobogradesVisibility,
     robogradesVisibility,
     rawRobogradesVisibility,
+    centeringAnglesVisibility,
     handleEnhancedRobogradesVisibility,
     handleRobogradesVisibility,
     handleRawRobogradesVisibility,
+    handleCenteringAnglesVisibility,
 }: Props): JSX.Element {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -61,6 +65,10 @@ function GradesFormAdvancedControls({
                     <div className='grades-form-info-typography'>
                         <Switch checked={rawRobogradesVisibility} onChange={handleRawRobogradesVisibility} />
                         <Typography.Text>&nbsp;Raw Robogrades</Typography.Text>
+                    </div>
+                    <div className='grades-form-info-typography'>
+                        <Switch checked={rawRobogradesVisibility} onChange={handleCenteringAnglesVisibility} />
+                        <Typography.Text>&nbsp;Centering Angles</Typography.Text>
                     </div>
                 </Space>
             )}

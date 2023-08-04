@@ -62,6 +62,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const [enhancedRobogradesVisibility, setEnhancedRobogradesVisibility] = useState(true);
     const [robogradesVisibility, setRobogradesVisibility] = useState(true);
     const [rawRobogradesVisibility, setRawRobogradesVisibility] = useState(true);
+    const [centeringAnglesVisibility, setCenteringAnglesVisibility] = useState(true);
     const frameFilename = useSelector((state: CombinedState) => state.annotation.player.frame.filename);
     const frameOptions = useMemo(() => {
         const options = parseFilename(frameFilename);
@@ -666,7 +667,43 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             </Collapse>
                         </Col>
                     ) : null}
-                    <Col span={4} style={{ display: 'flex' }}>
+                    <Col span={5} style={{ display: 'flex' }}>
+                        {centeringAnglesVisibility ? (
+                            <div className='grades-form-centering-angles'>
+                                <Collapse defaultActiveKey={['1']}>
+                                    <Panel header='Centering Angles' key='1'>
+                                        <div className='grades-form-info'>
+                                            <div className='grades-form-raw-grades'>
+                                                <div>
+                                                    <Typography.Text strong>Opposite Angle:&nbsp;</Typography.Text>
+                                                    <Typography.Text>
+                                                        {values?.[`${frameOptions.orientation}_opposite_angle`]}
+                                                    </Typography.Text>
+                                                </div>
+                                            </div>
+
+                                            <div className='grades-form-raw-grades'>
+                                                <div>
+                                                    <Typography.Text strong>Inner Outer Angle:&nbsp;</Typography.Text>
+                                                    <Typography.Text>
+                                                        {values?.[`${frameOptions.orientation}_inner_outer_angle`]}
+                                                    </Typography.Text>
+                                                </div>
+                                            </div>
+
+                                            <div className='grades-form-raw-grades'>
+                                                <div>
+                                                    <Typography.Text strong>Distance:&nbsp;</Typography.Text>
+                                                    <Typography.Text>
+                                                        {values?.[`${frameOptions.orientation}_distance`]}
+                                                    </Typography.Text>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Panel>
+                                </Collapse>
+                            </div>
+                        ) : null }
                         <div
                             style={{
                                 display: 'flex',
@@ -695,9 +732,11 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                                     enhancedRobogradesVisibility={enhancedRobogradesVisibility}
                                     robogradesVisibility={robogradesVisibility}
                                     rawRobogradesVisibility={rawRobogradesVisibility}
+                                    centeringAnglesVisibility={centeringAnglesVisibility}
                                     handleEnhancedRobogradesVisibility={setEnhancedRobogradesVisibility}
                                     handleRobogradesVisibility={setRobogradesVisibility}
                                     handleRawRobogradesVisibility={setRawRobogradesVisibility}
+                                    handleCenteringAnglesVisibility={setCenteringAnglesVisibility}
                                 />
                             </Space>
                         </div>
