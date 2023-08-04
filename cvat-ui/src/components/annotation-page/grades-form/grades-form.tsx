@@ -667,7 +667,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             </Collapse>
                         </Col>
                     ) : null}
-                    <Col span={5} style={{ display: 'flex' }}>
+                    <Col span={5}>
                         {centeringAnglesVisibility ? (
                             <div className='grades-form-centering-angles'>
                                 <Collapse defaultActiveKey={['1']}>
