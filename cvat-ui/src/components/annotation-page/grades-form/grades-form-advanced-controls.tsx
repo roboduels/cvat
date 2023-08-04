@@ -67,7 +67,7 @@ function GradesFormAdvancedControls({
                         <Typography.Text>&nbsp;Raw Robogrades</Typography.Text>
                     </div>
                     <div className='grades-form-info-typography'>
-                        <Switch checked={rawRobogradesVisibility} onChange={handleCenteringAnglesVisibility} />
+                        <Switch checked={centeringAnglesVisibility} onChange={handleCenteringAnglesVisibility} />
                         <Typography.Text>&nbsp;Centering Angles</Typography.Text>
                     </div>
                 </Space>
