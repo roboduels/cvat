@@ -761,6 +761,12 @@ export interface GradesState {
         back_raw_edge_grade: number;
         back_raw_corner_grade: number;
         back_raw_centering_grade: number;
+        front_opposite_angle: number;
+        front_inner_outer_angle: number;
+        front_distance: number;
+        back_opposite_angle: number;
+        back_inner_outer_angle: number;
+        back_distance: number;
     };
 }
 

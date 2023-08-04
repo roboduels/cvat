@@ -53,6 +53,12 @@ const defaultState: GradesState = {
         back_raw_edge_grade: 0,
         back_raw_corner_grade: 0,
         back_raw_centering_grade: 0,
+        front_opposite_angle: 0,
+        front_inner_outer_angle: 0,
+        front_distance: 0,
+        back_opposite_angle: 0,
+        back_inner_outer_angle: 0,
+        back_distance: 0,
     },
 };
 

@@ -157,6 +157,12 @@ export const loadingGradesAsync =
                     back_raw_edge_grade: mapGradeValue(result?.back_raw_grades?.edge_grade),
                     back_raw_corner_grade: mapGradeValue(result?.back_raw_grades?.corner_grade),
                     back_raw_centering_grade: mapGradeValue(result?.back_raw_grades?.centering_grade),
+                    front_opposite_angle: mapGradeValue(result?.laser_front_scan?.angles?.opposite_angle),
+                    front_inner_outer_angle: mapGradeValue(result?.laser_front_scan?.angles?.inner_outer_angle),
+                    front_distance: mapGradeValue(result?.laser_front_scan?.angles?.distance),
+                    back_opposite_angle: mapGradeValue(result?.laser_back_scan?.angles?.opposite_angle),
+                    back_inner_outer_angle: mapGradeValue(result?.laser_back_scan?.angles?.inner_outer_angle),
+                    back_distance: mapGradeValue(result?.laser_back_scan?.angles?.distance),
                 }),
             );
         } catch (error) {
@@ -258,6 +264,9 @@ export const submitAnnotationFrameToGradeAsync =
                         [`${input.orientation}_edges_laser_grade`]: mapGradeValue(data?.edge),
                         [`${input.orientation}_surface_laser_grade`]: mapGradeValue(data?.surface),
                         [`${input.orientation}_overall_predicted_grade`]: mapGradeValue(data?.overall),
+                        [`${input.orientation}_opposite_angle`]: mapGradeValue(data?.angles?.opposite_angle),
+                        [`${input.orientation}_inner_outer_angle`]: mapGradeValue(data?.angles?.inner_outer_angle),
+                        [`${input.orientation}_distance`]: mapGradeValue(data?.angles?.distance),
                     }),
                 );
             }
