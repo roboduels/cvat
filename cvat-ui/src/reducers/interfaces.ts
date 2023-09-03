@@ -764,9 +764,25 @@ export interface GradesState {
         front_opposite_angle: number;
         front_inner_outer_angle: number;
         front_distance: number;
+        front_back_top_bot_angle_diff: number;
+        front_back_left_right_angle_diff: number;
+        front_back_top_outer_top_inner_angle_diff: number;
+        front_back_bot_outer_bot_inner_angle_diff: number;
+        front_back_left_outer_left_inner_angle_diff: number;
+        front_back_right_outer_right_inner_angle_diff: number;
+        front_back_vertical_distance_diff: number;
+        front_back_horizontal_distance_diff: number;
         back_opposite_angle: number;
         back_inner_outer_angle: number;
         back_distance: number;
+        back_back_top_bot_angle_diff: number;
+        back_back_left_right_angle_diff: number;
+        back_back_top_outer_top_inner_angle_diff: number;
+        back_back_bot_outer_bot_inner_angle_diff: number;
+        back_back_left_outer_left_inner_angle_diff: number;
+        back_back_right_outer_right_inner_angle_diff: number;
+        back_back_vertical_distance_diff: number;
+        back_back_horizontal_distance_diff: number;
     };
 }
 

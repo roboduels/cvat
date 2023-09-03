@@ -375,375 +375,440 @@ export function GradesForm({ task }: Props): JSX.Element | null {
 
     return (
         <div className='grades-form'>
-            <Row>
-                <Col span={7}>
-                    <div className='grades-form-info'>
-                        <div className='grades-form-info-typography'>
-                            <Typography.Text strong>Certificate ID:&nbsp;</Typography.Text>
-                            <Typography.Text
-                                editable={{
-                                    onChange: handleCertificateId,
-                                    onEnd: handleCommitTask,
-                                }}
-                            >
-                                {String(frameOptions.certificateId || '')}
-                            </Typography.Text>
-                            {frameOptions?.cardName ? (
-                                <Typography.Text>#{frameOptions.cardName}</Typography.Text>
-                            ) : null}
-                        </div>
-
-                        <div className='grades-form-info-typography'>
-                            <Typography.Text strong>Order ID:&nbsp;</Typography.Text>
-                            <Typography.Text
-                                editable={{
-                                    onChange: handleOrderId,
-                                    onEnd: handleCommitTask,
-                                }}
-                            >
-                                {String(frameOptions.orderId || '')}
-                            </Typography.Text>
-                        </div>
-                        {frameOptions.orientation ? (
-                            <div className='grades-form-info-typography'>
-                                <Typography.Text strong>Orientation:&nbsp;</Typography.Text>
-                                <Typography.Text>{frameOptions.orientation}</Typography.Text>
-                            </div>
-                        ) : null}
-                        {frameOptions.imageType ? (
-                            <div className='grades-form-info-typography'>
-                                <Typography.Text strong>Image Type:&nbsp;</Typography.Text>
-                                <Typography.Text>{frameOptions.imageType}</Typography.Text>
-                            </div>
-                        ) : null}
-                    </div>
-                </Col>
-                <Col span={12} className='grades-form-overall-grades'>
-                    <Collapse defaultActiveKey={['1']}>
-                        <Panel header='Overall Robogrades' key='1'>
-                            <Table
-                                columns={totalGradesColumns}
-                                dataSource={totalGradesRows}
-                                pagination={false}
-                                size='small'
-                            />
-                        </Panel>
-                    </Collapse>
-                </Col>
-                {hasErrorOrWarning ? (
-                    <Col span={8}>
-                        <div className='grades-form-error'>
-                            {error ? (
-                                <Typography.Text className='grades-form-error-typography'>
-                                    {typeof error === 'string' ? error : error.message}
-                                </Typography.Text>
-                            ) : null}
-                            {warning ? (
-                                <Typography.Text className='grades-form-warning-typography'>
-                                    {typeof warning === 'string' ? warning : warning.message}
-                                </Typography.Text>
-                            ) : null}
-                        </div>
-                    </Col>
-                ) : null}
-            </Row>
-
-            <Form
-                ref={formRef}
-                name='grades_form'
-                layout='vertical'
-                initialValues={values}
-                onFieldsChange={handleFieldsChange}
-            >
-                <Row gutter={8} className='grades-form-section'>
-                    {enhancedRobogradesVisibility ? (
-                        <Col span={8}>
-                            <Collapse defaultActiveKey={['1']}>
-                                <Panel header='Enhanced Robogrades' key='1'>
-                                    <Typography.Text strong className='grades-form-inner-title'>
-                                        Front of Card
-                                    </Typography.Text>
-                                    <Row gutter={[8, 16]}>
-                                        <Col span={6}>
-                                            <Form.Item label='Centering' name='front_centering_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Surface' name='front_surface_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Edges' name='front_edges_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Corners' name='front_corners_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Divider className='grades-form-separator' />
-                                    <Typography.Text strong className='grades-form-inner-title'>
-                                        Back of Card
-                                    </Typography.Text>
-                                    <Row gutter={[8, 16]}>
-                                        <Col span={6}>
-                                            <Form.Item label='Centering' name='back_centering_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Surface' name='back_surface_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Edges' name='back_edges_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Corners' name='back_corners_human_grade'>
-                                                <Input type='number' max={10} min={0} step={0.5} />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </Panel>
-                            </Collapse>
-                        </Col>
-                    ) : null}
-                    {robogradesVisibility ? (
+            <Row gutter={8}>
+                <Col span={19}>
+                    <Row justify="space-between">
                         <Col span={7}>
+                            <div className='grades-form-info'>
+                                <div className='grades-form-info-typography'>
+                                    <Typography.Text strong>Certificate ID:&nbsp;</Typography.Text>
+                                    <Typography.Text
+                                        editable={{
+                                            onChange: handleCertificateId,
+                                            onEnd: handleCommitTask,
+                                        }}
+                                    >
+                                        {String(frameOptions.certificateId || '')}
+                                    </Typography.Text>
+                                    {frameOptions?.cardName ? (
+                                        <Typography.Text>#{frameOptions.cardName}</Typography.Text>
+                                    ) : null}
+                                </div>
+
+                                <div className='grades-form-info-typography'>
+                                    <Typography.Text strong>Order ID:&nbsp;</Typography.Text>
+                                    <Typography.Text
+                                        editable={{
+                                            onChange: handleOrderId,
+                                            onEnd: handleCommitTask,
+                                        }}
+                                    >
+                                        {String(frameOptions.orderId || '')}
+                                    </Typography.Text>
+                                </div>
+                                {frameOptions.orientation ? (
+                                    <div className='grades-form-info-typography'>
+                                        <Typography.Text strong>Orientation:&nbsp;</Typography.Text>
+                                        <Typography.Text>{frameOptions.orientation}</Typography.Text>
+                                    </div>
+                                ) : null}
+                                {frameOptions.imageType ? (
+                                    <div className='grades-form-info-typography'>
+                                        <Typography.Text strong>Image Type:&nbsp;</Typography.Text>
+                                        <Typography.Text>{frameOptions.imageType}</Typography.Text>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </Col>
+                        <Col span={14} className='grades-form-overall-grades'>
                             <Collapse defaultActiveKey={['1']}>
-                                <Panel header='Robogrades' key='1' className='grades-form-robogrades'>
-                                    <Typography.Text strong className='grades-form-inner-title'>
-                                        Front of Card
-                                    </Typography.Text>
-                                    <Row gutter={[8, 16]}>
-                                        <Col span={6}>
-                                            <Form.Item label='Centering' name='front_centering_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Surface' name='front_surface_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Edges' name='front_edges_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Corners' name='front_corners_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    <Divider className='grades-form-separator' />
-                                    <Typography.Text strong className='grades-form-inner-title'>
-                                        Back of Card
-                                    </Typography.Text>
-                                    <Row gutter={[8, 16]}>
-                                        <Col span={6}>
-                                            <Form.Item label='Centering' name='back_centering_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Surface' name='back_surface_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Edges' name='back_edges_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item label='Corners' name='back_corners_laser_grade'>
-                                                <InputNumber controls={false} formatter={roundBy25} readOnly />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
+                                <Panel header='Overall Robogrades' key='1'>
+                                    <Table
+                                        columns={totalGradesColumns}
+                                        dataSource={totalGradesRows}
+                                        pagination={false}
+                                        size='small'
+                                    />
                                 </Panel>
                             </Collapse>
                         </Col>
-                    ) : null}
-                    {frameOptions.orientation && rawRobogradesVisibility ? (
-                        <Col span={4}>
+                        {hasErrorOrWarning ? (
+                            <Col span={3}>
+                                <div className='grades-form-error'>
+                                    {error ? (
+                                        <Typography.Text className='grades-form-error-typography'>
+                                            {typeof error === 'string' ? error : error.message}
+                                        </Typography.Text>
+                                    ) : null}
+                                    {warning ? (
+                                        <Typography.Text className='grades-form-warning-typography'>
+                                            {typeof warning === 'string' ? warning : warning.message}
+                                        </Typography.Text>
+                                    ) : null}
+                                </div>
+                            </Col>
+                        ) : null}
+                    </Row>
+
+                    <Form
+                        ref={formRef}
+                        name='grades_form'
+                        layout='vertical'
+                        initialValues={values}
+                        onFieldsChange={handleFieldsChange}
+                    >
+                        <Row gutter={8} className='grades-form-section'>
+                            {enhancedRobogradesVisibility ? (
+                                <Col span={10}>
+                                    <Collapse defaultActiveKey={['1']}>
+                                        <Panel header='Enhanced Robogrades' key='1'>
+                                            <Typography.Text strong className='grades-form-inner-title'>
+                                                Front of Card
+                                            </Typography.Text>
+                                            <Row gutter={[8, 16]}>
+                                                <Col span={6}>
+                                                    <Form.Item label='Centering' name='front_centering_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Surface' name='front_surface_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Edges' name='front_edges_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Corners' name='front_corners_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                            </Row>
+                                            <Divider className='grades-form-separator' />
+                                            <Typography.Text strong className='grades-form-inner-title'>
+                                                Back of Card
+                                            </Typography.Text>
+                                            <Row gutter={[8, 16]}>
+                                                <Col span={6}>
+                                                    <Form.Item label='Centering' name='back_centering_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Surface' name='back_surface_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Edges' name='back_edges_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Corners' name='back_corners_human_grade'>
+                                                        <Input type='number' max={10} min={0} step={0.5} />
+                                                    </Form.Item>
+                                                </Col>
+                                            </Row>
+                                        </Panel>
+                                    </Collapse>
+                                </Col>
+                            ) : null}
+                            {robogradesVisibility ? (
+                                <Col span={9}>
+                                    <Collapse defaultActiveKey={['1']}>
+                                        <Panel header='Robogrades' key='1' className='grades-form-robogrades'>
+                                            <Typography.Text strong className='grades-form-inner-title'>
+                                                Front of Card
+                                            </Typography.Text>
+                                            <Row gutter={[8, 16]}>
+                                                <Col span={6}>
+                                                    <Form.Item label='Centering' name='front_centering_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Surface' name='front_surface_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Edges' name='front_edges_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Corners' name='front_corners_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                            </Row>
+                                            <Divider className='grades-form-separator' />
+                                            <Typography.Text strong className='grades-form-inner-title'>
+                                                Back of Card
+                                            </Typography.Text>
+                                            <Row gutter={[8, 16]}>
+                                                <Col span={6}>
+                                                    <Form.Item label='Centering' name='back_centering_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Surface' name='back_surface_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Edges' name='back_edges_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item label='Corners' name='back_corners_laser_grade'>
+                                                        <InputNumber controls={false} formatter={roundBy25} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                            </Row>
+                                        </Panel>
+                                    </Collapse>
+                                </Col>
+                            ) : null}
+                            {frameOptions.orientation && rawRobogradesVisibility ? (
+                                <Col span={5}>
+                                    <Collapse defaultActiveKey={['1']}>
+                                        <Panel header='Raw Robogrades' key='1'>
+                                            <div className='grades-form-info'>
+                                                <div className='grades-form-raw-grades'>
+                                                    <div>
+                                                        <Typography.Text strong>Surface:&nbsp;</Typography.Text>
+                                                        <Typography.Text>
+                                                            {values?.[`${frameOptions.orientation}_raw_surface_grade`]}
+                                                        </Typography.Text>
+                                                    </div>
+                                                    <div className='grades-form-raw-grades-info'>
+                                                        <Typography.Text>
+                                                            {`(minor: ${computeRawGradePercentile(
+                                                                values?.[
+                                                                    `${frameOptions.orientation}_raw_surface_minor_defect`
+                                                                ]?.[1],
+                                                            )}, major: ${computeRawGradePercentile(
+                                                                values?.[
+                                                                    `${frameOptions.orientation}_raw_surface_major_defect`
+                                                                ]?.[1],
+                                                            )})`}
+                                                        </Typography.Text>
+                                                    </div>
+                                                </div>
+
+                                                <div className='grades-form-raw-grades'>
+                                                    <div>
+                                                        <Typography.Text strong>Corner:&nbsp;</Typography.Text>
+                                                        <Typography.Text>
+                                                            {values?.[`${frameOptions.orientation}_raw_corner_grade`]}
+                                                        </Typography.Text>
+                                                    </div>
+                                                    <div className='grades-form-raw-grades-info'>
+                                                        <Typography.Text>
+                                                            {`(minor: ${computeRawGradePercentile(
+                                                                values?.[
+                                                                    `${frameOptions.orientation}_raw_corner_minor_defect`
+                                                                ]?.[1],
+                                                            )}, major: ${computeRawGradePercentile(
+                                                                values?.[
+                                                                    `${frameOptions.orientation}_raw_corner_major_defect`
+                                                                ]?.[1],
+                                                            )})`}
+                                                        </Typography.Text>
+                                                    </div>
+                                                </div>
+
+                                                <div className='grades-form-raw-grades'>
+                                                    <div>
+                                                        <Typography.Text strong>Edges:&nbsp;</Typography.Text>
+                                                        <Typography.Text>
+                                                            {values?.[`${frameOptions.orientation}_raw_edge_grade`]}
+                                                        </Typography.Text>
+                                                    </div>
+                                                    <div className='grades-form-raw-grades-info'>
+                                                        <Typography.Text>
+                                                            {`(minor: ${computeRawGradePercentile(
+                                                                values?.[
+                                                                    `${frameOptions.orientation}_raw_edge_minor_defect`
+                                                                ]?.[1],
+                                                            )}, major: ${computeRawGradePercentile(
+                                                                values?.[
+                                                                    `${frameOptions.orientation}_raw_edge_major_defect`
+                                                                ]?.[1],
+                                                            )})`}
+                                                        </Typography.Text>
+                                                    </div>
+                                                </div>
+
+                                                <div className='grades-form-raw-grades'>
+                                                    <div>
+                                                        <Typography.Text strong>Centering:&nbsp;</Typography.Text>
+                                                        <Typography.Text>
+                                                            {values?.[`${frameOptions.orientation}_raw_centering_grade`]}
+                                                        </Typography.Text>
+                                                    </div>
+                                                    <div className='grades-form-raw-grades-info'>
+                                                        <Typography.Text>
+                                                            {`(angle: ${computeRawGradePercentile(
+                                                                values?.[`${frameOptions.orientation}_raw_angle_dif`]?.[1],
+                                                            )}, center: ${computeRawGradePercentile(
+                                                                values?.[`${frameOptions.orientation}_raw_center_dif`]?.[1],
+                                                            )})`}
+                                                        </Typography.Text>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Panel>
+                                    </Collapse>
+                                </Col>
+                            ) : null}
+                        </Row>
+                    </Form>
+                </Col>
+                <Col span={5}>
+                    {centeringAnglesVisibility ? (
+                        <div className='grades-form-centering-angles'>
                             <Collapse defaultActiveKey={['1']}>
-                                <Panel header='Raw Robogrades' key='1'>
+                                <Panel header='Centering Angles' key='1'>
                                     <div className='grades-form-info'>
                                         <div className='grades-form-raw-grades'>
                                             <div>
-                                                <Typography.Text strong>Surface:&nbsp;</Typography.Text>
+                                                <Typography.Text strong>Opposite Angle:&nbsp;</Typography.Text>
                                                 <Typography.Text>
-                                                    {values?.[`${frameOptions.orientation}_raw_surface_grade`]}
-                                                </Typography.Text>
-                                            </div>
-                                            <div className='grades-form-raw-grades-info'>
-                                                <Typography.Text>
-                                                    {`(minor: ${computeRawGradePercentile(
-                                                        values?.[
-                                                            `${frameOptions.orientation}_raw_surface_minor_defect`
-                                                        ]?.[1],
-                                                    )}, major: ${computeRawGradePercentile(
-                                                        values?.[
-                                                            `${frameOptions.orientation}_raw_surface_major_defect`
-                                                        ]?.[1],
-                                                    )})`}
+                                                    {values?.[`${frameOptions.orientation}_opposite_angle`]}
                                                 </Typography.Text>
                                             </div>
                                         </div>
-
                                         <div className='grades-form-raw-grades'>
                                             <div>
-                                                <Typography.Text strong>Corner:&nbsp;</Typography.Text>
+                                                <Typography.Text strong>Inner Outer Angle:&nbsp;</Typography.Text>
                                                 <Typography.Text>
-                                                    {values?.[`${frameOptions.orientation}_raw_corner_grade`]}
-                                                </Typography.Text>
-                                            </div>
-                                            <div className='grades-form-raw-grades-info'>
-                                                <Typography.Text>
-                                                    {`(minor: ${computeRawGradePercentile(
-                                                        values?.[
-                                                            `${frameOptions.orientation}_raw_corner_minor_defect`
-                                                        ]?.[1],
-                                                    )}, major: ${computeRawGradePercentile(
-                                                        values?.[
-                                                            `${frameOptions.orientation}_raw_corner_major_defect`
-                                                        ]?.[1],
-                                                    )})`}
+                                                    {values?.[`${frameOptions.orientation}_inner_outer_angle`]}
                                                 </Typography.Text>
                                             </div>
                                         </div>
-
                                         <div className='grades-form-raw-grades'>
                                             <div>
-                                                <Typography.Text strong>Edges:&nbsp;</Typography.Text>
+                                                <Typography.Text strong>Distance:&nbsp;</Typography.Text>
                                                 <Typography.Text>
-                                                    {values?.[`${frameOptions.orientation}_raw_edge_grade`]}
-                                                </Typography.Text>
-                                            </div>
-                                            <div className='grades-form-raw-grades-info'>
-                                                <Typography.Text>
-                                                    {`(minor: ${computeRawGradePercentile(
-                                                        values?.[
-                                                            `${frameOptions.orientation}_raw_edge_minor_defect`
-                                                        ]?.[1],
-                                                    )}, major: ${computeRawGradePercentile(
-                                                        values?.[
-                                                            `${frameOptions.orientation}_raw_edge_major_defect`
-                                                        ]?.[1],
-                                                    )})`}
+                                                    {values?.[`${frameOptions.orientation}_distance`]}
                                                 </Typography.Text>
                                             </div>
                                         </div>
-
                                         <div className='grades-form-raw-grades'>
                                             <div>
-                                                <Typography.Text strong>Centering:&nbsp;</Typography.Text>
+                                                <Typography.Text strong>Top Inner / Bottom Inner Angle:&nbsp;</Typography.Text>
                                                 <Typography.Text>
-                                                    {values?.[`${frameOptions.orientation}_raw_centering_grade`]}
+                                                    {values?.[`${frameOptions.orientation}_top_bot_angle_diff`]}
                                                 </Typography.Text>
                                             </div>
-                                            <div className='grades-form-raw-grades-info'>
+                                        </div>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Left Inner / Right Inner Angle:&nbsp;</Typography.Text>
                                                 <Typography.Text>
-                                                    {`(angle: ${computeRawGradePercentile(
-                                                        values?.[`${frameOptions.orientation}_raw_angle_dif`]?.[1],
-                                                    )}, center: ${computeRawGradePercentile(
-                                                        values?.[`${frameOptions.orientation}_raw_center_dif`]?.[1],
-                                                    )})`}
+                                                    {values?.[`${frameOptions.orientation}_left_right_angle_diff`]}
+                                                </Typography.Text>
+                                            </div>
+                                        </div>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Top Outer / Top Inner Angle:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_top_outer_top_inner_angle_diff`]}
+                                                </Typography.Text>
+                                            </div>
+                                        </div>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Bottom Outer / Bottom Inner Angle:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_bot_outer_bot_inner_angle_diff`]}
+                                                </Typography.Text>
+                                            </div>
+                                        </div>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Left Outer / Left Inner Angle:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_left_outer_left_inner_angle_diff`]}
+                                                </Typography.Text>
+                                            </div>
+                                        </div>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Right Outer / Right Inner Angle:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_right_outer_right_inner_angle_diff`]}
+                                                </Typography.Text>
+                                            </div>
+                                        </div>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>Y Diff:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_vertical_distance_diff`]}
+                                                </Typography.Text>
+                                            </div>
+                                        </div>
+                                        <div className='grades-form-raw-grades'>
+                                            <div>
+                                                <Typography.Text strong>X Diff:&nbsp;</Typography.Text>
+                                                <Typography.Text>
+                                                    {values?.[`${frameOptions.orientation}_horizontal_distance_diff`]}
                                                 </Typography.Text>
                                             </div>
                                         </div>
                                     </div>
                                 </Panel>
                             </Collapse>
-                        </Col>
-                    ) : null}
-                    <Col span={5}>
-                        {centeringAnglesVisibility ? (
-                            <div className='grades-form-centering-angles'>
-                                <Collapse defaultActiveKey={['1']}>
-                                    <Panel header='Centering Angles' key='1'>
-                                        <div className='grades-form-info'>
-                                            <div className='grades-form-raw-grades'>
-                                                <div>
-                                                    <Typography.Text strong>Opposite Angle:&nbsp;</Typography.Text>
-                                                    <Typography.Text>
-                                                        {values?.[`${frameOptions.orientation}_opposite_angle`]}
-                                                    </Typography.Text>
-                                                </div>
-                                            </div>
-
-                                            <div className='grades-form-raw-grades'>
-                                                <div>
-                                                    <Typography.Text strong>Inner Outer Angle:&nbsp;</Typography.Text>
-                                                    <Typography.Text>
-                                                        {values?.[`${frameOptions.orientation}_inner_outer_angle`]}
-                                                    </Typography.Text>
-                                                </div>
-                                            </div>
-
-                                            <div className='grades-form-raw-grades'>
-                                                <div>
-                                                    <Typography.Text strong>Distance:&nbsp;</Typography.Text>
-                                                    <Typography.Text>
-                                                        {values?.[`${frameOptions.orientation}_distance`]}
-                                                    </Typography.Text>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Panel>
-                                </Collapse>
-                            </div>
-                        ) : null }
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                flex: '1 1 auto',
-                                alignItems: 'flex-end',
-                                justifyContent: 'flex-end',
-                            }}
-                        >
-                            {isLoading ? (
-                                <div className='grades-form-loader'>
-                                    <LoadingOutlined />
-                                    <span className='loading-text'>Loading...</span>
-                                </div>
-                            ) : null}
-                            <Space direction='vertical' style={{ width: '100%' }}>
-                                <Button type='primary' onClick={handleUpdate} block>
-                                    Update grades
-                                </Button>
-                                <Button type='primary' onClick={handleRobogrades} block>
-                                    Generate Robogrades
-                                </Button>
-                                <GradesFormAdvancedControls
-                                    onGenerateRobogradesAndMasks={handleRobogradesAndMasks}
-                                    onGenerateRawRobogrades={handleRawRobogrades}
-                                    enhancedRobogradesVisibility={enhancedRobogradesVisibility}
-                                    robogradesVisibility={robogradesVisibility}
-                                    rawRobogradesVisibility={rawRobogradesVisibility}
-                                    centeringAnglesVisibility={centeringAnglesVisibility}
-                                    handleEnhancedRobogradesVisibility={setEnhancedRobogradesVisibility}
-                                    handleRobogradesVisibility={setRobogradesVisibility}
-                                    handleRawRobogradesVisibility={setRawRobogradesVisibility}
-                                    handleCenteringAnglesVisibility={setCenteringAnglesVisibility}
-                                />
-                            </Space>
                         </div>
-                    </Col>
-                </Row>
-            </Form>
-
+                    ) : null }
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            flex: '1 1 auto',
+                            alignItems: 'flex-end',
+                            justifyContent: 'flex-end',
+                        }}
+                    >
+                        {isLoading ? (
+                            <div className='grades-form-loader'>
+                                <LoadingOutlined />
+                                <span className='loading-text'>Loading...</span>
+                            </div>
+                        ) : null}
+                        <Space direction='vertical' style={{ width: '100%' }}>
+                            <Button type='primary' onClick={handleUpdate} block>
+                                Update grades
+                            </Button>
+                            <Button type='primary' onClick={handleRobogrades} block>
+                                Generate Robogrades
+                            </Button>
+                            <GradesFormAdvancedControls
+                                onGenerateRobogradesAndMasks={handleRobogradesAndMasks}
+                                onGenerateRawRobogrades={handleRawRobogrades}
+                                enhancedRobogradesVisibility={enhancedRobogradesVisibility}
+                                robogradesVisibility={robogradesVisibility}
+                                rawRobogradesVisibility={rawRobogradesVisibility}
+                                centeringAnglesVisibility={centeringAnglesVisibility}
+                                handleEnhancedRobogradesVisibility={setEnhancedRobogradesVisibility}
+                                handleRobogradesVisibility={setRobogradesVisibility}
+                                handleRawRobogradesVisibility={setRawRobogradesVisibility}
+                                handleCenteringAnglesVisibility={setCenteringAnglesVisibility}
+                            />
+                        </Space>
+                    </div>
+                </Col>
+            </Row>
             <Button className='grades-form-close' shape='circle' icon={<CloseCircleOutlined />} onClick={handleClose} />
         </div>
     );
