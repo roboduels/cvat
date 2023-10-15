@@ -54,6 +54,7 @@ interface DispatchToProps {
 }
 
 function mapStateToProps(state: CombinedState): StateToProps {
+    const { highlightedShapes } = state?.annotation?.canvas?.instance?.view?.groupHandler;
     const {
         annotation: {
             annotations: {
@@ -90,6 +91,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
     });
 
     return {
+        highlightedShapes,
         statesHidden,
         statesLocked,
         statesCollapsedAll: collapsedAll,
@@ -201,6 +203,10 @@ class ObjectsListContainer extends React.PureComponent<Props, State> {
         this.collapseAllStates(true);
     };
 
+    private onDeleteAllStates = (): void => {
+        this.deleteAllStates(true);
+    };
+
     private onExpandAllStates = (): void => {
         this.collapseAllStates(false);
     };
@@ -243,6 +249,14 @@ class ObjectsListContainer extends React.PureComponent<Props, State> {
         collapseStates(objectStates, collapsed);
     }
 
+    private deleteAllStates(force: boolean): void {
+        const { objectStates, removeObject, jobInstance, highlightedShapes } = this.props;
+        objectStates.forEach(state => {
+            if (highlightedShapes[state.clientID] != undefined)
+                removeObject(jobInstance, state, force)
+        });
+    }
+
     public render(): JSX.Element {
         const {
             statesHidden,
@@ -267,6 +281,7 @@ class ObjectsListContainer extends React.PureComponent<Props, State> {
         const { objectStates, sortedStatesID, statesOrdering } = this.state;
 
         const subKeyMap = {
+            DELETE_ALL: keyMap.DELETE_ALL,
             SWITCH_ALL_LOCK: keyMap.SWITCH_ALL_LOCK,
             SWITCH_LOCK: keyMap.SWITCH_LOCK,
             SWITCH_ALL_HIDDEN: keyMap.SWITCH_ALL_HIDDEN,
@@ -323,6 +338,10 @@ class ObjectsListContainer extends React.PureComponent<Props, State> {
             MOVE_RIGHT: () => {},
             ZOOM_IN: () => {},
             ZOOM_OUT: () => {},
+            DELETE_ALL: (event: KeyboardEvent | undefined) => {
+                preventDefault(event);
+                this.deleteAllStates(true);
+            },
             SWITCH_ALL_LOCK: (event: KeyboardEvent | undefined) => {
                 preventDefault(event);
                 this.lockAllStates(!statesLocked);
@@ -462,10 +481,12 @@ class ObjectsListContainer extends React.PureComponent<Props, State> {
                     objectStates={objectStates}
                     switchHiddenAllShortcut={normalizedKeyMap.SWITCH_ALL_HIDDEN}
                     switchLockAllShortcut={normalizedKeyMap.SWITCH_ALL_LOCK}
+                    deleteAllShortcut={normalizedKeyMap.DELETE_ALL}
                     changeStatesOrdering={this.onChangeStatesOrdering}
                     lockAllStates={this.onLockAllStates}
                     unlockAllStates={this.onUnlockAllStates}
                     collapseAllStates={this.onCollapseAllStates}
+                    deleteAllStates={this.onDeleteAllStates}
                     expandAllStates={this.onExpandAllStates}
                     hideAllStates={this.onHideAllStates}
                     showAllStates={this.onShowAllStates}

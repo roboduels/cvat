@@ -37,6 +37,13 @@ const defaultKeyMap = ({
         applicable: [DimensionType.DIM_2D, DimensionType.DIM_3D],
     },
 
+    DELETE_ALL: {
+        name: 'Delete selected objects',
+        description: 'Delete all grouped objects',
+        sequences: ['d'],
+        action: 'keydown',
+        applicable: [DimensionType.DIM_2D, DimensionType.DIM_3D],
+    },
     SWITCH_ALL_LOCK: {
         name: 'Lock/unlock all objects',
         description: 'Change locked state for all objects in the side bar',

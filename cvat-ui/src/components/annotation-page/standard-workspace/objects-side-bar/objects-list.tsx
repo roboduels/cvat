@@ -18,10 +18,12 @@ interface Props {
     objectStates: any[];
     switchLockAllShortcut: string;
     switchHiddenAllShortcut: string;
+    deleteAllShortcut: string;
     changeStatesOrdering(value: StatesOrdering): void;
     lockAllStates(): void;
     unlockAllStates(): void;
     collapseAllStates(): void;
+    deleteAllStates(): void;
     expandAllStates(): void;
     hideAllStates(): void;
     showAllStates(): void;
@@ -38,10 +40,12 @@ function ObjectListComponent(props: Props): JSX.Element {
         objectStates,
         switchLockAllShortcut,
         switchHiddenAllShortcut,
+        deleteAllShortcut,
         changeStatesOrdering,
         lockAllStates,
         unlockAllStates,
         collapseAllStates,
+        deleteAllStates,
         expandAllStates,
         hideAllStates,
         showAllStates,
@@ -56,11 +60,13 @@ function ObjectListComponent(props: Props): JSX.Element {
                 statesCollapsed={statesCollapsedAll}
                 statesOrdering={statesOrdering}
                 switchLockAllShortcut={switchLockAllShortcut}
+                deleteAllShortcut={deleteAllShortcut}
                 switchHiddenAllShortcut={switchHiddenAllShortcut}
                 changeStatesOrdering={changeStatesOrdering}
                 lockAllStates={lockAllStates}
                 unlockAllStates={unlockAllStates}
                 collapseAllStates={collapseAllStates}
+                deleteAllStates={deleteAllStates}
                 expandAllStates={expandAllStates}
                 hideAllStates={hideAllStates}
                 showAllStates={showAllStates}
