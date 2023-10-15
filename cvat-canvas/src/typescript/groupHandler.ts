@@ -23,6 +23,7 @@ export class GroupHandlerImpl implements GroupHandler {
     private bindedOnSelectUpdate: (event: MouseEvent) => void;
     private bindedOnSelectStop: (event: MouseEvent) => void;
     private selectionRect: SVG.Rect;
+    private allowSelect: boolean = false;
     private startSelectionPoint: {
         x: number;
         y: number;
@@ -92,6 +93,7 @@ export class GroupHandlerImpl implements GroupHandler {
                 (shape: SVG.Shape): boolean => !shape.hasClass('cvat_canvas_hidden'),
             );
             for (const shape of shapes) {
+                this.allowSelect = box.xtl - box.xbr == 0 && box.ytl - box.ybr == 0;
                 // TODO: Doesn't work properly for groups
                 const bbox = shape.bbox();
                 const clientID = shape.attr('clientID');
@@ -186,6 +188,7 @@ export class GroupHandlerImpl implements GroupHandler {
     }
 
     public select(objectState: any): void {
+        if (!this.allowSelect) return;
         const stateIndexes = this.statesToBeGroupped.map((state): number => state.clientID);
         const includes = stateIndexes.indexOf(objectState.clientID);
         if (includes !== -1) {

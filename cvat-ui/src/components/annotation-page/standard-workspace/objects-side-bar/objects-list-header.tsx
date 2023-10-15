@@ -10,6 +10,7 @@ import {
     EyeOutlined,
     LockFilled,
     UnlockOutlined,
+    DeleteOutlined,
 } from '@ant-design/icons';
 import { Col, Row } from 'antd/lib/grid';
 
@@ -25,13 +26,26 @@ interface Props {
     statesOrdering: StatesOrdering;
     switchLockAllShortcut: string;
     switchHiddenAllShortcut: string;
+    deleteAllShortcut: string;
     changeStatesOrdering(value: StatesOrdering): void;
     lockAllStates(): void;
     unlockAllStates(): void;
     collapseAllStates(): void;
+    deleteAllStates(): void;
     expandAllStates(): void;
     hideAllStates(): void;
     showAllStates(): void;
+}
+
+function DeleteAllSwitcher(props: Props): JSX.Element {
+    const { deleteAllStates, deleteAllShortcut } = props;
+    return (
+        <Col span={2}>
+            <CVATTooltip title={`Delete selected ${deleteAllShortcut}`}>
+                <DeleteOutlined onClick={deleteAllStates} />
+            </CVATTooltip>
+        </Col>
+    );
 }
 
 function LockAllSwitcher(props: Props): JSX.Element {
@@ -92,6 +106,7 @@ function ObjectListHeader(props: Props): JSX.Element {
                     </>
                 )}
                 <CollapseAllSwitcher {...props} />
+                <DeleteAllSwitcher {...props} />
                 <StatesOrderingSelector statesOrdering={statesOrdering} changeStatesOrdering={changeStatesOrdering} />
             </Row>
         </div>
