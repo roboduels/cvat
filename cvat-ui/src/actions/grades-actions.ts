@@ -162,23 +162,55 @@ export const loadingGradesAsync =
                     front_distance: mapGradeValue(result?.laser_front_scan?.angles?.distance),
                     front_top_bot_angle_diff: mapGradeValue(result?.laser_front_scan?.angles?.top_bot_angle_diff),
                     front_left_right_angle_diff: mapGradeValue(result?.laser_front_scan?.angles?.left_right_angle_diff),
-                    front_top_outer_top_inner_angle_diff: mapGradeValue(result?.laser_front_scan?.angles?.top_outer_top_inner_angle_diff),
-                    front_bot_outer_bot_inner_angle_diff: mapGradeValue(result?.laser_front_scan?.angles?.bot_outer_bot_inner_angle_diff),
-                    front_left_outer_left_inner_angle_diff: mapGradeValue(result?.laser_front_scan?.angles?.left_outer_left_inner_angle_diff),
-                    front_right_outer_right_inner_angle_diff: mapGradeValue(result?.laser_front_scan?.angles?.right_outer_right_inner_angle_diff),
-                    front_vertical_distance_diff: mapGradeValue(result?.laser_front_scan?.angles?.vertical_distance_diff),
-                    front_horizontal_distance_diff: mapGradeValue(result?.laser_front_scan?.angles?.horizontal_distance_diff),
+                    front_top_outer_top_inner_angle_diff: mapGradeValue(
+                        result?.laser_front_scan?.angles?.top_outer_top_inner_angle_diff,
+                    ),
+                    front_bot_outer_bot_inner_angle_diff: mapGradeValue(
+                        result?.laser_front_scan?.angles?.bot_outer_bot_inner_angle_diff,
+                    ),
+                    front_left_outer_left_inner_angle_diff: mapGradeValue(
+                        result?.laser_front_scan?.angles?.left_outer_left_inner_angle_diff,
+                    ),
+                    front_right_outer_right_inner_angle_diff: mapGradeValue(
+                        result?.laser_front_scan?.angles?.right_outer_right_inner_angle_diff,
+                    ),
+                    front_vertical_distance_diff: mapGradeValue(
+                        result?.laser_front_scan?.angles?.vertical_distance_diff,
+                    ),
+                    front_horizontal_distance_diff: mapGradeValue(
+                        result?.laser_front_scan?.angles?.horizontal_distance_diff,
+                    ),
                     back_opposite_angle: mapGradeValue(result?.laser_back_scan?.angles?.opposite_angle),
                     back_inner_outer_angle: mapGradeValue(result?.laser_back_scan?.angles?.inner_outer_angle),
                     back_distance: mapGradeValue(result?.laser_back_scan?.angles?.distance),
                     back_top_bot_angle_diff: mapGradeValue(result?.laser_back_scan?.angles?.top_bot_angle_diff),
                     back_left_right_angle_diff: mapGradeValue(result?.laser_back_scan?.angles?.left_right_angle_diff),
-                    back_top_outer_top_inner_angle_diff: mapGradeValue(result?.laser_back_scan?.angles?.top_outer_top_inner_angle_diff),
-                    back_bot_outer_bot_inner_angle_diff: mapGradeValue(result?.laser_back_scan?.angles?.bot_outer_bot_inner_angle_diff),
-                    back_left_outer_left_inner_angle_diff: mapGradeValue(result?.laser_back_scan?.angles?.left_outer_left_inner_angle_diff),
-                    back_right_outer_right_inner_angle_diff: mapGradeValue(result?.laser_back_scan?.angles?.right_outer_right_inner_angle_diff),
+                    back_top_outer_top_inner_angle_diff: mapGradeValue(
+                        result?.laser_back_scan?.angles?.top_outer_top_inner_angle_diff,
+                    ),
+                    back_bot_outer_bot_inner_angle_diff: mapGradeValue(
+                        result?.laser_back_scan?.angles?.bot_outer_bot_inner_angle_diff,
+                    ),
+                    back_left_outer_left_inner_angle_diff: mapGradeValue(
+                        result?.laser_back_scan?.angles?.left_outer_left_inner_angle_diff,
+                    ),
+                    back_right_outer_right_inner_angle_diff: mapGradeValue(
+                        result?.laser_back_scan?.angles?.right_outer_right_inner_angle_diff,
+                    ),
                     back_vertical_distance_diff: mapGradeValue(result?.laser_back_scan?.angles?.vertical_distance_diff),
-                    back_horizontal_distance_diff: mapGradeValue(result?.laser_back_scan?.angles?.horizontal_distance_diff),
+                    back_horizontal_distance_diff: mapGradeValue(
+                        result?.laser_back_scan?.angles?.horizontal_distance_diff,
+                    ),
+                    front_boosted_centering_laser_grade: mapGradeValue(
+                        result?.laser_front_scan?.boosted_grades?.center,
+                    ),
+                    front_boosted_corners_laser_grade: mapGradeValue(result?.laser_front_scan?.boosted_grades?.corner),
+                    front_boosted_edges_laser_grade: mapGradeValue(result?.laser_front_scan?.boosted_grades?.edge),
+                    front_boosted_surface_laser_grade: mapGradeValue(result?.laser_front_scan?.boosted_grades?.surface),
+                    back_boosted_centering_laser_grade: mapGradeValue(result?.laser_back_scan?.boosted_grades?.center),
+                    back_boosted_corners_laser_grade: mapGradeValue(result?.laser_back_scan?.boosted_grades?.corner),
+                    back_boosted_edges_laser_grade: mapGradeValue(result?.laser_back_scan?.boosted_grades?.edge),
+                    back_boosted_surface_laser_grade: mapGradeValue(result?.laser_back_scan?.boosted_grades?.surface),
                 }),
             );
         } catch (error) {
@@ -284,13 +316,37 @@ export const submitAnnotationFrameToGradeAsync =
                         [`${input.orientation}_inner_outer_angle`]: mapGradeValue(data?.angles?.inner_outer_angle),
                         [`${input.orientation}_distance`]: mapGradeValue(data?.angles?.distance),
                         [`${input.orientation}_top_bot_angle_diff`]: mapGradeValue(data?.angles?.top_bot_angle_diff),
-                        [`${input.orientation}_left_right_angle_diff`]: mapGradeValue(data?.angles?.left_right_angle_diff),
-                        [`${input.orientation}_top_outer_top_inner_angle_diff`]: mapGradeValue(data?.angles?.top_outer_top_inner_angle_diff),
-                        [`${input.orientation}_bot_outer_bot_inner_angle_diff`]: mapGradeValue(data?.angles?.bot_outer_bot_inner_angle_diff),
-                        [`${input.orientation}_left_outer_left_inner_angle_diff`]: mapGradeValue(data?.angles?.left_outer_left_inner_angle_diff),
-                        [`${input.orientation}_right_outer_right_inner_angle_diff`]: mapGradeValue(data?.angles?.right_outer_right_inner_angle_diff),
-                        [`${input.orientation}_vertical_distance_diff`]: mapGradeValue(data?.angles?.vertical_distance_diff),
-                        [`${input.orientation}_horizontal_distance_diff`]: mapGradeValue(data?.angles?.horizontal_distance_diff),
+                        [`${input.orientation}_left_right_angle_diff`]: mapGradeValue(
+                            data?.angles?.left_right_angle_diff,
+                        ),
+                        [`${input.orientation}_top_outer_top_inner_angle_diff`]: mapGradeValue(
+                            data?.angles?.top_outer_top_inner_angle_diff,
+                        ),
+                        [`${input.orientation}_bot_outer_bot_inner_angle_diff`]: mapGradeValue(
+                            data?.angles?.bot_outer_bot_inner_angle_diff,
+                        ),
+                        [`${input.orientation}_left_outer_left_inner_angle_diff`]: mapGradeValue(
+                            data?.angles?.left_outer_left_inner_angle_diff,
+                        ),
+                        [`${input.orientation}_right_outer_right_inner_angle_diff`]: mapGradeValue(
+                            data?.angles?.right_outer_right_inner_angle_diff,
+                        ),
+                        [`${input.orientation}_vertical_distance_diff`]: mapGradeValue(
+                            data?.angles?.vertical_distance_diff,
+                        ),
+                        [`${input.orientation}_horizontal_distance_diff`]: mapGradeValue(
+                            data?.angles?.horizontal_distance_diff,
+                        ),
+                        [`${input.orientation}_boosted_centering_laser_grade`]: mapGradeValue(
+                            data?.boosted_grades?.center,
+                        ),
+                        [`${input.orientation}_boosted_corners_laser_grade`]: mapGradeValue(
+                            data?.boosted_grades?.corner,
+                        ),
+                        [`${input.orientation}_boosted_edges_laser_grade`]: mapGradeValue(data?.boosted_grades?.edge),
+                        [`${input.orientation}_boosted_surface_laser_grade`]: mapGradeValue(
+                            data?.boosted_grades?.surface,
+                        ),
                     }),
                 );
             }

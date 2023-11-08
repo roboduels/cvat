@@ -75,6 +75,14 @@ const defaultState: GradesState = {
         back_right_outer_right_inner_angle_diff: 0,
         back_vertical_distance_diff: 0,
         back_horizontal_distance_diff: 0,
+        front_boosted_centering_laser_grade: 0,
+        front_boosted_corners_laser_grade: 0,
+        front_boosted_edges_laser_grade: 0,
+        front_boosted_surface_laser_grade: 0,
+        back_boosted_centering_laser_grade: 0,
+        back_boosted_corners_laser_grade: 0,
+        back_boosted_edges_laser_grade: 0,
+        back_boosted_surface_laser_grade: 0,
     },
 };
 
