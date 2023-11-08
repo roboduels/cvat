@@ -108,14 +108,17 @@ export interface TasksState {
         };
     };
     checkedTasks: Record<number | string, Task>;
-    pendingJobs: Record<string, {
-        status: any;
-        frame: any;
-        taskId: any;
-        certId: any;
-        orderId: any;
-        error?: any;
-    }>;
+    pendingJobs: Record<
+        string,
+        {
+            status: any;
+            frame: any;
+            taskId: any;
+            certId: any;
+            orderId: any;
+            error?: any;
+        }
+    >;
 }
 
 export interface ExportState {
@@ -569,8 +572,8 @@ export interface AnnotationState {
         filters: any[];
         resetGroupFlag: boolean;
         history: {
-            undo: [ string, number ][];
-            redo: [ string, number ][];
+            undo: [string, number][];
+            redo: [string, number][];
         };
         saving: {
             forceExit: boolean;
@@ -783,6 +786,14 @@ export interface GradesState {
         back_back_right_outer_right_inner_angle_diff: number;
         back_back_vertical_distance_diff: number;
         back_back_horizontal_distance_diff: number;
+        front_boosted_centering_laser_grade: number;
+        front_boosted_corners_laser_grade: number;
+        front_boosted_edges_laser_grade: number;
+        front_boosted_surface_laser_grade: number;
+        back_boosted_centering_laser_grade: number;
+        back_boosted_corners_laser_grade: number;
+        back_boosted_edges_laser_grade: number;
+        back_boosted_surface_laser_grade: number;
     };
 }
 
