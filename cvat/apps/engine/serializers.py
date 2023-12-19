@@ -1089,3 +1089,6 @@ class GradeParametersFromFileNameSerializer(serializers.Serializer):
 
 class CheckDuplicateCertificatesSerializer(serializers.Serializer):
     certificate_ids = serializers.CharField(required=True)
+
+class GradeParametersFromTaskNameSerializer(serializers.Serializer):
+    task_name = serializers.CharField(required=True)

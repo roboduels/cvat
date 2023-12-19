@@ -65,7 +65,7 @@ from cvat.apps.engine.serializers import (
     LogEventSerializer, ProjectSerializer, ProjectSearchSerializer,
     RqStatusSerializer, TaskSerializer, UserSerializer, PluginsSerializer, ReviewSerializer,
     CombinedReviewSerializer, IssueSerializer, CombinedIssueSerializer, CommentSerializer,
-    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, GradeParametersFromFileNameSerializer, CheckDuplicateCertificatesSerializer)
+    CloudStorageSerializer, BaseCloudStorageSerializer, TaskFileSerializer, ActivitySerializer, GradeParametersSerializer, GradeParametersFromFileNameSerializer, CheckDuplicateCertificatesSerializer, GradeParametersFromTaskNameSerializer)
 from cvat.apps.engine.utils import av_scan_paths, log_activity, log_annotation
 from utils.dataset_manifest import ImageManifestManager
 from . import models, task
@@ -1829,6 +1829,47 @@ class GradeParametersFromFileNameView(APIView):
             return HttpResponseNotFound(message)
         except Exception as e:
             return HttpResponseBadRequest(str(e))
+
+class GradeParametersFromTaskNameView(APIView):
+    def post(self, request):
+        try:
+            serializer = GradeParametersFromTaskNameSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                task_name = serializer.data.get("task_name")
+
+                # Get first task with a matching name
+                task = Task.objects.filter(name__icontains=task_name).first()
+                if task is None:
+                    return Response([])
+                data_id = task.data_id
+
+                # Get all images for the task
+                images = Image.objects.filter(data_id=data_id)
+                results = []
+                job = Job.objects.get(segment__task__data_id=data_id)
+                for image in images:
+                    filename = image.path
+                    image_path = f"data/data/{data_id}/raw/{filename}"
+                    width = image.width
+                    height = image.height
+                    orientation = "front" if "front".lower() in filename.lower() else "back"
+                    image_type = "cam"
+                    image_url = f"https://ags-cvat-storage.s3.us-west-2.amazonaws.com/{filename}"
+                    image_url_legacy = f"https://pokemon-statics.s3.amazonaws.com/media/{orientation}/{filename}"
+                    labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
+                    objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
+                    payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
+                    result = {"payload": payload, "orientation": orientation, "image_type": image_type, "image_path": image_path, "image_url": image_url, "image_url_legacy": image_url_legacy}
+                    results.append(result)
+
+                return Response(results)
+
+        except Image.DoesNotExist:
+            message = 'No suitable image found for the task name'
+            return HttpResponseNotFound(message)
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
+
 
 class CheckDuplicateCertificatesView(APIView):
     def post(self, request):
