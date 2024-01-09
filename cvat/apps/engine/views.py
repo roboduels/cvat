@@ -1810,12 +1810,26 @@ class GradeParametersFromFileNameView(APIView):
                     width = image.width
                     height = image.height
                     regex_match = re.match(r"^(.*?)[_+-]*([^_+-]*)[_+-]*(front|back)[_-](laser|cam)\.(.*)$", filename)
-                    order_id = regex_match[1]
-                    certificate_id = regex_match[2]
-                    orientation = regex_match[3]
-                    image_type = regex_match[4]
-                    image_url = f"https://ags-cvat-storage.s3.us-west-2.amazonaws.com/{order_id}-%2B{certificate_id}-%2B{orientation}_laser.png"
-                    image_url_legacy = f"https://pokemon-statics.s3.amazonaws.com/media/{orientation}/{certificate_id}_{orientation}.jpg"
+                    # Check if the regex pattern matches
+                    if regex_match:
+                        # If it matches, extract the details
+                        order_id = regex_match[1]
+                        certificate_id = regex_match[2]
+                        orientation = regex_match[3]
+                        image_type = regex_match[4]
+                    else:
+                        # If it doesn't match, handle accordingly
+                        order_id = None
+                        certificate_id = None
+                        image_type = None
+                        orientation = "front" if "front".lower() in filename.lower() else "back"
+                    if order_id and certificate_id:
+                        image_url = f"https://ags-cvat-storage.s3.us-west-2.amazonaws.com/{order_id}-%2B{certificate_id}-%2B{orientation}_laser.png"
+                        image_url_legacy = f"https://pokemon-statics.s3.amazonaws.com/media/{orientation}/{certificate_id}_{orientation}.jpg"
+                    else:
+                        # Handle URLs for filenames that don't match the pattern
+                        image_url = f"https://ags-cvat-storage.s3.us-west-2.amazonaws.com/{filename}"
+                        image_url_legacy = f"https://pokemon-statics.s3.amazonaws.com/media/{orientation}/{filename}"
                     labeled_shapes = LabeledShape.objects.select_related('label').filter(job_id=job.id, frame=image.frame)
                     objects = [{"points": labeled_shape.points, "label": labeled_shape.label.name, "shape": labeled_shape.type} for labeled_shape in labeled_shapes]
                     payload = {"filename": filename, "objects": objects, "image": {"width": width, "height": height}}
