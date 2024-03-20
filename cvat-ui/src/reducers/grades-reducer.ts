@@ -97,7 +97,13 @@ export default function (state: GradesState = defaultState, action: any): Grades
         case GradesActionsTypes.SET_LOADING:
             return { ...state, loading: action.payload.loading };
         case GradesActionsTypes.LOAD_VALUES:
-            return { ...state, values: action.payload.values };
+            return {
+                ...state,
+                values: {
+                    ...state.values,
+                    ...action.payload.values,
+                },
+            };
         case GradesActionsTypes.ASSIGN_VALUES:
             return {
                 ...state,
