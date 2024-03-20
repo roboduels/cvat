@@ -5,7 +5,7 @@ import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import notification from 'antd/lib/notification';
 import { ActionUnion, createAction, ThunkAction } from '../utils/redux';
 import { CombinedState, GradesState } from '../reducers/interfaces';
-import { calculateAllOverall, calculateOverall, getGradeNickname, mapGradeValue } from '../utils/grades';
+import { computeTotal, calculateOverall, getGradeNickname, mapGradeValue } from '../utils/grades';
 
 const certificateNotFound = (message: string): Error => new Error(`${message}, certificate number not found!`);
 const orientationNotFound = new Error('Cannot reload RoboGrades, orientation not found!');
@@ -509,15 +509,14 @@ export const submitHumanGradesAsync =
         const overallEdgesGrade = calculateOverall(values.front_edges_human_grade, values.back_edges_human_grade);
         const overallSurfaceGrade = calculateOverall(values.front_surface_human_grade, values.back_surface_human_grade);
 
-        const overallGrade = calculateAllOverall(
+        const overallGrade = computeTotal([
             overallCenteringGrade,
             overallCornersGrade,
             overallEdgesGrade,
             overallSurfaceGrade,
-        );
+        ]);
 
         const overallGradeNickname = getGradeNickname(overallGrade);
-
         try {
             dispatch(gradesActions.setLoading(true));
             notification.info({

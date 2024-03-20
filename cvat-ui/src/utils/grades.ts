@@ -1,3 +1,4 @@
+import { sum } from 'lodash';
 // Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: MIT
@@ -93,10 +94,14 @@ export function calculateOverall(front: number | string, back: number | string):
     return Math.round(value * 10) / 10;
 }
 
-export function calculateAllOverall(...values: (number | string)[]): number {
-    const sum = values.reduce((accum: number, value) => accum + mapGradeValue(value), 0);
-    return roundOverallGrade(sum / values.length);
-}
+// export function calculateAllOverall(...values: (number | string)[]): number {
+//     const sum = values.reduce((accum: number, value) => accum + mapGradeValue(value), 0);
+//     return roundOverallGrade(sum / values.length);
+// }
+
+export const computeTotal = (list: string[] | number[]): number => {
+    return (sum(list.map((value) => parseFloat(`${value || 0}`))) / list.length).toFixed(2);
+};
 
 export function getGradeNickname(value: number | string): string {
     const value$ = mapGradeValue(value);
