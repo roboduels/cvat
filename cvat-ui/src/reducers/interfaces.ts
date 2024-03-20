@@ -794,6 +794,8 @@ export interface GradesState {
         back_boosted_corners_laser_grade: number;
         back_boosted_edges_laser_grade: number;
         back_boosted_surface_laser_grade: number;
+        front_boosted_overall_from_subgrades: number;
+        back_boosted_overall_from_subgrades: number;
     };
 }
 

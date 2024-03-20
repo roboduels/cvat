@@ -56,8 +56,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const [computedHumanBackTotal, setComputedHumanBackTotal] = useState(0);
     const [computedRobogradesFrontTotal, setComputedRobogradesFrontTotal] = useState(0);
     const [computedRobogradesBackTotal, setComputedRobogradesBackTotal] = useState(0);
-    const [computedBoostedRobogradesFrontTotal, setComputedBoostedRobogradesFrontTotal] = useState(0);
-    const [computedBoostedRobogradesBackTotal, setComputedBoostedRobogradesBackTotal] = useState(0);
     const [computedRawRobogradesFrontTotal, setComputedRawRobogradesFrontTotal] = useState(0);
     const [computedRawRobogradesBackTotal, setComputedRawRobogradesBackTotal] = useState(0);
     const [computedLowestTotal, setComputedLowestTotal] = useState(0);
@@ -183,22 +181,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 formRef.current?.getFieldValue('back_surface_laser_grade'),
             ]),
         );
-        setComputedBoostedRobogradesFrontTotal(
-            computeTotal([
-                formRef.current?.getFieldValue('front_boosted_centering_laser_grade'),
-                formRef.current?.getFieldValue('front_boosted_edges_laser_grade'),
-                formRef.current?.getFieldValue('front_boosted_corners_laser_grade'),
-                formRef.current?.getFieldValue('front_boosted_surface_laser_grade'),
-            ]),
-        );
-        setComputedBoostedRobogradesBackTotal(
-            computeTotal([
-                formRef.current?.getFieldValue('back_boosted_centering_laser_grade'),
-                formRef.current?.getFieldValue('back_boosted_edges_laser_grade'),
-                formRef.current?.getFieldValue('back_boosted_corners_laser_grade'),
-                formRef.current?.getFieldValue('back_boosted_surface_laser_grade'),
-            ]),
-        );
         setComputedRawRobogradesFrontTotal(
             computeTotal([
                 formRef.current?.getFieldValue('front_raw_centering_grade'),
@@ -291,22 +273,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 values?.back_edges_laser_grade,
                 values?.back_corners_laser_grade,
                 values?.back_surface_laser_grade,
-            ]),
-        );
-        setComputedBoostedRobogradesFrontTotal(
-            computeTotal([
-                values?.front_boosted_centering_laser_grade,
-                values?.front_boosted_edges_laser_grade,
-                values?.front_boosted_corners_laser_grade,
-                values?.front_boosted_surface_laser_grade,
-            ]),
-        );
-        setComputedBoostedRobogradesBackTotal(
-            computeTotal([
-                values?.back_boosted_centering_laser_grade,
-                values?.back_boosted_edges_laser_grade,
-                values?.back_boosted_corners_laser_grade,
-                values?.back_boosted_surface_laser_grade,
             ]),
         );
         setComputedRawRobogradesFrontTotal(
@@ -408,9 +374,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         },
         {
             gradeType: 'Boosted Robogrades',
-            totalFront: computedBoostedRobogradesFrontTotal,
-            totalBack: computedBoostedRobogradesBackTotal,
-            totalOverall: computeTotalOverall(computedBoostedRobogradesFrontTotal, computedBoostedRobogradesBackTotal),
+            totalFront: values?.front_boosted_overall_from_subgrades,
+            totalBack: values?.back_boosted_overall_from_subgrades,
+            totalOverall: computeTotalOverall(
+                values?.front_boosted_overall_from_subgrades,
+                values?.back_boosted_overall_from_subgrades,
+            ),
         },
     ];
 
