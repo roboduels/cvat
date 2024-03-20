@@ -103,7 +103,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const handleUpdate = useCallback(async () => {
         const formValues = await formRef.current?.validateFields();
         if (formValues) {
-            dispatch(gradesActions.setGrades(formValues));
+            // dispatch(gradesActions.setGrades(formValues));
             dispatch(submitHumanGradesAsync(frameOptions.certificateId));
         }
     }, [frameOptions]);
