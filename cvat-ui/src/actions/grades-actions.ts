@@ -211,6 +211,12 @@ export const loadingGradesAsync =
                     back_boosted_corners_laser_grade: mapGradeValue(result?.laser_back_scan?.boosted_grades?.corner),
                     back_boosted_edges_laser_grade: mapGradeValue(result?.laser_back_scan?.boosted_grades?.edge),
                     back_boosted_surface_laser_grade: mapGradeValue(result?.laser_back_scan?.boosted_grades?.surface),
+                    front_boosted_overall_from_subgrades: mapGradeValue(
+                        result?.laser_front_scan?.boosted_grades?.overall_from_subgrades,
+                    ),
+                    back_boosted_overall_from_subgrades: mapGradeValue(
+                        result?.laser_back_scan?.boosted_grades?.overall_from_subgrades,
+                    ),
                 }),
             );
         } catch (error) {
@@ -346,6 +352,9 @@ export const submitAnnotationFrameToGradeAsync =
                         [`${input.orientation}_boosted_edges_laser_grade`]: mapGradeValue(data?.boosted_grades?.edge),
                         [`${input.orientation}_boosted_surface_laser_grade`]: mapGradeValue(
                             data?.boosted_grades?.surface,
+                        ),
+                        [`${input.orientation}_boosted_overall_from_subgrades`]: mapGradeValue(
+                            data?.boosted_grades?.overall_from_subgrades,
                         ),
                     }),
                 );
