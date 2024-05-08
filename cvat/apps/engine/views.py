@@ -488,6 +488,7 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
                         'tmp_file': filename,
                         'tmp_file_descriptor': fd,
                     },
+                    retry=django_rq.Retry(max=3, interval=[10, 60, 180])
                 )
 
             else:
@@ -565,7 +566,8 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
                 args=(pk, 'task_dump.zip'),
                 job_id=rq_id,
                 meta={'request_time': timezone.localtime()},
-                result_ttl=ttl, failure_ttl=ttl)
+                result_ttl=ttl, failure_ttl=ttl,
+                retry=django_rq.Retry(max=3, interval=[10, 60, 180]))
             return Response(status=status.HTTP_202_ACCEPTED)
 
         else:
@@ -1592,7 +1594,8 @@ def _import_annotations(request, rq_id, rq_func, pk, format_name):
             rq_job = queue.enqueue_call(
                 func=rq_func,
                 args=(pk, filename, format_name),
-                job_id=rq_id
+                job_id=rq_id,
+                retry=django_rq.Retry(max=3, interval=[10, 60, 180])
             )
             rq_job.meta['tmp_file'] = filename
             rq_job.meta['tmp_file_descriptor'] = fd
@@ -1686,7 +1689,8 @@ def _export_annotations(db_instance, rq_id, request, format_name, action, callba
     queue.enqueue_call(func=callback,
                        args=(db_instance.id, format_name, server_address), job_id=rq_id,
                        meta={'request_time': timezone.localtime()},
-                       result_ttl=ttl, failure_ttl=ttl)
+                       result_ttl=ttl, failure_ttl=ttl,
+                       retry=django_rq.Retry(max=3, interval=[10, 60, 180]))
     return Response(status=status.HTTP_202_ACCEPTED)
 
 
