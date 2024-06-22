@@ -29,7 +29,7 @@ import TaskPageContainer from 'containers/task-page/task-page';
 import ModelsPageContainer from 'containers/models-page/models-page';
 import AnnotationPageContainer from 'containers/annotation-page/annotation-page';
 import LoginPageContainer from 'containers/login-page/login-page';
-import RegisterPageContainer from 'containers/register-page/register-page';
+// import RegisterPageContainer from 'containers/register-page/register-page';
 import CloudStoragesPageComponent from 'components/cloud-storages-page/cloud-storages-page';
 import CreateCloudStoragePageComponent from 'components/create-cloud-storage-page/create-cloud-storage-page';
 import UpdateCloudStoragePageComponent from 'components/update-cloud-storage-page/update-cloud-storage-page';
@@ -99,9 +99,7 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
 
         verifyAuthorized();
 
-        const {
-            name, version, engine, os,
-        } = platformInfo();
+        const { name, version, engine, os } = platformInfo();
 
         if (showPlatformNotification()) {
             stopNotifications(false);
@@ -376,7 +374,7 @@ class CVATApplication extends React.PureComponent<CVATAppProps & RouteComponentP
             return (
                 <GlobalErrorBoundary>
                     <Switch>
-                        <Route exact path='/auth/register' component={RegisterPageContainer} />
+                        {/*<Route exact path='/auth/register' component={RegisterPageContainer} />*/}
                         <Route exact path='/auth/login' component={LoginPageContainer} />
                         <Route
                             exact
