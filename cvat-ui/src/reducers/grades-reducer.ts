@@ -29,6 +29,8 @@ const defaultState: GradesState = {
         back_surface_laser_grade: 0,
         front_overall_predicted_grade: 0,
         back_overall_predicted_grade: 0,
+        front_overall_from_subgrades: 0,
+        back_overall_from_subgrades: 0,
         front_raw_surface_minor_defect: [0, 0],
         front_raw_surface_major_defect: [0, 0],
         front_raw_edge_minor_defect: [0, 0],

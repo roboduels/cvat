@@ -740,6 +740,8 @@ export interface GradesState {
         back_surface_laser_grade: number;
         front_overall_predicted_grade: number;
         back_overall_predicted_grade: number;
+        front_overall_from_subgrades: number;
+        back_overall_from_subgrades: number;
         front_raw_surface_minor_defect: number[];
         front_raw_surface_major_defect: number[];
         front_raw_edge_minor_defect: number[];

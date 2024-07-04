@@ -54,8 +54,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
     const values = useSelector((state: CombinedState) => state.grades.values);
     const [computedHumanFrontTotal, setComputedHumanFrontTotal] = useState(0);
     const [computedHumanBackTotal, setComputedHumanBackTotal] = useState(0);
-    const [computedRobogradesFrontTotal, setComputedRobogradesFrontTotal] = useState(0);
-    const [computedRobogradesBackTotal, setComputedRobogradesBackTotal] = useState(0);
     const [computedRawRobogradesFrontTotal, setComputedRawRobogradesFrontTotal] = useState(0);
     const [computedRawRobogradesBackTotal, setComputedRawRobogradesBackTotal] = useState(0);
     const [computedLowestTotal, setComputedLowestTotal] = useState(0);
@@ -165,22 +163,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 formRef.current?.getFieldValue('back_surface_human_grade'),
             ]),
         );
-        setComputedRobogradesFrontTotal(
-            computeTotal([
-                formRef.current?.getFieldValue('front_centering_laser_grade'),
-                formRef.current?.getFieldValue('front_edges_laser_grade'),
-                formRef.current?.getFieldValue('front_corners_laser_grade'),
-                formRef.current?.getFieldValue('front_surface_laser_grade'),
-            ]),
-        );
-        setComputedRobogradesBackTotal(
-            computeTotal([
-                formRef.current?.getFieldValue('back_centering_laser_grade'),
-                formRef.current?.getFieldValue('back_edges_laser_grade'),
-                formRef.current?.getFieldValue('back_corners_laser_grade'),
-                formRef.current?.getFieldValue('back_surface_laser_grade'),
-            ]),
-        );
         setComputedRawRobogradesFrontTotal(
             computeTotal([
                 formRef.current?.getFieldValue('front_raw_centering_grade'),
@@ -257,22 +239,6 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                 values?.back_edges_human_grade,
                 values?.back_corners_human_grade,
                 values?.back_surface_human_grade,
-            ]),
-        );
-        setComputedRobogradesFrontTotal(
-            computeTotal([
-                values?.front_centering_laser_grade,
-                values?.front_edges_laser_grade,
-                values?.front_corners_laser_grade,
-                values?.front_surface_laser_grade,
-            ]),
-        );
-        setComputedRobogradesBackTotal(
-            computeTotal([
-                values?.back_centering_laser_grade,
-                values?.back_edges_laser_grade,
-                values?.back_corners_laser_grade,
-                values?.back_surface_laser_grade,
             ]),
         );
         setComputedRawRobogradesFrontTotal(
@@ -353,9 +319,12 @@ export function GradesForm({ task }: Props): JSX.Element | null {
         },
         {
             gradeType: 'Robogrades',
-            totalFront: computedRobogradesFrontTotal,
-            totalBack: computedRobogradesBackTotal,
-            totalOverall: computeTotalOverall(computedRobogradesFrontTotal, computedRobogradesBackTotal),
+            totalFront: values?.front_overall_from_subgrades,
+            totalBack: values?.back_overall_from_subgrades,
+            totalOverall: computeTotalOverall(
+                values?.front_overall_from_subgrades,
+                values?.back_overall_from_subgrades,
+            ),
         },
         {
             gradeType: 'Raw Robogrades',
