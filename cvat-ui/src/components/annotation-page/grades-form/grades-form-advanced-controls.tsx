@@ -52,10 +52,10 @@ function GradesFormAdvancedControls({
             </div>
             {isExpanded && (
                 <Space direction='vertical' style={{ width: '100%' }}>
-                    <Button disabled block /* onClick={onGenerateRobogradesAndMasks} */>
+                    <Button block onClick={onGenerateRobogradesAndMasks}>
                         Generate Robogrades & Masks
                     </Button>
-                    <Button disabled block /* onClick={onGenerateRawRobogrades} */>
+                    <Button block onClick={onGenerateRawRobogrades}>
                         Generate Raw Robogrades
                     </Button>
                     <div className='grades-form-info-typography'>

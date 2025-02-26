@@ -912,7 +912,7 @@ export function GradesForm({ task }: Props): JSX.Element | null {
                             <Button type='primary' onClick={handleUpdate} block>
                                 Update grades
                             </Button>
-                            <Button disabled block type='primary' /* onClick={handleRobogrades} */>
+                            <Button block type='primary' onClick={handleRobogrades}>
                                 Generate Robogrades
                             </Button>
                             <GradesFormAdvancedControls
