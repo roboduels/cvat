@@ -6,6 +6,8 @@ services:
       CVAT_SHARE_URL: 'Mounted from /s3-bucket host directory'
     volumes:
       - /s3-bucket:/home/django/share:ro
+    ports:
+      - "7000:8080"
 
 #volumes:
 #  cvat_share:
